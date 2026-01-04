@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-
 export const HeroSection = () => {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center bg-atmospheric overflow-hidden">
+  return <section className="relative min-h-screen flex items-center justify-center bg-atmospheric overflow-hidden">
       {/* Atmospheric gradient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-glow-accent/5 blur-[100px]" />
@@ -22,17 +20,14 @@ export const HeroSection = () => {
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light leading-[1.1] mb-8 animate-entrance delay-100">
             The Intelligence to{" "}
-            <span className="text-gradient">Outperform</span>.
+            <span className="text-gradient">Simplify</span>.
             <br />
             The Guidance to{" "}
-            <span className="text-gradient">Excel</span>.
+            <span className="text-gradient">IELTS</span>.
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 animate-entrance delay-200">
-            Where cutting-edge AI meets elite human expertise. Master every IELTS 
-            module with precision technology and personalized consultation.
-          </p>
+          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 animate-entrance delay-200">Where cutting-edge AI meets elite human expertise. Master every IELTS module with precision technology and personalized consultation.</p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-entrance delay-300">
@@ -58,7 +53,7 @@ export const HeroSection = () => {
                         <span className="text-accent font-medium text-sm">JD</span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">Welcome back, James</p>
+                        <p className="text-sm font-medium text-foreground">Welcome back, Dilan</p>
                         <p className="text-xs text-muted-foreground">Your Band Score Journey</p>
                       </div>
                     </div>
@@ -70,19 +65,28 @@ export const HeroSection = () => {
 
                   {/* Score Cards */}
                   <div className="grid grid-cols-4 gap-4 mb-6">
-                    {[
-                      { label: "Reading", score: "8.5", color: "accent" },
-                      { label: "Listening", score: "9.0", color: "accent" },
-                      { label: "Writing", score: "8.0", color: "glow-warm" },
-                      { label: "Speaking", score: "8.5", color: "accent" },
-                    ].map((item) => (
-                      <div key={item.label} className="glass-card p-4 text-center">
+                    {[{
+                    label: "Reading",
+                    score: "8.5",
+                    color: "accent"
+                  }, {
+                    label: "Listening",
+                    score: "9.0",
+                    color: "accent"
+                  }, {
+                    label: "Writing",
+                    score: "8.0",
+                    color: "glow-warm"
+                  }, {
+                    label: "Speaking",
+                    score: "8.5",
+                    color: "accent"
+                  }].map(item => <div key={item.label} className="glass-card p-4 text-center">
                         <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
                         <p className={`text-xl font-light ${item.color === 'accent' ? 'text-accent' : 'text-glow-warm'}`}>
                           {item.score}
                         </p>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
 
                   {/* Progress indicator */}
@@ -104,6 +108,5 @@ export const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
