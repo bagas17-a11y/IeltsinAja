@@ -14,7 +14,135 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      consultation_bookings: {
+        Row: {
+          consultant_name: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          notes: string | null
+          scheduled_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          consultant_name: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          scheduled_at: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          consultant_name?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          scheduled_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      practice_submissions: {
+        Row: {
+          ai_feedback: Json | null
+          audio_url: string | null
+          band_score: number | null
+          coherence_cohesion_score: number | null
+          content: string
+          created_at: string
+          grammatical_range_score: number | null
+          id: string
+          lexical_resource_score: number | null
+          module_type: string
+          task_achievement_score: number | null
+          transcription: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: Json | null
+          audio_url?: string | null
+          band_score?: number | null
+          coherence_cohesion_score?: number | null
+          content: string
+          created_at?: string
+          grammatical_range_score?: number | null
+          id?: string
+          lexical_resource_score?: number | null
+          module_type: string
+          task_achievement_score?: number | null
+          transcription?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: Json | null
+          audio_url?: string | null
+          band_score?: number | null
+          coherence_cohesion_score?: number | null
+          content?: string
+          created_at?: string
+          grammatical_range_score?: number | null
+          id?: string
+          lexical_resource_score?: number | null
+          module_type?: string
+          task_achievement_score?: number | null
+          transcription?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          current_listening_score: number | null
+          current_reading_score: number | null
+          current_speaking_score: number | null
+          current_writing_score: number | null
+          email: string | null
+          full_name: string | null
+          id: string
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          target_band_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          current_listening_score?: number | null
+          current_reading_score?: number | null
+          current_speaking_score?: number | null
+          current_writing_score?: number | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          target_band_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          current_listening_score?: number | null
+          current_reading_score?: number | null
+          current_speaking_score?: number | null
+          current_writing_score?: number | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          target_band_score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +151,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_tier: "free" | "pro" | "elite"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +278,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_tier: ["free", "pro", "elite"],
+    },
   },
 } as const

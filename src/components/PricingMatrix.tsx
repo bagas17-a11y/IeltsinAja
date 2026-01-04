@@ -1,60 +1,49 @@
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Crown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const plans = [
   {
-    name: "Basic",
-    price: "$29",
-    period: "/month",
-    description: "Essential AI-powered practice for self-starters",
-    features: [
-      "AI Reading Engine access",
-      "AI Listening Lab access",
-      "Progress analytics dashboard",
-      "5 practice tests per module",
-      "Email support",
-    ],
-    highlighted: false,
-    badge: null,
-  },
-  {
     name: "Pro",
-    price: "$79",
+    price: "IDR 300K",
     period: "/month",
-    description: "Complete AI suite with expert feedback",
+    description: "Complete AI suite for serious learners",
     features: [
-      "Everything in Basic",
-      "AI Writing Suite with feedback",
-      "1 full mock test monthly",
-      "Detailed score breakdown",
+      "Unlimited AI Reading Analysis",
+      "Full Listening Lab access",
+      "Instant AI Writing Band Scores",
+      "Voice-to-Text Speaking Practice",
+      "Progress analytics dashboard",
       "Priority support",
-      "Speaking practice module",
     ],
     highlighted: true,
     badge: "Recommended",
+    tier: "pro",
   },
   {
-    name: "Elite",
-    price: "$249",
+    name: "Road to 8.0+",
+    price: "IDR 1.5M",
     period: "/month",
     description: "Premium experience with personal consultation",
     features: [
       "Everything in Pro",
       "5 hours 1-on-1 consultation",
-      "Ex-examiner feedback sessions",
-      "Personalized study roadmap",
-      "Unlimited mock tests",
-      "Guaranteed score improvement",
+      "Senior Consultant Sessions",
+      "Bespoke Study Roadmap",
+      "Manual Examiner Essay Reviews",
+      "VIP Priority Support",
     ],
     highlighted: false,
     badge: "Limited Spots",
+    tier: "elite",
   },
 ];
 
 export const PricingMatrix = () => {
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -80,6 +69,10 @@ export const PricingMatrix = () => {
     return () => observer.disconnect();
   }, []);
 
+  const handleSubscribe = () => {
+    navigate("/auth");
+  };
+
   return (
     <section id="pricing" className="py-24 md:py-32 relative">
       <div className="container mx-auto px-6">
@@ -95,7 +88,7 @@ export const PricingMatrix = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
           {plans.map((plan, index) => {
             const isRevealed = revealedCards.has(index);
 
@@ -113,9 +106,14 @@ export const PricingMatrix = () => {
                   <div className="absolute -inset-0.5 bg-gradient-to-b from-accent/50 to-accent/20 rounded-2xl blur-sm -z-10" />
                 )}
 
+                {/* Elite gold glow */}
+                {plan.tier === "elite" && (
+                  <div className="absolute -inset-0.5 bg-gradient-to-b from-elite-gold/50 to-elite-gold/20 rounded-2xl blur-sm -z-10" />
+                )}
+
                 <div
                   className={`glass-card p-8 h-full flex flex-col ${
-                    plan.highlighted ? "border-accent/30" : ""
+                    plan.highlighted ? "border-accent/30" : plan.tier === "elite" ? "border-elite-gold/30" : ""
                   }`}
                 >
                   {/* Badge */}
@@ -124,11 +122,13 @@ export const PricingMatrix = () => {
                       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-6 w-fit ${
                         plan.badge === "Recommended"
                           ? "bg-accent/20 text-accent"
-                          : "bg-glow-warm/20 text-glow-warm"
+                          : "bg-elite-gold/20 text-elite-gold"
                       }`}
                     >
-                      {plan.badge === "Recommended" && (
+                      {plan.badge === "Recommended" ? (
                         <Sparkles className="w-3 h-3" />
+                      ) : (
+                        <Crown className="w-3 h-3" />
                       )}
                       {plan.badge}
                     </div>
@@ -167,10 +167,11 @@ export const PricingMatrix = () => {
                   {/* CTA Button */}
                   <Button
                     variant={plan.highlighted ? "neumorphicPrimary" : "glass"}
-                    className="w-full"
+                    className={`w-full ${plan.tier === "elite" ? "border-elite-gold/30 text-elite-gold hover:bg-elite-gold/10" : ""}`}
                     size="lg"
+                    onClick={handleSubscribe}
                   >
-                    {plan.name === "Elite" ? "Apply Now" : "Get Started"}
+                    Subscribe
                   </Button>
                 </div>
               </div>
