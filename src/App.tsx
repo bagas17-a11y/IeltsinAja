@@ -12,6 +12,8 @@ import ListeningModule from "./pages/dashboard/ListeningModule";
 import WritingModule from "./pages/dashboard/WritingModule";
 import SpeakingModule from "./pages/dashboard/SpeakingModule";
 import ConsultationHub from "./pages/dashboard/ConsultationHub";
+import BankTransfer from "./pages/BankTransfer";
+import PaymentVerification from "./pages/admin/PaymentVerification";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/payment" element={<BankTransfer />} />
+            <Route path="/admin/payments" element={<PaymentVerification />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/reading" element={<ReadingModule />} />
             <Route path="/dashboard/listening" element={<ListeningModule />} />

@@ -20,11 +20,12 @@ const plans = [
     highlighted: true,
     badge: "Recommended",
     tier: "pro",
+    planKey: "pro",
   },
   {
     name: "Road to 8.0+",
-    price: "IDR 1.5M",
-    period: "/month",
+    price: "IDR 2.5M",
+    period: "one-time",
     description: "Premium experience with personal consultation",
     features: [
       "Everything in Pro",
@@ -37,6 +38,7 @@ const plans = [
     highlighted: false,
     badge: "Limited Spots",
     tier: "elite",
+    planKey: "road_to_8",
   },
 ];
 
@@ -69,8 +71,8 @@ export const PricingMatrix = () => {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubscribe = () => {
-    navigate("/auth");
+  const handleSubscribe = (planKey: string) => {
+    navigate(`/payment?plan=${planKey}`);
   };
 
   return (
@@ -169,9 +171,9 @@ export const PricingMatrix = () => {
                     variant={plan.highlighted ? "neumorphicPrimary" : "glass"}
                     className={`w-full ${plan.tier === "elite" ? "border-elite-gold/30 text-elite-gold hover:bg-elite-gold/10" : ""}`}
                     size="lg"
-                    onClick={handleSubscribe}
+                    onClick={() => handleSubscribe(plan.planKey)}
                   >
-                    Subscribe
+                    {plan.planKey === "road_to_8" ? "Purchase" : "Subscribe"}
                   </Button>
                 </div>
               </div>
