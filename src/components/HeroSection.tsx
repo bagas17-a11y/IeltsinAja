@@ -31,8 +31,13 @@ export const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-entrance delay-300">
-            <Button variant="neumorphicPrimary" size="xl" className="group">
-              Begin Your Journey
+            <Button 
+              variant="neumorphicPrimary" 
+              size="xl" 
+              className="group"
+              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Get Started
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button variant="glass" size="xl">

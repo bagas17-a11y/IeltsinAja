@@ -76,6 +76,7 @@ export default {
           accent: "hsl(var(--glow-accent))",
           warm: "hsl(var(--glow-warm))",
         },
+        "elite-gold": "hsl(var(--elite-gold))",
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -1,25 +1,20 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-const navLinks = [{
-  label: "Reading",
-  href: "#reading"
-}, {
-  label: "Listening",
-  href: "#listening"
-}, {
-  label: "Writing",
-  href: "#writing"
-}, {
-  label: "Consultation",
-  href: "#consultation"
-}, {
-  label: "Pricing",
-  href: "#pricing"
-}];
+
+const navLinks = [
+  { label: "Reading", href: "#reading" },
+  { label: "Listening", href: "#listening" },
+  { label: "Writing", href: "#writing" },
+  { label: "Speaking", href: "#speaking" },
+  { label: "Pricing", href: "#pricing" },
+];
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -44,7 +39,7 @@ export const Header = () => {
 
           {/* CTA Button */}
           <div className="hidden lg:block">
-            <Button variant="neumorphicPrimary" size="sm">
+            <Button variant="neumorphicPrimary" size="sm" onClick={() => navigate("/auth")}>
               Start Free Trial
             </Button>
           </div>

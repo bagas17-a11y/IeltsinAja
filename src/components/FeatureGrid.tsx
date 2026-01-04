@@ -1,11 +1,11 @@
-import { BookOpen, Headphones, PenTool, Users } from "lucide-react";
+import { BookOpen, Headphones, PenTool, Mic } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const features = [
   {
     icon: BookOpen,
     title: "Reading",
-    subtitle: "Contextual Pattern Recognition",
+    subtitle: "AI Insights",
     description:
       "AI-powered analysis identifies key patterns and logic structures in IELTS passages, teaching you to decode any text systematically.",
     color: "accent",
@@ -13,7 +13,7 @@ const features = [
   {
     icon: Headphones,
     title: "Listening",
-    subtitle: "Adaptive Audio Environments",
+    subtitle: "Audio Immersive",
     description:
       "Immersive practice with real accents—British, Australian, American—plus AI gap analysis to target your weakest areas.",
     color: "accent",
@@ -21,18 +21,18 @@ const features = [
   {
     icon: PenTool,
     title: "Writing",
-    subtitle: "Strategic Linguistic Feedback",
+    subtitle: "Examiner Logic",
     description:
       "Compare your essays to Band 9 models in real-time. Our AI highlights structural gaps while consultants perfect your voice.",
-    color: "glow-warm",
+    color: "elite-gold",
   },
   {
-    icon: Users,
-    title: "Consulting",
-    subtitle: "1-on-1 Examiner Precision",
+    icon: Mic,
+    title: "Speaking",
+    subtitle: "Voice AI",
     description:
-      "Connect with ex-IELTS examiners who understand scoring criteria intimately. Break through the Band 7 ceiling with personalized guidance.",
-    color: "glow-warm",
+      "Practice with AI-powered voice analysis. Get instant feedback on fluency, vocabulary variety, and filler word usage.",
+    color: "elite-gold",
   },
 ];
 
@@ -98,7 +98,7 @@ export const FeatureGrid = () => {
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 ${
                     feature.color === "accent"
                       ? "bg-accent/10 text-accent"
-                      : "bg-glow-warm/10 text-glow-warm"
+                      : "bg-elite-gold/10 text-elite-gold"
                   }`}
                 >
                   <Icon className="w-6 h-6" />
@@ -110,7 +110,7 @@ export const FeatureGrid = () => {
                 </h3>
                 <p
                   className={`text-sm font-medium mb-4 ${
-                    feature.color === "accent" ? "text-accent" : "text-glow-warm"
+                    feature.color === "accent" ? "text-accent" : "text-elite-gold"
                   }`}
                 >
                   {feature.subtitle}
@@ -122,7 +122,7 @@ export const FeatureGrid = () => {
                 {/* Hover accent line */}
                 <div
                   className={`h-0.5 w-0 group-hover:w-16 mt-6 transition-all duration-500 ${
-                    feature.color === "accent" ? "bg-accent" : "bg-glow-warm"
+                    feature.color === "accent" ? "bg-accent" : "bg-elite-gold"
                   }`}
                 />
               </div>
