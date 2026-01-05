@@ -16,6 +16,7 @@ import BankTransfer from "./pages/BankTransfer";
 import PaymentVerification from "./pages/admin/PaymentVerification";
 import AdminVerify from "./pages/admin/AdminVerify";
 import ContentManager from "./pages/admin/ContentManager";
+import ListeningManager from "./pages/admin/ListeningManager";
 import Admin from "./pages/Admin";
 import WaitingRoom from "./pages/WaitingRoom";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/admin/payments" element={<PaymentVerification />} />
             <Route path="/admin/verify" element={<AdminVerify />} />
             <Route path="/admin/content" element={<ContentManager />} />
+            <Route path="/admin/listening" element={<ListeningManager />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/reading" element={<ReadingModule />} />

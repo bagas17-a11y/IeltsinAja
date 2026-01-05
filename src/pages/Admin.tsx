@@ -30,7 +30,8 @@ import {
   AlertCircle,
   Loader2,
   RefreshCw,
-  BookOpen
+  BookOpen,
+  Headphones
 } from "lucide-react";
 import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -327,7 +328,11 @@ export default function Admin() {
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => navigate("/admin/content")} className="gap-2">
               <BookOpen className="w-4 h-4" />
-              Content Manager
+              Writing
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/admin/listening")} className="gap-2">
+              <Headphones className="w-4 h-4" />
+              Listening
             </Button>
             <Button variant="outline" onClick={fetchData} disabled={isLoadingData}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingData ? 'animate-spin' : ''}`} />
