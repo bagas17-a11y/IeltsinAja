@@ -47,6 +47,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ielts_library: {
+        Row: {
+          ai_secret_context: string | null
+          created_at: string
+          created_by: string | null
+          difficulty: string | null
+          id: string
+          is_active: boolean | null
+          model_answer_band9: string | null
+          question_image_url: string | null
+          question_prompt: string
+          target_keywords: string | null
+          task_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_secret_context?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string | null
+          id?: string
+          is_active?: boolean | null
+          model_answer_band9?: string | null
+          question_image_url?: string | null
+          question_prompt: string
+          target_keywords?: string | null
+          task_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_secret_context?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string | null
+          id?: string
+          is_active?: boolean | null
+          model_answer_band9?: string | null
+          question_image_url?: string | null
+          question_prompt?: string
+          target_keywords?: string | null
+          task_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_verifications: {
         Row: {
           admin_notes: string | null
