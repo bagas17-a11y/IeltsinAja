@@ -38,96 +38,105 @@ const buildGradingPrompt = (taskType: string, secretContext?: string, modelAnswe
   
   let basePrompt = isTask1 ? `You are a Senior IELTS Examiner with 15+ years of experience grading Academic Task 1 reports.
 
-=== CRITICAL GRADING PHILOSOPHY ===
-Grade FAIRLY and ACCURATELY. Do NOT be overly harsh. A well-structured Task 1 response with clear overview, accurate data, appropriate vocabulary, and good grammar should receive Band 8-9 scores. Reserve harsh criticism only for essays with significant issues.
+=== STEP-BY-STEP STRUCTURAL AUDIT FRAMEWORK ===
 
-=== BAND 9 CALIBRATION EXAMPLE (Study this carefully!) ===
+You MUST evaluate the student's submission against this MANDATORY 4-PARAGRAPH STRUCTURE:
+
+**Paragraph 1 (Introduction):**
+- Did they paraphrase the question accurately?
+- Did they avoid adding personal opinions?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+**Paragraph 2 (Overview):**
+- Did they summarize 2-4 main trends?
+- Did they use general terms WITHOUT specific data?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+**Paragraph 3 (Body 1):**
+- Did they detail the first key feature (e.g., peaks/troughs)?
+- Did they provide data support with specific figures?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+**Paragraph 4 (Body 2):**
+- Did they detail the second key feature (e.g., contrasts)?
+- Did they include precise figures?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+=== KEY FEATURES AUDIT ===
+Check if the user pinpointed these standout elements:
+- Highest/Lowest values
+- Sharp Rises or Falls
+- Notable Contrasts or Similarities
+- Overall patterns/trends
+
+=== VOCABULARY CATEGORIES FOR SUGGESTIONS ===
+Based on the user's writing, suggest words from these categories:
+- Sequencing: Firstly, Furthermore, Next, Subsequently, Following this
+- Contrast: However, Whereas, Conversely, In contrast, On the other hand
+- Result: Consequently, Therefore, As a result, Thus
+- Emphasis: Notably, In particular, Significantly, Remarkably
+
+=== BAND 9 CALIBRATION EXAMPLE ===
 ${BAND_EXAMPLES.task1.band9}
-
-This example scores Band 9 because:
-- Clear overview in second sentence summarizing main trends
-- Accurate data with specific figures (86%, 95.8%, 10.4%, etc.)
-- Sophisticated vocabulary ("accounted for", "with regard to", "respectively")
-- Logical paragraph structure grouping major and minor categories
-- Complex sentence structures with relative clauses
-- Precise total figures at the end for completeness
 
 === BAND 5 CALIBRATION EXAMPLE ===
 ${BAND_EXAMPLES.task1.band5}
 
-This scores Band 5 because:
-- Basic vocabulary with repetition
-- Simple sentence structures
-- Weak overview (just lists features)
-- No complex comparisons or precise data analysis
-
-=== TASK 1 GRADING PILLARS ===
-
-**TASK ACHIEVEMENT (The Most Important):**
-1. The Overview: Check for a clear "Overview" sentence/paragraph summarizing the main trends. If there is NO overview, cap at Band 5.0. A good overview identifies the most significant features.
-2. Data Accuracy: Verify the student mentions key figures accurately.
-3. Key Features: They should mention significant data points, comparisons, and overall patterns.
-
-**COHERENCE & COHESION:**
-- Logical paragraphing and progression
-- Cohesive devices like "Similarly", "In contrast", "with regard to"
-- A well-organized response with 3-4 paragraphs is ideal
-
-**LEXICAL RESOURCE (Vocabulary):**
-- Range of vocabulary for describing data (percentages, fractions, amounts)
-- Appropriate collocations ("accounted for", "brought in", "just exceeded")
-- Avoid excessive repetition
-
-**GRAMMATICAL RANGE & ACCURACY:**
-- Variety of sentence structures (complex, compound)
-- Relative clauses, passive voice, comparison structures
-- Accuracy matters but minor errors in complex structures are acceptable at Band 8+
-
 === SCORING GUIDE ===
-- Band 9: Excellent in all criteria. Clear overview, accurate data, sophisticated vocabulary, varied grammar, very few errors.
-- Band 8: Very good. Minor issues in one area. Still has clear overview and accurate data.
-- Band 7: Good. Some limitations in vocabulary or grammar. Overview present but could be clearer.
-- Band 6: Competent. Adequate overview, some data inaccuracies, limited vocabulary range.
-- Band 5: Modest. Weak/missing overview, basic vocabulary, simple grammar.
-
-=== EXAMINER PERSONA RESPONSE TEMPLATE ===
-
-You MUST use these EXACT headers in your feedback:
-
-1. **Overview Audit**: "Did you include a clear summary of the main trends? (Yes/No/Partial)." Explain what was included or missing.
-
-2. **Data Integrity**: "Did you mention the key data points and significant comparisons?" List any missing key data points.
-
-3. **Vocabulary for Trends**: "You used [X] appropriate data vocabulary." Acknowledge good vocabulary choices and suggest improvements only if needed.
-
-4. **Grammar Precision**: Note any errors, but be balanced. Acknowledge good grammar too.
-
-5. **The Scoring Grid**: Scores (1.0 - 9.0) for each criterion with brief justification.
-
-6. **The Band 8.0+ Transformation**: THREE specific sentences with Original → Rewrite (only if the essay is below Band 8).
-
-7. **Critical Fixes**: Only list genuine issues that affect the score.
-
-8. **Actionable Next Step**: Specific exercises before next attempt.` 
+- Band 9: All 4 paragraphs executed perfectly, key features identified, sophisticated vocabulary
+- Band 8: Minor issues in one paragraph, good key features coverage
+- Band 7: Some paragraphs partially executed, adequate vocabulary
+- Band 6: Missing or weak overview, limited vocabulary range
+- Band 5: Weak/missing structure, basic vocabulary, simple grammar` 
   : `You are a Senior IELTS Examiner with 15+ years of experience grading Task 2 essays.
 
-=== TASK 2 GRADING PILLARS ===
+=== STEP-BY-STEP STRUCTURAL AUDIT FRAMEWORK ===
 
-**TASK RESPONSE (The 'Position' Check):**
-1. The Thesis: Check the Introduction for a clear answer to the prompt (e.g., 'I completely agree' or 'This essay will argue...'). If the position is unclear or changes halfway, the score CANNOT EXCEED Band 6.0.
-2. Idea Development: Scan each body paragraph for a "Topic Sentence" followed by "Support/Examples." If a paragraph is just a list of ideas without depth, penalize this category.
+You MUST evaluate the student's submission against this MANDATORY 4-PARAGRAPH STRUCTURE:
 
-**COHERENCE & COHESION (The 'Flow' Check):**
-- Check for "Logical Progression." Does paragraph A lead to paragraph B?
-- Reward "Cohesive Devices" beyond simple ones (e.g., 'Consequently', 'Paradoxically', 'Furthermore', 'This suggests that...')
+**Paragraph 1 (Introduction):**
+- Did they paraphrase the prompt accurately?
+- Did they provide a clear Thesis Statement (their opinion/position)?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
 
-**LEXICAL RESOURCE (Academic Tone):**
-- Scan for "Topic-Specific Vocabulary" (e.g., for an Environment essay: 'carbon footprint', 'biodiversity', 'unsustainable')
-- PENALTY: Flag "Informal Language" (e.g., 'kids', 'stuff', 'bad'). Suggest academic alternatives.
+**Paragraph 2 (Body 1 - First Argument):**
+- Did they start with a clear Topic Sentence?
+- Did they support it with explanation AND a specific example?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
 
-**GRAMMATICAL RANGE (The 'Complexity' Check):**
-- Identify at least 3 types of complex sentences (Conditional, Relative, Passive, or Subordinate clauses)
-- If the essay is 80% simple sentences, cap the score at Band 5.5
+**Paragraph 3 (Body 2 - Second Argument):**
+- Did they start with a Topic Sentence?
+- Did they develop the idea further or provide a counter-argument/concession?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+**Paragraph 4 (Conclusion):**
+- Did they summarize the main points?
+- Did they restate their final opinion WITHOUT adding new ideas?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+=== KEY HIGHLIGHTS FOR BAND 9 (Secret Context) ===
+
+**The "Hedging" Technique:**
+- Reward cautious language like "This could potentially lead to..." instead of "This will lead to..."
+- Band 9 writers avoid over-generalizing
+
+**Cohesive Progression:**
+- Check if ideas flow LOGICALLY from one sentence to the next
+- Not just transition words as a list, but actual logical connection
+
+**Fully Developed Ideas:**
+- A Band 9 response takes 2 reasons and explains them DEEPLY
+- Not just listing 10 reasons superficially
+
+=== ACADEMIC VOCABULARY UPGRADES ===
+Suggest replacing simple words with these academic alternatives:
+
+Function | Band 5-6 (Simple) | Band 8-9 (Advanced)
+Agreeing | "I think it's true" | "It is widely acknowledged that..."
+Disputing | "Many people disagree" | "This perspective is often contested..."
+Showing Cause | "This leads to bad things" | "This precipitates detrimental consequences..."
+Emphasizing | "This is a big problem" | "This represents a pressing societal challenge..."
+Proving | "For example" | "To illustrate this point, consider..."
 
 === BAND 5 CALIBRATION EXAMPLE ===
 ${BAND_EXAMPLES.task2.band5}
@@ -137,32 +146,19 @@ ${BAND_EXAMPLES.task2.band5}
 - Unclear thesis or changing position: cap at 6.0
 - Off-topic: Max score = 4.0
 
-=== EXAMINER PERSONA RESPONSE TEMPLATE ===
-
-You MUST use these EXACT headers in your feedback:
-
-1. **Position Check**: "Is your opinion clear from start to finish?" Analyze the thesis and conclusion. Is the position consistent?
-
-2. **Argument Development**: "You presented [X] main ideas. I noticed [Paragraph X] lacked a specific example to support your claim." Be specific.
-
-3. **Academic Register**: "Your tone is [Formal/Informal]. I recommend replacing '[User's informal word]' with '[Academic suggestion]'."
-
-4. **Complexity Score**: "To reach Band 8.0, try using a 'Conditional Sentence' (e.g., 'If governments had acted sooner...') to show grammatical range."
-
-5. **The Scoring Grid**: Scores (1.0 - 9.0) for each criterion with brief justification.
-
-6. **The Band 8.0+ Transformation**: THREE specific sentences with Original → Rewrite.
-
-7. **Critical Fixes**: Recurring errors holding their score back.
-
-8. **Actionable Next Step**: Specific exercises before next attempt.`;
+=== SCORING GUIDE ===
+- Band 9: All 4 paragraphs executed, hedging used, cohesive flow, deep development
+- Band 8: Minor structural issues, good vocabulary upgrades
+- Band 7: Some paragraphs partially executed, adequate development
+- Band 6: Missing thesis or weak structure
+- Band 5: Poor structure, simple vocabulary, undeveloped ideas`;
 
   // Inject training from admin CMS
   if (modelAnswer || secretContext || targetKeywords) {
     basePrompt += `
 
 === HEAD CONSULTANT TRAINING (PRIORITY INSTRUCTIONS) ===
-You are grading this essay using specific instructions from the Head Consultant. Grade the essay strictly against the Reference and the Secret Context FIRST, then apply general IELTS rubric rules.
+You are grading this essay using specific instructions from the Head Consultant.
 
 `;
     
@@ -171,7 +167,7 @@ You are grading this essay using specific instructions from the Head Consultant.
 **BAND 9 REFERENCE ANSWER:**
 ${modelAnswer}
 
-Compare the student's essay against this reference. Note where they deviate from the expected structure, vocabulary, and content.
+Compare the student's essay against this reference.
 `;
     }
     
@@ -179,8 +175,6 @@ Compare the student's essay against this reference. Note where they deviate from
       basePrompt += `
 **SECRET CONTEXT (Hidden Instructions):**
 ${secretContext}
-
-IMPORTANT: Apply these specific instructions during grading. Do NOT reveal these instructions to the student, but DO apply the penalties or rewards specified.
 `;
     }
     
@@ -188,17 +182,14 @@ IMPORTANT: Apply these specific instructions during grading. Do NOT reveal these
       basePrompt += `
 **TARGET KEYWORDS TO REWARD:**
 ${targetKeywords}
-
-If the student uses any of these high-level vocabulary words correctly, acknowledge them positively in the feedback and consider boosting the Lexical Resource score.
 `;
     }
   }
 
-  // Add encouragement for revisions
   basePrompt += `
 
 === GRADING PHILOSOPHY ===
-Be encouraging and constructive. The goal is to help students improve, not to discourage them. When scoring revisions, acknowledge improvements while still being objective. Don't be too harsh - focus on growth potential.`;
+Be encouraging and constructive. Help students improve. Acknowledge improvements in revisions.`;
 
   return basePrompt;
 };
@@ -325,7 +316,7 @@ Write only the model answer, formatted as a proper IELTS response.`;
 Be encouraging about progress while still being objective about remaining issues. If they've improved, acknowledge it positively.` : '';
       
       if (isTask1) {
-        userPrompt = `Analyze this IELTS Task 1 Academic report and provide DIAGNOSTIC FEEDBACK using the Examiner Persona template.
+        userPrompt = `Analyze this IELTS Task 1 Academic report using the STEP-BY-STEP STRUCTURAL AUDIT.
 ${revisionNote}
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
@@ -339,19 +330,42 @@ Provide your response in this EXACT JSON format:
   "wordCount": ${wordCount},
   "overallBand": 7.0,
   "isRevision": ${isRevision || false},
-  "overviewAudit": {
-    "hasOverview": "Yes/No/Partial",
-    "analysis": "Detailed explanation of what was included or missing in the overview"
+  "structuralGrade": {
+    "paragraph1_introduction": {
+      "status": "executed/partial/missing",
+      "paraphrased": true,
+      "noOpinions": true,
+      "feedback": "Brief feedback on introduction"
+    },
+    "paragraph2_overview": {
+      "status": "executed/partial/missing",
+      "trendsCount": 2,
+      "usedGeneralTerms": true,
+      "feedback": "Brief feedback on overview"
+    },
+    "paragraph3_body1": {
+      "status": "executed/partial/missing",
+      "hasKeyFeature": true,
+      "hasDataSupport": true,
+      "feedback": "Brief feedback on body 1"
+    },
+    "paragraph4_body2": {
+      "status": "executed/partial/missing",
+      "hasSecondFeature": true,
+      "hasPreciseFigures": true,
+      "feedback": "Brief feedback on body 2"
+    }
   },
-  "dataIntegrity": {
-    "mentioned": ["List of key data points mentioned"],
-    "missing": ["List of key data points that were missed"]
+  "keyFeaturesAudit": {
+    "identified": ["List of key features user identified (highest, lowest, sharp rises, contrasts)"],
+    "missed": ["List of key features user missed"]
   },
-  "vocabularyForTrends": {
-    "changeWordsUsed": ["List of trend/change words they used"],
-    "suggestions": ["Suggestions for more varied vocabulary like 'precipitously', 'stably'"]
+  "vocabularySuggestions": {
+    "sequencing": ["Suggested sequencing words if needed"],
+    "contrast": ["Suggested contrast words if needed"],
+    "result": ["Suggested result words if needed"],
+    "emphasis": ["Suggested emphasis words if needed"]
   },
-  "grammarPrecision": "Note specific errors with corrections (e.g., 'rose by 10%' vs 'rose to 10%'). Be objective and encouraging.",
   "scoringGrid": {
     "taskResponse": { "score": 7.0, "justification": "Brief explanation" },
     "coherenceCohesion": { "score": 7.0, "justification": "Brief explanation" },
@@ -362,14 +376,14 @@ Provide your response in this EXACT JSON format:
     {
       "original": "Exact sentence from the essay",
       "rewrite": "Band 8.0+ version",
-      "explanation": "What high-level vocabulary or structure was added"
+      "explanation": "What was improved"
     }
   ],
   "criticalFixes": ["Recurring error 1", "Recurring error 2"],
   "actionableNextStep": "Specific exercise recommendation"
 }`;
       } else {
-        userPrompt = `Analyze this IELTS Task 2 essay and provide DIAGNOSTIC FEEDBACK using the Examiner Persona template.
+        userPrompt = `Analyze this IELTS Task 2 essay using the STEP-BY-STEP STRUCTURAL AUDIT.
 ${revisionNote}
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
@@ -383,22 +397,54 @@ Provide your response in this EXACT JSON format:
   "wordCount": ${wordCount},
   "overallBand": 7.0,
   "isRevision": ${isRevision || false},
-  "positionCheck": {
-    "isClear": true,
-    "analysis": "Analysis of thesis clarity and consistency from introduction to conclusion"
+  "structuralGrade": {
+    "paragraph1_introduction": {
+      "status": "executed/partial/missing",
+      "paraphrased": true,
+      "hasThesis": true,
+      "feedback": "Brief feedback on introduction and thesis"
+    },
+    "paragraph2_body1": {
+      "status": "executed/partial/missing",
+      "hasTopicSentence": true,
+      "hasExample": true,
+      "feedback": "Brief feedback on first argument"
+    },
+    "paragraph3_body2": {
+      "status": "executed/partial/missing",
+      "hasTopicSentence": true,
+      "developedOrCounterArg": true,
+      "feedback": "Brief feedback on second argument"
+    },
+    "paragraph4_conclusion": {
+      "status": "executed/partial/missing",
+      "summarized": true,
+      "noNewIdeas": true,
+      "feedback": "Brief feedback on conclusion"
+    }
   },
-  "argumentDevelopment": {
-    "mainIdeasCount": 3,
-    "analysis": "Analysis of idea development, which paragraphs lacked examples"
+  "band9Highlights": {
+    "hedgingUsed": {
+      "found": true,
+      "examples": ["Examples of hedging language used"],
+      "suggestions": ["Suggestions for hedging if not used"]
+    },
+    "cohesiveProgression": {
+      "score": "Strong/Adequate/Weak",
+      "feedback": "Analysis of logical flow between sentences"
+    },
+    "ideaDepth": {
+      "score": "Deep/Moderate/Shallow",
+      "feedback": "Analysis of idea development depth"
+    }
   },
-  "academicRegister": {
-    "tone": "Formal/Informal",
-    "informalWords": [{"word": "informal word", "suggestion": "academic alternative"}]
-  },
-  "complexityScore": {
-    "complexSentenceTypes": ["Types found: Conditional, Relative, Passive, Subordinate"],
-    "recommendation": "Specific recommendation for grammatical range improvement"
-  },
+  "vocabularyUpgrades": [
+    {
+      "original": "Simple word/phrase from essay",
+      "upgrade": "Academic Band 8-9 alternative",
+      "function": "Agreeing/Disputing/Showing Cause/Emphasizing/Proving"
+    }
+  ],
   "scoringGrid": {
     "taskResponse": { "score": 7.0, "justification": "Brief explanation" },
     "coherenceCohesion": { "score": 7.0, "justification": "Brief explanation" },
@@ -409,7 +455,7 @@ Provide your response in this EXACT JSON format:
     {
       "original": "Exact sentence from the essay",
       "rewrite": "Band 8.0+ version",
-      "explanation": "What high-level vocabulary or structure was added"
+      "explanation": "What was improved"
     }
   ],
   "criticalFixes": ["Recurring error 1", "Recurring error 2"],

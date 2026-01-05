@@ -264,6 +264,34 @@ export default function WritingModule() {
     </div>
   );
 
+  const StructuralGradeItem = ({ label, status, checks, feedback }: { 
+    label: string; 
+    status: string; 
+    checks: { label: string; passed: boolean }[];
+    feedback: string;
+  }) => (
+    <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        {status === "executed" ? (
+          <span className="flex items-center gap-1 text-xs text-green-500"><CheckCircle className="w-3 h-3" /> Executed</span>
+        ) : status === "partial" ? (
+          <span className="flex items-center gap-1 text-xs text-yellow-500"><AlertTriangle className="w-3 h-3" /> Partial</span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs text-red-500"><XCircle className="w-3 h-3" /> Missing</span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 mb-2">
+        {checks.map((check, i) => (
+          <span key={i} className={`text-xs px-2 py-0.5 rounded ${check.passed ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+            {check.passed ? '✓' : '✗'} {check.label}
+          </span>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">{feedback}</p>
+    </div>
+  );
+
   const FeedbackDisplay = ({ feedbackData, isRevisionFeedback = false }: { feedbackData: any; isRevisionFeedback?: boolean }) => (
     <div className="space-y-6">
       {isRevisionFeedback && (
@@ -286,137 +314,6 @@ export default function WritingModule() {
         </div>
       )}
 
-      {/* Task 1 Specific Feedback */}
-      {isTask1 && feedbackData.overviewAudit && (
-        <>
-          <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-            <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-accent" />
-              Overview Audit
-            </h3>
-            <div className="flex items-center gap-2 mb-2">
-              {feedbackData.overviewAudit.hasOverview === "Yes" ? (
-                <CheckCircle className="w-4 h-4 text-green-500" />
-              ) : feedbackData.overviewAudit.hasOverview === "Partial" ? (
-                <AlertTriangle className="w-4 h-4 text-yellow-500" />
-              ) : (
-                <XCircle className="w-4 h-4 text-red-500" />
-              )}
-              <span className="text-sm">{feedbackData.overviewAudit.hasOverview}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">{feedbackData.overviewAudit.analysis}</p>
-          </div>
-
-          {feedbackData.dataIntegrity && (
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-              <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-accent" />
-                Data Integrity
-              </h3>
-              {feedbackData.dataIntegrity.missing?.length > 0 && (
-                <div className="mb-2">
-                  <span className="text-xs text-red-400">Missing data points:</span>
-                  <ul className="mt-1 space-y-1">
-                    {feedbackData.dataIntegrity.missing.map((item: string, i: number) => (
-                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-1">
-                        <XCircle className="w-3 h-3 text-red-400 flex-shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {feedbackData.vocabularyForTrends && (
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-              <h3 className="text-sm font-medium text-foreground mb-2">Vocabulary for Trends</h3>
-              <div className="mb-2">
-                <span className="text-xs text-muted-foreground">Change words used: </span>
-                <span className="text-xs text-accent">{feedbackData.vocabularyForTrends.changeWordsUsed?.join(", ") || "None detected"}</span>
-              </div>
-              {feedbackData.vocabularyForTrends.suggestions?.length > 0 && (
-                <div>
-                  <span className="text-xs text-green-400">Try these: </span>
-                  <span className="text-xs text-muted-foreground">{feedbackData.vocabularyForTrends.suggestions.join(", ")}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {feedbackData.grammarPrecision && (
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-              <h3 className="text-sm font-medium text-foreground mb-2">Grammar Precision</h3>
-              <p className="text-xs text-muted-foreground">{feedbackData.grammarPrecision}</p>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Task 2 Specific Feedback */}
-      {!isTask1 && feedbackData.positionCheck && (
-        <>
-          <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-            <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-              <Target className="w-4 h-4 text-accent" />
-              Position Check
-            </h3>
-            <div className="flex items-center gap-2 mb-2">
-              {feedbackData.positionCheck.isClear ? (
-                <CheckCircle className="w-4 h-4 text-green-500" />
-              ) : (
-                <XCircle className="w-4 h-4 text-red-500" />
-              )}
-              <span className="text-sm">{feedbackData.positionCheck.isClear ? "Clear" : "Unclear"}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">{feedbackData.positionCheck.analysis}</p>
-          </div>
-
-          {feedbackData.argumentDevelopment && (
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-              <h3 className="text-sm font-medium text-foreground mb-2">Argument Development</h3>
-              <p className="text-xs text-muted-foreground mb-1">
-                Main ideas presented: <span className="text-accent">{feedbackData.argumentDevelopment.mainIdeasCount}</span>
-              </p>
-              <p className="text-xs text-muted-foreground">{feedbackData.argumentDevelopment.analysis}</p>
-            </div>
-          )}
-
-          {feedbackData.academicRegister && (
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-              <h3 className="text-sm font-medium text-foreground mb-2">Academic Register</h3>
-              <p className="text-xs text-muted-foreground mb-2">
-                Tone: <span className={feedbackData.academicRegister.tone === "Formal" ? "text-green-400" : "text-yellow-400"}>
-                  {feedbackData.academicRegister.tone}
-                </span>
-              </p>
-              {feedbackData.academicRegister.informalWords?.length > 0 && (
-                <div className="space-y-1">
-                  {feedbackData.academicRegister.informalWords.map((item: any, i: number) => (
-                    <p key={i} className="text-xs">
-                      <span className="text-red-400">"{item.word}"</span>
-                      <span className="text-muted-foreground"> → </span>
-                      <span className="text-green-400">"{item.suggestion}"</span>
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {feedbackData.complexityScore && (
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-              <h3 className="text-sm font-medium text-foreground mb-2">Complexity Score</h3>
-              <p className="text-xs text-muted-foreground mb-1">
-                Complex sentences found: {feedbackData.complexityScore.complexSentenceTypes?.join(", ") || "None"}
-              </p>
-              <p className="text-xs text-accent">{feedbackData.complexityScore.recommendation}</p>
-            </div>
-          )}
-        </>
-      )}
-
       {/* Overall Score */}
       <div className="flex items-center justify-center py-4">
         <div className="text-center">
@@ -426,6 +323,230 @@ export default function WritingModule() {
           <p className="text-sm text-muted-foreground">Overall Band Score</p>
         </div>
       </div>
+
+      {/* 🏆 Structural Grade - Task 1 */}
+      {isTask1 && feedbackData.structuralGrade && (
+        <div>
+          <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+            🏆 Structural Grade
+          </h3>
+          <div className="grid gap-3">
+            <StructuralGradeItem
+              label="Paragraph 1: Introduction"
+              status={feedbackData.structuralGrade.paragraph1_introduction?.status || "missing"}
+              checks={[
+                { label: "Paraphrased", passed: feedbackData.structuralGrade.paragraph1_introduction?.paraphrased },
+                { label: "No Opinions", passed: feedbackData.structuralGrade.paragraph1_introduction?.noOpinions }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph1_introduction?.feedback || ""}
+            />
+            <StructuralGradeItem
+              label="Paragraph 2: Overview"
+              status={feedbackData.structuralGrade.paragraph2_overview?.status || "missing"}
+              checks={[
+                { label: `${feedbackData.structuralGrade.paragraph2_overview?.trendsCount || 0} Trends`, passed: (feedbackData.structuralGrade.paragraph2_overview?.trendsCount || 0) >= 2 },
+                { label: "General Terms", passed: feedbackData.structuralGrade.paragraph2_overview?.usedGeneralTerms }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph2_overview?.feedback || ""}
+            />
+            <StructuralGradeItem
+              label="Paragraph 3: Body 1"
+              status={feedbackData.structuralGrade.paragraph3_body1?.status || "missing"}
+              checks={[
+                { label: "Key Feature", passed: feedbackData.structuralGrade.paragraph3_body1?.hasKeyFeature },
+                { label: "Data Support", passed: feedbackData.structuralGrade.paragraph3_body1?.hasDataSupport }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph3_body1?.feedback || ""}
+            />
+            <StructuralGradeItem
+              label="Paragraph 4: Body 2"
+              status={feedbackData.structuralGrade.paragraph4_body2?.status || "missing"}
+              checks={[
+                { label: "Second Feature", passed: feedbackData.structuralGrade.paragraph4_body2?.hasSecondFeature },
+                { label: "Precise Figures", passed: feedbackData.structuralGrade.paragraph4_body2?.hasPreciseFigures }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph4_body2?.feedback || ""}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 📍 Key Features Audit - Task 1 */}
+      {isTask1 && feedbackData.keyFeaturesAudit && (
+        <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
+          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+            📍 Key Features Audit
+          </h3>
+          {feedbackData.keyFeaturesAudit.identified?.length > 0 && (
+            <div className="mb-3">
+              <span className="text-xs text-green-400">Identified:</span>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {feedbackData.keyFeaturesAudit.identified.map((item: string, i: number) => (
+                  <span key={i} className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded">{item}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {feedbackData.keyFeaturesAudit.missed?.length > 0 && (
+            <div>
+              <span className="text-xs text-red-400">Missed:</span>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {feedbackData.keyFeaturesAudit.missed.map((item: string, i: number) => (
+                  <span key={i} className="text-xs px-2 py-1 bg-red-500/10 text-red-400 rounded">{item}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ✍️ Vocabulary Suggestion Box - Task 1 */}
+      {isTask1 && feedbackData.vocabularySuggestions && (
+        <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
+          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+            ✍️ Vocabulary Suggestion Box
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {feedbackData.vocabularySuggestions.sequencing?.length > 0 && (
+              <div>
+                <span className="text-xs text-blue-400 font-medium">Sequencing:</span>
+                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.sequencing.join(", ")}</p>
+              </div>
+            )}
+            {feedbackData.vocabularySuggestions.contrast?.length > 0 && (
+              <div>
+                <span className="text-xs text-purple-400 font-medium">Contrast:</span>
+                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.contrast.join(", ")}</p>
+              </div>
+            )}
+            {feedbackData.vocabularySuggestions.result?.length > 0 && (
+              <div>
+                <span className="text-xs text-orange-400 font-medium">Result:</span>
+                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.result.join(", ")}</p>
+              </div>
+            )}
+            {feedbackData.vocabularySuggestions.emphasis?.length > 0 && (
+              <div>
+                <span className="text-xs text-green-400 font-medium">Emphasis:</span>
+                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.emphasis.join(", ")}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 🏆 Structural Grade - Task 2 */}
+      {!isTask1 && feedbackData.structuralGrade && (
+        <div>
+          <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+            🏆 Structural Grade
+          </h3>
+          <div className="grid gap-3">
+            <StructuralGradeItem
+              label="Paragraph 1: Introduction"
+              status={feedbackData.structuralGrade.paragraph1_introduction?.status || "missing"}
+              checks={[
+                { label: "Paraphrased", passed: feedbackData.structuralGrade.paragraph1_introduction?.paraphrased },
+                { label: "Has Thesis", passed: feedbackData.structuralGrade.paragraph1_introduction?.hasThesis }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph1_introduction?.feedback || ""}
+            />
+            <StructuralGradeItem
+              label="Paragraph 2: Body 1 (First Argument)"
+              status={feedbackData.structuralGrade.paragraph2_body1?.status || "missing"}
+              checks={[
+                { label: "Topic Sentence", passed: feedbackData.structuralGrade.paragraph2_body1?.hasTopicSentence },
+                { label: "Has Example", passed: feedbackData.structuralGrade.paragraph2_body1?.hasExample }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph2_body1?.feedback || ""}
+            />
+            <StructuralGradeItem
+              label="Paragraph 3: Body 2 (Second Argument)"
+              status={feedbackData.structuralGrade.paragraph3_body2?.status || "missing"}
+              checks={[
+                { label: "Topic Sentence", passed: feedbackData.structuralGrade.paragraph3_body2?.hasTopicSentence },
+                { label: "Developed/Counter", passed: feedbackData.structuralGrade.paragraph3_body2?.developedOrCounterArg }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph3_body2?.feedback || ""}
+            />
+            <StructuralGradeItem
+              label="Paragraph 4: Conclusion"
+              status={feedbackData.structuralGrade.paragraph4_conclusion?.status || "missing"}
+              checks={[
+                { label: "Summarized", passed: feedbackData.structuralGrade.paragraph4_conclusion?.summarized },
+                { label: "No New Ideas", passed: feedbackData.structuralGrade.paragraph4_conclusion?.noNewIdeas }
+              ]}
+              feedback={feedbackData.structuralGrade.paragraph4_conclusion?.feedback || ""}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 💎 Band 9 Highlights - Task 2 */}
+      {!isTask1 && feedbackData.band9Highlights && (
+        <div className="p-4 bg-elite-gold/5 rounded-lg border border-elite-gold/20">
+          <h3 className="text-sm font-medium text-elite-gold mb-4 flex items-center gap-2">
+            💎 Band 9 Highlights
+          </h3>
+          <div className="space-y-4">
+            {feedbackData.band9Highlights.hedgingUsed && (
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-medium text-foreground">Hedging Technique:</span>
+                  {feedbackData.band9Highlights.hedgingUsed.found ? (
+                    <span className="text-xs text-green-400">✓ Found</span>
+                  ) : (
+                    <span className="text-xs text-red-400">✗ Not Found</span>
+                  )}
+                </div>
+                {feedbackData.band9Highlights.hedgingUsed.examples?.length > 0 && (
+                  <p className="text-xs text-green-400/80 mb-1">Examples: {feedbackData.band9Highlights.hedgingUsed.examples.join(", ")}</p>
+                )}
+                {feedbackData.band9Highlights.hedgingUsed.suggestions?.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Try: {feedbackData.band9Highlights.hedgingUsed.suggestions.join(", ")}</p>
+                )}
+              </div>
+            )}
+            {feedbackData.band9Highlights.cohesiveProgression && (
+              <div>
+                <span className="text-xs font-medium text-foreground">Cohesive Progression: </span>
+                <span className={`text-xs ${feedbackData.band9Highlights.cohesiveProgression.score === "Strong" ? "text-green-400" : feedbackData.band9Highlights.cohesiveProgression.score === "Adequate" ? "text-yellow-400" : "text-red-400"}`}>
+                  {feedbackData.band9Highlights.cohesiveProgression.score}
+                </span>
+                <p className="text-xs text-muted-foreground mt-1">{feedbackData.band9Highlights.cohesiveProgression.feedback}</p>
+              </div>
+            )}
+            {feedbackData.band9Highlights.ideaDepth && (
+              <div>
+                <span className="text-xs font-medium text-foreground">Idea Depth: </span>
+                <span className={`text-xs ${feedbackData.band9Highlights.ideaDepth.score === "Deep" ? "text-green-400" : feedbackData.band9Highlights.ideaDepth.score === "Moderate" ? "text-yellow-400" : "text-red-400"}`}>
+                  {feedbackData.band9Highlights.ideaDepth.score}
+                </span>
+                <p className="text-xs text-muted-foreground mt-1">{feedbackData.band9Highlights.ideaDepth.feedback}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 📚 Vocabulary Upgrades - Task 2 */}
+      {!isTask1 && feedbackData.vocabularyUpgrades && feedbackData.vocabularyUpgrades.length > 0 && (
+        <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
+          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+            📚 Academic Vocabulary Upgrades
+          </h3>
+          <div className="space-y-2">
+            {feedbackData.vocabularyUpgrades.map((upgrade: any, i: number) => (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                <span className="px-2 py-0.5 bg-muted rounded text-muted-foreground">{upgrade.function}</span>
+                <span className="text-red-400">"{upgrade.original}"</span>
+                <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                <span className="text-green-400">"{upgrade.upgrade}"</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Scoring Grid */}
       {feedbackData.scoringGrid && (
