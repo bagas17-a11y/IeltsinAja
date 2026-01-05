@@ -5,9 +5,51 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// IELTS Writing Grading Framework
+const IELTS_GRADING_LOGIC = {
+  penalties: {
+    under_length_task_1: "If < 150 words, max Task Achievement = 5.0",
+    under_length_task_2: "If < 250 words, max Task Response = 5.0",
+    off_topic: "If response does not address the prompt, max score = 4.0"
+  },
+  scoring_criteria: [
+    "Task Response",
+    "Coherence and Cohesion", 
+    "Lexical Resource",
+    "Grammatical Range and Accuracy"
+  ]
+};
+
+// Band 5 vs Band 9 Calibration Benchmarks
+const BAND_BENCHMARKS = {
+  band_5: {
+    vocabulary: "Uses only high-frequency words; repetitive; significant spelling/formation errors that cause some difficulty for the reader.",
+    grammar: "Limited range of structures; complex sentences are attempted but usually contain errors that obscure meaning.",
+    cohesion: "Uses 'and', 'but', and 'then' excessively. Paragraphing is missing or illogical."
+  },
+  band_9: {
+    vocabulary: "Uses a wide range of sophisticated lexical items with very natural and sophisticated control; rare minor 'slips'. Uses rare idiomatic expressions correctly.",
+    grammar: "Wide range of structures used with full flexibility and accuracy; rare minor errors typical of native speaker 'slips'.",
+    cohesion: "Uses a full range of cohesive devices seamlessly. Paragraphing is managed perfectly to sustain the argument."
+  }
+};
+
 const IELTS_EXAMINER_PROMPT = `You are a Senior IELTS Examiner with 15+ years of experience evaluating candidates at official British Council test centers. You have graded thousands of IELTS Writing tests and are intimately familiar with the official IELTS Band Descriptors.
 
-CRITICAL INSTRUCTION: Evaluate all submissions STRICTLY against official IELTS Band Descriptors. Be critical but constructive. Your role is to help students achieve band 8.0+ through honest, rigorous assessment.
+CRITICAL GRADING FRAMEWORK:
+${JSON.stringify(IELTS_GRADING_LOGIC, null, 2)}
+
+CALIBRATION BENCHMARKS - Use these to distinguish Band 5 from Band 9:
+
+BAND 5 (The 'Limited' User):
+- Vocabulary: ${BAND_BENCHMARKS.band_5.vocabulary}
+- Grammar: ${BAND_BENCHMARKS.band_5.grammar}
+- Cohesion: ${BAND_BENCHMARKS.band_5.cohesion}
+
+BAND 9 (The 'Expert' User):
+- Vocabulary: ${BAND_BENCHMARKS.band_9.vocabulary}
+- Grammar: ${BAND_BENCHMARKS.band_9.grammar}
+- Cohesion: ${BAND_BENCHMARKS.band_9.cohesion}
 
 === OFFICIAL IELTS WRITING BAND DESCRIPTORS ===
 
@@ -46,26 +88,29 @@ Band 4: Uses only a very limited range of structures; rare use of subordinate cl
 === EVALUATION PROCESS ===
 
 For Writing Task 1 (Report/Letter):
-1. Does the response cover all key features/requirements?
-2. Is there a clear overview (for Academic) or clear purpose (for General)?
-3. Are key features highlighted with appropriate data/detail?
-4. Is the length adequate (minimum 150 words)?
+1. Check word count - if < 150 words, cap Task Achievement at 5.0
+2. Does the response cover all key features/requirements?
+3. Is there a clear overview (for Academic) or clear purpose (for General)?
+4. Are key features highlighted with appropriate data/detail?
 
 For Writing Task 2 (Essay):
-1. Does the response address all parts of the prompt?
-2. Is there a clear thesis/position stated?
-3. Are main ideas developed with relevant supporting examples?
-4. Is the conclusion logical and consistent with the body paragraphs?
-5. Is the length adequate (minimum 250 words)?
+1. Check word count - if < 250 words, cap Task Response at 5.0
+2. Does the response address all parts of the prompt?
+3. Is there a clear thesis/position stated?
+4. Are main ideas developed with relevant supporting examples?
+5. Is the conclusion logical and consistent with the body paragraphs?
 
 === FEEDBACK GUIDELINES ===
 
 Your feedback MUST:
+- First check word count and apply penalties if needed
+- Compare the student's work against Band 5 and Band 9 benchmarks above
 - Cite specific examples from the student's work (quote exact phrases)
 - Identify the TOP 3 most impactful improvements
 - Provide one rewritten paragraph showing how to improve
 - Be direct and honest - do not inflate scores
 - Give half-band scores when appropriate (6.5, 7.5, etc.)
+- Include a "Path to 8.0" section with ONE specific grammar or vocab tip
 
 TONE: Professional, direct, and focused on improvement. Do not sugarcoat weaknesses but always provide a path forward.`;
 
@@ -118,21 +163,35 @@ serve(async (req) => {
     let userPrompt = "";
     
     if (type === "writing") {
-      userPrompt = `Analyze this IELTS ${taskType || "Task 2"} essay and provide detailed feedback:
+      const wordCount = content.split(/\s+/).filter(Boolean).length;
+      const minWords = taskType === "Task 1" ? 150 : 250;
+      
+      userPrompt = `Analyze this IELTS ${taskType || "Task 2"} essay and provide detailed feedback.
+
+WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
+${wordCount < minWords ? `⚠️ PENALTY: Essay is under minimum length. Cap Task Achievement at 5.0.` : ''}
 
 Essay:
 ${content}
 
-Provide your response in this JSON format:
+INSTRUCTIONS:
+1. First analyze word count and structure
+2. Compare vocabulary and grammar against the Band 5 vs Band 9 benchmarks
+3. Generate a detailed Feedback Report Card
+
+Provide your response in this EXACT JSON format:
 {
+  "wordCount": ${wordCount},
   "overallBand": 7.0,
   "taskAchievement": { "score": 7.0, "feedback": "..." },
   "coherenceCohesion": { "score": 7.0, "feedback": "..." },
   "lexicalResource": { "score": 7.0, "feedback": "..." },
   "grammaticalRange": { "score": 7.0, "feedback": "..." },
-  "strengths": ["..."],
-  "improvements": ["..."],
-  "rewrittenParagraph": "..."
+  "strengths": ["What they did well - be specific with quotes"],
+  "weaknesses": ["Specific sentences that need fixing - quote them"],
+  "improvements": ["Top 3 most impactful improvements"],
+  "pathTo8": "One specific grammar or vocab tip to reach the next band",
+  "rewrittenParagraph": "A rewritten version of their weakest paragraph showing improvement"
 }`;
     } else if (type === "speaking") {
       userPrompt = `Analyze this IELTS Speaking transcription:

@@ -2,6 +2,9 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// Super Admin email - bypasses all checks
+const SUPER_ADMIN_EMAIL = "bagasshryo@gmail.com";
+
 interface Profile {
   id: string;
   user_id: string;
@@ -15,6 +18,10 @@ interface Profile {
   current_speaking_score: number | null;
   is_verified: boolean;
 }
+
+export const isSuperAdmin = (email: string | null | undefined): boolean => {
+  return email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+};
 
 interface AuthContextType {
   user: User | null;

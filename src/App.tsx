@@ -15,6 +15,7 @@ import ConsultationHub from "./pages/dashboard/ConsultationHub";
 import BankTransfer from "./pages/BankTransfer";
 import PaymentVerification from "./pages/admin/PaymentVerification";
 import AdminVerify from "./pages/admin/AdminVerify";
+import Admin from "./pages/Admin";
 import WaitingRoom from "./pages/WaitingRoom";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/waiting-room" element={<WaitingRoom />} />
             <Route path="/admin/payments" element={<PaymentVerification />} />
             <Route path="/admin/verify" element={<AdminVerify />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/reading" element={<ReadingModule />} />
             <Route path="/dashboard/listening" element={<ListeningModule />} />
