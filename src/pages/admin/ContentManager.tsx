@@ -12,7 +12,7 @@ import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, Save, Trash2, Loader2, Wand2, TestTube, ArrowLeft, 
-  FileText, Eye, EyeOff, Sparkles, BookOpen, AlertCircle
+  FileText, Eye, EyeOff, Sparkles, BookOpen, AlertCircle, Upload, X, Image
 } from "lucide-react";
 
 interface IeltsQuestion {
@@ -39,6 +39,7 @@ export default function ContentManager() {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [testEssay, setTestEssay] = useState("");
   const [selectedQuestion, setSelectedQuestion] = useState<IeltsQuestion | null>(null);
@@ -165,6 +166,68 @@ export default function ContentManager() {
     } finally {
       setTesting(false);
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `questions/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('question-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('question-images')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, question_image_url: publicUrl }));
+
+      toast({
+        title: "Image uploaded",
+        description: "The image has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, question_image_url: "" }));
   };
 
   const handleSave = async () => {
@@ -480,13 +543,52 @@ export default function ContentManager() {
                 </div>
 
                 <div>
-                  <Label className="text-sm">Image URL (optional)</Label>
-                  <Input
-                    value={formData.question_image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, question_image_url: e.target.value }))}
-                    placeholder="https://..."
-                    className="mt-1"
-                  />
+                  <Label className="text-sm">Question Image (optional - for Task 1 diagrams/charts)</Label>
+                  <div className="mt-2 space-y-3">
+                    {formData.question_image_url ? (
+                      <div className="relative inline-block">
+                        <img 
+                          src={formData.question_image_url} 
+                          alt="Question diagram" 
+                          className="max-h-48 rounded-lg border border-border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-6 w-6"
+                          onClick={handleRemoveImage}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-muted/30">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          {uploading ? (
+                            <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+                          ) : (
+                            <>
+                              <Image className="w-8 h-8 text-muted-foreground mb-2" />
+                              <p className="text-sm text-muted-foreground">
+                                Click to upload diagram/chart
+                              </p>
+                              <p className="text-xs text-muted-foreground/70 mt-1">
+                                PNG, JPG up to 5MB
+                              </p>
+                            </>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={uploading}
+                        />
+                      </label>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
