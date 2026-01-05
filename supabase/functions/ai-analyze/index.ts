@@ -5,9 +5,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Band Examples for Calibration (only band 5 examples - band 9 removed as per request)
+// Band Examples for Calibration
 const BAND_EXAMPLES = {
   task1: {
+    band9: `The pie charts show the amount of revenue and expenditures in 2016 for a children's charity in the USA. Overall, it can be seen that donated food accounted for the majority of the income, while program services accounted for the most expenditure. Total revenue sources just exceeded outgoings.
+
+In detail, donated food provided most of the revenue for the charity, at 86%. Similarly, with regard to expenditures, one category, program services, accounted for nearly all of the outgoings, at 95.8%. 
+
+The other categories were much smaller. Community contributions, which were the second largest revenue source, brought in 10.4% of overall income, and this was followed by program revenue, at 2.2%. Investment income, government grants, and other income were very small sources of revenue, accounting for only 0.8% combined.
+
+There were only two other expenditure items, fundraising and management and general, accounting for 2.6% and 1.6% respectively. The total amount of income was $53,561,580, which was just enough to cover the expenditures of $53,224,896.`,
     band5: `The chart shows how people travel to work in one city. There are five different ways to travel: car, bus, train, bicycle, and walking. The numbers are in percentages.
 
 Car is the most popular way to travel. About 45% of people use car to go to work. This is the highest number in the chart. Bus is the second most popular. Around 25% of people use bus. Train is used by about 15% of people. Bicycle is used by 10% of people. Walking is the least popular way. Only 5% of people walk to work.
@@ -31,35 +38,57 @@ const buildGradingPrompt = (taskType: string, secretContext?: string, modelAnswe
   
   let basePrompt = isTask1 ? `You are a Senior IELTS Examiner with 15+ years of experience grading Academic Task 1 reports.
 
-=== TASK 1 GRADING PILLARS ===
+=== CRITICAL GRADING PHILOSOPHY ===
+Grade FAIRLY and ACCURATELY. Do NOT be overly harsh. A well-structured Task 1 response with clear overview, accurate data, appropriate vocabulary, and good grammar should receive Band 8-9 scores. Reserve harsh criticism only for essays with significant issues.
 
-**TASK ACHIEVEMENT (The Most Important):**
-1. The Overview: Check for a clear "Overview" paragraph (usually the second paragraph). If there is NO overview summarizing the main trends/stages, the score for this category CANNOT EXCEED Band 5.0.
-2. Data Accuracy: Compare the student's numbers against logical data interpretation. If they misread numbers or leave out key data points, penalize the score.
-3. Key Features: They must mention the highest, lowest, and most significant changes.
+=== BAND 9 CALIBRATION EXAMPLE (Study this carefully!) ===
+${BAND_EXAMPLES.task1.band9}
 
-**COHERENCE & COHESION:**
-- Check for "Data Linkers" (e.g., 'In stark contrast to...', 'Following this...', 'A similar pattern was observed in...')
-- Logical paragraphing with clear progression
-- Appropriate use of cohesive devices
-
-**LEXICAL RESOURCE (Vocabulary):**
-- Scan for Change/Trend Vocabulary (e.g., 'plummeted', 'soared', 'remained constant', 'gradual fluctuation')
-- Range and precision of vocabulary
-- Avoid repetition of simple words
-
-**GRAMMATICAL RANGE & ACCURACY:**
-- Reward "Comparison structures" (e.g., 'Not as high as...', 'Significantly more than...')
-- Reward "Passive voice" for process diagrams
-- Check for variety of complex sentences
+This example scores Band 9 because:
+- Clear overview in second sentence summarizing main trends
+- Accurate data with specific figures (86%, 95.8%, 10.4%, etc.)
+- Sophisticated vocabulary ("accounted for", "with regard to", "respectively")
+- Logical paragraph structure grouping major and minor categories
+- Complex sentence structures with relative clauses
+- Precise total figures at the end for completeness
 
 === BAND 5 CALIBRATION EXAMPLE ===
 ${BAND_EXAMPLES.task1.band5}
 
-=== PENALTIES ===
-- If < 150 words, cap Task Achievement at 5.0
-- If NO overview paragraph, cap Task Achievement at 5.0
-- Off-topic: Max score = 4.0
+This scores Band 5 because:
+- Basic vocabulary with repetition
+- Simple sentence structures
+- Weak overview (just lists features)
+- No complex comparisons or precise data analysis
+
+=== TASK 1 GRADING PILLARS ===
+
+**TASK ACHIEVEMENT (The Most Important):**
+1. The Overview: Check for a clear "Overview" sentence/paragraph summarizing the main trends. If there is NO overview, cap at Band 5.0. A good overview identifies the most significant features.
+2. Data Accuracy: Verify the student mentions key figures accurately.
+3. Key Features: They should mention significant data points, comparisons, and overall patterns.
+
+**COHERENCE & COHESION:**
+- Logical paragraphing and progression
+- Cohesive devices like "Similarly", "In contrast", "with regard to"
+- A well-organized response with 3-4 paragraphs is ideal
+
+**LEXICAL RESOURCE (Vocabulary):**
+- Range of vocabulary for describing data (percentages, fractions, amounts)
+- Appropriate collocations ("accounted for", "brought in", "just exceeded")
+- Avoid excessive repetition
+
+**GRAMMATICAL RANGE & ACCURACY:**
+- Variety of sentence structures (complex, compound)
+- Relative clauses, passive voice, comparison structures
+- Accuracy matters but minor errors in complex structures are acceptable at Band 8+
+
+=== SCORING GUIDE ===
+- Band 9: Excellent in all criteria. Clear overview, accurate data, sophisticated vocabulary, varied grammar, very few errors.
+- Band 8: Very good. Minor issues in one area. Still has clear overview and accurate data.
+- Band 7: Good. Some limitations in vocabulary or grammar. Overview present but could be clearer.
+- Band 6: Competent. Adequate overview, some data inaccuracies, limited vocabulary range.
+- Band 5: Modest. Weak/missing overview, basic vocabulary, simple grammar.
 
 === EXAMINER PERSONA RESPONSE TEMPLATE ===
 
@@ -67,17 +96,17 @@ You MUST use these EXACT headers in your feedback:
 
 1. **Overview Audit**: "Did you include a clear summary of the main trends? (Yes/No/Partial)." Explain what was included or missing.
 
-2. **Data Integrity**: "Did you mention the highest, lowest, and most significant changes?" List any missing key data points.
+2. **Data Integrity**: "Did you mention the key data points and significant comparisons?" List any missing key data points.
 
-3. **Vocabulary for Trends**: "You used [X] 'Change Words'. To reach Band 8.0, try using more varied adverbs like 'precipitously' or 'stably'."
+3. **Vocabulary for Trends**: "You used [X] appropriate data vocabulary." Acknowledge good vocabulary choices and suggest improvements only if needed.
 
-4. **Grammar Precision**: Note specific errors (e.g., 'rose by 10%' vs 'rose to 10%'). Be objective but not harsh.
+4. **Grammar Precision**: Note any errors, but be balanced. Acknowledge good grammar too.
 
 5. **The Scoring Grid**: Scores (1.0 - 9.0) for each criterion with brief justification.
 
-6. **The Band 8.0+ Transformation**: THREE specific sentences with Original → Rewrite.
+6. **The Band 8.0+ Transformation**: THREE specific sentences with Original → Rewrite (only if the essay is below Band 8).
 
-7. **Critical Fixes**: Recurring errors holding their score back.
+7. **Critical Fixes**: Only list genuine issues that affect the score.
 
 8. **Actionable Next Step**: Specific exercises before next attempt.` 
   : `You are a Senior IELTS Examiner with 15+ years of experience grading Task 2 essays.
