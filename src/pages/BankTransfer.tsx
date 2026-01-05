@@ -7,30 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, Building2, Copy, Check, ArrowLeft, Loader2 } from "lucide-react";
 
-const bankAccounts = [
-  {
-    bank: "BCA",
-    accountNumber: "1234567890",
-    accountName: "PT IELTS Prep Indonesia",
-    logo: "🏦",
-  },
-  {
-    bank: "Mandiri",
-    accountNumber: "0987654321",
-    accountName: "PT IELTS Prep Indonesia",
-    logo: "🏛️",
-  },
-  {
-    bank: "CIMB Niaga",
-    accountNumber: "5678901234",
-    accountName: "PT IELTS Prep Indonesia",
-    logo: "💳",
-  },
-];
+const bankAccount = {
+  bank: "CIMB Niaga",
+  accountNumber: "800123456789",
+  accountName: "PT IELTS Elite Indonesia",
+  logo: "💳",
+};
 
 const plans = {
-  pro: { name: "Pro", price: "IDR 300,000", amount: 300000 },
-  road_to_8: { name: "Road to 8.0+", price: "IDR 2,500,000", amount: 2500000 },
+  pro: { name: "Pro", price: "IDR 500,000", amount: 500000, period: "2 months" },
+  road_to_8: { name: "Road to 8.0+", price: "IDR 2,500,000", amount: 2500000, period: "Lifetime" },
 };
 
 export default function BankTransfer() {
@@ -121,18 +107,31 @@ export default function BankTransfer() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Card className="glass-card max-w-md w-full">
-          <CardContent className="p-8 text-center space-y-6">
-            <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-accent" />
+        {/* Background Effects */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-elite-gold/5 rounded-full blur-3xl" />
+        </div>
+        
+        <Card className="glass-card max-w-lg w-full relative z-10">
+          <CardContent className="p-10 text-center space-y-6">
+            <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
+              <Check className="w-10 h-10 text-accent" />
             </div>
-            <h2 className="text-2xl font-light text-foreground">Thank You!</h2>
-            <p className="text-muted-foreground">
-              Your payment proof has been submitted. Our team will verify your transfer within 24 hours.
-              You'll receive access to your {plan.name} plan once verified.
+            <h2 className="text-3xl font-light text-foreground">
+              Account Created & Receipt Received
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Our examiners are verifying your payment. You will gain access to 
+              the full dashboard within <span className="text-accent font-medium">24 hours</span>.
             </p>
-            <Button onClick={() => navigate("/dashboard")} variant="glass">
-              Go to Dashboard
+            <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+              <p className="text-sm text-muted-foreground">
+                Selected Plan: <span className="text-foreground font-medium">{plan.name}</span>
+              </p>
+            </div>
+            <Button onClick={() => navigate("/")} variant="glass">
+              Return Home
             </Button>
           </CardContent>
         </Card>
@@ -163,7 +162,7 @@ export default function BankTransfer() {
               <div>
                 <p className="font-medium text-foreground">{plan.name} Plan</p>
                 <p className="text-sm text-muted-foreground">
-                  {planType === "pro" ? "Monthly subscription" : "One-time payment"}
+                  {plan.period} access
                 </p>
               </div>
               <p className="text-2xl font-light text-foreground">{plan.price}</p>
@@ -171,41 +170,40 @@ export default function BankTransfer() {
           </CardContent>
         </Card>
 
-        {/* Bank Accounts */}
+        {/* Bank Account */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-xl font-light flex items-center gap-2">
               <Building2 className="w-5 h-5" />
-              Transfer to One of These Accounts
+              Transfer to CIMB Niaga
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {bankAccounts.map((bank) => (
-              <div
-                key={bank.bank}
-                className="flex items-center justify-between p-4 border border-border/50 rounded-lg hover:border-accent/30 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl">{bank.logo}</span>
-                  <div>
-                    <p className="font-medium text-foreground">{bank.bank}</p>
-                    <p className="text-sm text-muted-foreground">{bank.accountName}</p>
-                    <p className="font-mono text-foreground">{bank.accountNumber}</p>
-                  </div>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 border border-accent/30 rounded-lg bg-accent/5">
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">{bankAccount.logo}</span>
+                <div>
+                  <p className="font-medium text-foreground text-lg">{bankAccount.bank}</p>
+                  <p className="text-sm text-muted-foreground">{bankAccount.accountName}</p>
+                  <p className="font-mono text-xl text-foreground mt-1">{bankAccount.accountNumber}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(bank.accountNumber, bank.bank)}
-                >
-                  {copiedAccount === bank.bank ? (
-                    <Check className="w-4 h-4 text-accent" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
               </div>
-            ))}
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => copyToClipboard(bankAccount.accountNumber, bankAccount.bank)}
+                className="border-accent/30 hover:bg-accent/10"
+              >
+                {copiedAccount === bankAccount.bank ? (
+                  <Check className="w-5 h-5 text-accent" />
+                ) : (
+                  <Copy className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4 text-center">
+              Please transfer exactly <span className="text-foreground font-medium">{plan.price}</span>
+            </p>
           </CardContent>
         </Card>
 
