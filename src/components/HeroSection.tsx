@@ -23,20 +23,17 @@ export const HeroSection = () => {
             <span className="text-gradient">Simplify</span>.
             <br />
             The Guidance to{" "}
-            <span className="text-gradient">IELTS</span>.
+            <span className="text-gradient">IELTSinAja</span>.
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 animate-entrance delay-200">Where cutting-edge AI meets elite human expertise. Master every IELTS module with precision technology and personalized consultation.</p>
+          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 animate-entrance delay-200">IELTS-trained AI & 1 on 1 Consultation with 8.5+ Scorers </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-entrance delay-300">
-            <Button 
-              variant="neumorphicPrimary" 
-              size="xl" 
-              className="group"
-              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-            >
+            <Button variant="neumorphicPrimary" size="xl" className="group" onClick={() => document.getElementById('pricing')?.scrollIntoView({
+            behavior: 'smooth'
+          })}>
               Get Started
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -47,66 +44,7 @@ export const HeroSection = () => {
 
           {/* Dashboard Mockup */}
           <div className="relative animate-entrance delay-400">
-            <div className="glass-card p-6 md:p-8 max-w-4xl mx-auto">
-              <div className="aspect-[16/10] rounded-xl bg-secondary/50 overflow-hidden relative">
-                {/* Mock Dashboard UI */}
-                <div className="absolute inset-0 p-6">
-                  {/* Top bar */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                        <span className="text-accent font-medium text-sm">JD</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Welcome back, Dilan</p>
-                        <p className="text-xs text-muted-foreground">Your Band Score Journey</p>
-                      </div>
-                    </div>
-                    <div className="glass-card px-4 py-2">
-                      <p className="text-xs text-muted-foreground">Current Score</p>
-                      <p className="text-2xl font-light text-accent">8.5</p>
-                    </div>
-                  </div>
-
-                  {/* Score Cards */}
-                  <div className="grid grid-cols-4 gap-4 mb-6">
-                    {[{
-                    label: "Reading",
-                    score: "8.5",
-                    color: "accent"
-                  }, {
-                    label: "Listening",
-                    score: "9.0",
-                    color: "accent"
-                  }, {
-                    label: "Writing",
-                    score: "8.0",
-                    color: "glow-warm"
-                  }, {
-                    label: "Speaking",
-                    score: "8.5",
-                    color: "accent"
-                  }].map(item => <div key={item.label} className="glass-card p-4 text-center">
-                        <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-                        <p className={`text-xl font-light ${item.color === 'accent' ? 'text-accent' : 'text-glow-warm'}`}>
-                          {item.score}
-                        </p>
-                      </div>)}
-                  </div>
-
-                  {/* Progress indicator */}
-                  <div className="glass-card p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-foreground">Progress to Band 9</span>
-                      <span className="text-sm text-accent">94%</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                      <div className="h-full w-[94%] rounded-full bg-gradient-to-r from-accent to-glow-warm" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Glow effect */}
             <div className="absolute -inset-4 bg-gradient-to-t from-accent/10 via-transparent to-transparent blur-2xl -z-10" />
