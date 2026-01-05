@@ -5,10 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Band Examples for Calibration
+// Band Examples for Calibration (only band 5 examples - band 9 removed as per request)
 const BAND_EXAMPLES = {
   task1: {
-    band9: `The line graph displays the stock values of four different high-tech corporations from 2011 to 2016. Overall, Facebook's value steadily increased, while Yahoo's decreased. Apple's stock price fluctuated wildly throughout the period and Google's stayed relatively unchanged. Facebook started the period with a stock market valuation of approximately 7,500 and this consistently moved up in value year on year to reach a peak of around 20,000 in 2016. Yahoo began the recorded period with a very similar value to Facebook, but in contrast, its stock devalued every year, until it reached a low of about 2,500 in 2016. Apple stock was valued at just below 5,000 in 2011 and this jumped dramatically to nearly 35,000 the following year, before plummeting to around 7,000 in 2013. It recovered slightly in 2014 to around 12,000 and subsequently fell to a price of just over 5,000 in 2016. Google's shares remained at around 1,000 for the entire period.`,
     band5: `The chart shows how people travel to work in one city. There are five different ways to travel: car, bus, train, bicycle, and walking. The numbers are in percentages.
 
 Car is the most popular way to travel. About 45% of people use car to go to work. This is the highest number in the chart. Bus is the second most popular. Around 25% of people use bus. Train is used by about 15% of people. Bicycle is used by 10% of people. Walking is the least popular way. Only 5% of people walk to work.
@@ -16,23 +15,6 @@ Car is the most popular way to travel. About 45% of people use car to go to work
 In summary, most people in this city use car to go to work. The second most popular is bus. Train, bicycle and walking are less common. Car is much more popular than the other ways.`
   },
   task2: {
-    band9: `Experts throughout both the developing and developed world have debated whether the advent of sophisticated modern technology such as mobile phones, laptops and iPad have helped to enhance and improve people's social lives or whether the opposite has become the case.
-
-Personally, I strongly advocate the former view. This essay will discuss both sides using examples from the UK government and Oxford University to demonstrate points and prove arguments.
-
-On the one hand there is ample, powerful, almost daily evidence that such technology can be detrimental especially to the younger generation who are more easily affected by it's addictive nature and which can result in people feeling more isolated from the society.
-
-The central reason behind this is twofold, firstly, the invention of online social media sites and apps, such as Twitter and Facebook have reduced crucial face-to-face interactions dramatically. Through use of these appealing and attractive mediums, people feel in touch and connected yet lack key social skills and the ability to communicate.
-
-Secondly, dependence on such devices is built up frighteningly easily which may have a damaging effect on mental health and encourage a sedentary lifestyle. For example, recent scientific research by the UK government demonstrated that 90% of people in their 30s spend over 20 hours per week on Messenger and similar applications to chat with their friends instead of meeting up and spending quality time together or doing sport. As a result, it is conclusively clear that these technology advancements have decreased and diminished our real life interactions.
-
-On the other hand, although there are significant downsides to technological developments, its' multifold advantages cannot be denied. This is largely because the popularity of technology such as cellphones allows people to connect freely and easily with no geographical barriers.
-
-People are able to share any type of news, information, photos and opinions with their loved ones whenever and wherever they want therefore keeping a feeling of proximity and closeness. For example, an extensive study by Oxford University illustrated that people who work, or study abroad and use applications like Facetime and WhatsApp to chat with their families, are less likely to experience loneliness and feel out of the loop than those who do not.
-
-Consistent with this line of thinking is that businessmen are also undoubtedly able to benefit from these advances by holding virtual real-time meetings using Skype which may increase the chance of closing business deals without the need to fly.
-
-From the arguments and examples given I firmly believe that overall communication and mans' sociability has been advanced enormously due to huge the huge technological progress of the past twenty years and despite some potentially serious health implications which governments should not fail to address, it is predicted that its popularity will continue to flourish in the future.`,
     band5: `Governments need to think about spending money on public transportation or roads. This is a big problem in many countries. I think public transportation is more important to spend money on.
 
 Public transportation like buses and trains can help reduce traffic jams and pollution. Many cities have too many cars on the roads and people spend a lot of time in traffic every day. This is very bad. If the government makes good public transport, people will use their cars less. This is good for the environment because there will be less smoke from cars. Also, public transport is cheaper for poor people who cannot buy cars. This helps everyone in the city to move around easily. It is good for the economy too because people can get to work faster.
@@ -43,64 +25,107 @@ In conclusion, I think governments should spend more money on public transportat
   }
 };
 
-const DIAGNOSTIC_WRITING_PROMPT = `You are a Senior IELTS Examiner with 15+ years of experience. Your role is to provide DIAGNOSTIC FEEDBACK that helps students understand exactly where they stand and how to improve.
+// Task 1 Grading Pillars
+const TASK1_GRADING_PROMPT = `You are a Senior IELTS Examiner with 15+ years of experience grading Academic Task 1 reports.
 
-=== CALIBRATION BENCHMARKS ===
+=== TASK 1 GRADING PILLARS ===
 
-TASK 1 - BAND 9 EXAMPLE:
-${BAND_EXAMPLES.task1.band9}
+**TASK ACHIEVEMENT (The Most Important):**
+1. The Overview: Check for a clear "Overview" paragraph (usually the second paragraph). If there is NO overview summarizing the main trends/stages, the score for this category CANNOT EXCEED Band 5.0.
+2. Data Accuracy: Compare the student's numbers against logical data interpretation. If they misread numbers or leave out key data points, penalize the score.
+3. Key Features: They must mention the highest, lowest, and most significant changes.
 
-TASK 1 - BAND 5 EXAMPLE:
+**COHERENCE & COHESION:**
+- Check for "Data Linkers" (e.g., 'In stark contrast to...', 'Following this...', 'A similar pattern was observed in...')
+- Logical paragraphing with clear progression
+- Appropriate use of cohesive devices
+
+**LEXICAL RESOURCE (Vocabulary):**
+- Scan for Change/Trend Vocabulary (e.g., 'plummeted', 'soared', 'remained constant', 'gradual fluctuation')
+- Range and precision of vocabulary
+- Avoid repetition of simple words
+
+**GRAMMATICAL RANGE & ACCURACY:**
+- Reward "Comparison structures" (e.g., 'Not as high as...', 'Significantly more than...')
+- Reward "Passive voice" for process diagrams
+- Check for variety of complex sentences
+
+=== BAND 5 CALIBRATION EXAMPLE ===
 ${BAND_EXAMPLES.task1.band5}
 
-TASK 2 - BAND 9 EXAMPLE:
-${BAND_EXAMPLES.task2.band9}
-
-TASK 2 - BAND 5 EXAMPLE:
-${BAND_EXAMPLES.task2.band5}
-
-=== SCORING CRITERIA ===
-
-TASK RESPONSE (Did they answer the prompt? Is the position clear?):
-- Band 9: Fully addresses all parts; fully developed position
-- Band 7: Addresses all parts; clear position; main ideas developed
-- Band 5: Only partially addresses; position unclear; limited development
-
-COHERENCE & COHESION (Logical paragraphing and transition words):
-- Band 9: Uses cohesion seamlessly; skilful paragraphing
-- Band 7: Logically organises; clear progression; appropriate cohesive devices
-- Band 5: Some organisation; lacks progression; limited cohesive devices
-
-LEXICAL RESOURCE (Vocabulary range, precision, and collocations):
-- Band 9: Wide range; sophisticated control; rare minor slips
-- Band 7: Sufficient range; less common items; aware of style
-- Band 5: Limited range; repetitive; noticeable errors
-
-GRAMMATICAL RANGE & ACCURACY (Complex structures vs. error frequency):
-- Band 9: Wide range; full flexibility; rare minor errors
-- Band 7: Variety of complex structures; frequent error-free sentences
-- Band 5: Limited range; attempts complex sentences with limited accuracy
-
 === PENALTIES ===
-- Task 1: If < 150 words, cap Task Response at 5.0
-- Task 2: If < 250 words, cap Task Response at 5.0
+- If < 150 words, cap Task Achievement at 5.0
+- If NO overview paragraph, cap Task Achievement at 5.0
 - Off-topic: Max score = 4.0
 
-=== YOUR FEEDBACK STRUCTURE ===
+=== EXAMINER PERSONA RESPONSE TEMPLATE ===
 
-You MUST provide feedback in this EXACT structure:
+You MUST use these EXACT headers in your feedback:
 
-1. EXECUTIVE SUMMARY: A 2-sentence overview of the student's current performance level.
+1. **Overview Audit**: "Did you include a clear summary of the main trends? (Yes/No/Partial)." Explain what was included or missing.
 
-2. THE SCORING GRID: Scores (1.0 - 9.0) for each criterion with brief justification.
+2. **Data Integrity**: "Did you mention the highest, lowest, and most significant changes?" List any missing key data points.
 
-3. THE BAND 8.0+ TRANSFORMATION: Pick THREE specific sentences from the essay. Show the 'Original' and provide a 'Band 8.0+ Rewrite' for each, explaining the high-level vocabulary or grammatical structure added.
+3. **Vocabulary for Trends**: "You used [X] 'Change Words'. To reach Band 8.0, try using more varied adverbs like 'precipitously' or 'stably'."
 
-4. CRITICAL FIXES: List the most obvious recurring errors (e.g., 'Article usage', 'Overuse of simple connectors') holding their score back.
+4. **Grammar Precision**: Note specific errors (e.g., 'rose by 10%' vs 'rose to 10%'). Be objective but not harsh.
 
-5. ACTIONABLE NEXT STEP: Specific exercises they should do before their next attempt.
+5. **The Scoring Grid**: Scores (1.0 - 9.0) for each criterion with brief justification.
 
-Be direct, honest, and focused on improvement. Use half-band scores when appropriate.`;
+6. **The Band 8.0+ Transformation**: THREE specific sentences with Original → Rewrite.
+
+7. **Critical Fixes**: Recurring errors holding their score back.
+
+8. **Actionable Next Step**: Specific exercises before next attempt.`;
+
+// Task 2 Grading Pillars  
+const TASK2_GRADING_PROMPT = `You are a Senior IELTS Examiner with 15+ years of experience grading Task 2 essays.
+
+=== TASK 2 GRADING PILLARS ===
+
+**TASK RESPONSE (The 'Position' Check):**
+1. The Thesis: Check the Introduction for a clear answer to the prompt (e.g., 'I completely agree' or 'This essay will argue...'). If the position is unclear or changes halfway, the score CANNOT EXCEED Band 6.0.
+2. Idea Development: Scan each body paragraph for a "Topic Sentence" followed by "Support/Examples." If a paragraph is just a list of ideas without depth, penalize this category.
+
+**COHERENCE & COHESION (The 'Flow' Check):**
+- Check for "Logical Progression." Does paragraph A lead to paragraph B?
+- Reward "Cohesive Devices" beyond simple ones (e.g., 'Consequently', 'Paradoxically', 'Furthermore', 'This suggests that...')
+
+**LEXICAL RESOURCE (Academic Tone):**
+- Scan for "Topic-Specific Vocabulary" (e.g., for an Environment essay: 'carbon footprint', 'biodiversity', 'unsustainable')
+- PENALTY: Flag "Informal Language" (e.g., 'kids', 'stuff', 'bad'). Suggest academic alternatives.
+
+**GRAMMATICAL RANGE (The 'Complexity' Check):**
+- Identify at least 3 types of complex sentences (Conditional, Relative, Passive, or Subordinate clauses)
+- If the essay is 80% simple sentences, cap the score at Band 5.5
+
+=== BAND 5 CALIBRATION EXAMPLE ===
+${BAND_EXAMPLES.task2.band5}
+
+=== PENALTIES ===
+- If < 250 words, cap Task Response at 5.0
+- Unclear thesis or changing position: cap at 6.0
+- Off-topic: Max score = 4.0
+
+=== EXAMINER PERSONA RESPONSE TEMPLATE ===
+
+You MUST use these EXACT headers in your feedback:
+
+1. **Position Check**: "Is your opinion clear from start to finish?" Analyze the thesis and conclusion. Is the position consistent?
+
+2. **Argument Development**: "You presented [X] main ideas. I noticed [Paragraph X] lacked a specific example to support your claim." Be specific.
+
+3. **Academic Register**: "Your tone is [Formal/Informal]. I recommend replacing '[User's informal word]' with '[Academic suggestion]'."
+
+4. **Complexity Score**: "To reach Band 8.0, try using a 'Conditional Sentence' (e.g., 'If governments had acted sooner...') to show grammatical range."
+
+5. **The Scoring Grid**: Scores (1.0 - 9.0) for each criterion with brief justification.
+
+6. **The Band 8.0+ Transformation**: THREE specific sentences with Original → Rewrite.
+
+7. **Critical Fixes**: Recurring errors holding their score back.
+
+8. **Actionable Next Step**: Specific exercises before next attempt.`;
 
 const SPEAKING_EXAMINER_PROMPT = `You are a Senior IELTS Speaking Examiner with extensive experience. Analyze speech transcriptions for:
 
@@ -141,7 +166,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, content, taskType } = await req.json();
+    const { type, content, taskType, isRevision } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -149,58 +174,113 @@ serve(async (req) => {
     }
 
     let userPrompt = "";
+    let systemPrompt = "";
     
     if (type === "writing") {
       const wordCount = content.split(/\s+/).filter(Boolean).length;
       const minWords = taskType === "Task 1" ? 150 : 250;
       
-      userPrompt = `Analyze this IELTS ${taskType} essay and provide DIAGNOSTIC FEEDBACK.
+      // Use task-specific grading prompt
+      systemPrompt = taskType === "Task 1" ? TASK1_GRADING_PROMPT : TASK2_GRADING_PROMPT;
+      
+      const revisionNote = isRevision ? `
+⚠️ THIS IS A REVISED ESSAY - The student has already received feedback and has revised their work. 
+Compare against their previous attempt if improvements are evident. Be encouraging about progress while still being objective about remaining issues.` : '';
+      
+      if (taskType === "Task 1") {
+        userPrompt = `Analyze this IELTS Task 1 Academic report and provide DIAGNOSTIC FEEDBACK using the Examiner Persona template.
+${revisionNote}
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
-${wordCount < minWords ? `⚠️ PENALTY: Essay is under minimum length. Cap Task Response at 5.0.` : ''}
+${wordCount < minWords ? `⚠️ PENALTY: Essay is under minimum length. Cap Task Achievement at 5.0.` : ''}
 
-TASK TYPE: ${taskType}
-${taskType === "Task 1" ? "This is an Academic Task 1 - the student should describe/summarize visual information (graph, chart, table, diagram, map, or process)." : "This is a Task 2 Essay - the student should present and justify an opinion, discuss a problem, or compare viewpoints."}
-
-STUDENT'S ESSAY:
+STUDENT'S TASK 1 REPORT:
 ${content}
 
 Provide your response in this EXACT JSON format:
 {
   "wordCount": ${wordCount},
   "overallBand": 7.0,
-  "executiveSummary": "Two sentences summarizing the student's current performance level and main areas for improvement.",
+  "isRevision": ${isRevision || false},
+  "overviewAudit": {
+    "hasOverview": "Yes/No/Partial",
+    "analysis": "Detailed explanation of what was included or missing in the overview"
+  },
+  "dataIntegrity": {
+    "mentioned": ["List of key data points mentioned"],
+    "missing": ["List of key data points that were missed"]
+  },
+  "vocabularyForTrends": {
+    "changeWordsUsed": ["List of trend/change words they used"],
+    "suggestions": ["Suggestions for more varied vocabulary like 'precipitously', 'stably'"]
+  },
+  "grammarPrecision": "Note specific errors with corrections (e.g., 'rose by 10%' vs 'rose to 10%'). Be objective.",
   "scoringGrid": {
-    "taskResponse": { "score": 7.0, "justification": "Brief explanation of why this score was given" },
+    "taskResponse": { "score": 7.0, "justification": "Brief explanation" },
     "coherenceCohesion": { "score": 7.0, "justification": "Brief explanation" },
     "lexicalResource": { "score": 7.0, "justification": "Brief explanation" },
     "grammaticalRange": { "score": 7.0, "justification": "Brief explanation" }
   },
   "band8Transformations": [
     {
-      "original": "Quote the exact sentence from the essay",
-      "rewrite": "The Band 8.0+ version of this sentence",
-      "explanation": "What high-level vocabulary or grammatical structure was added and why it improves the score"
-    },
-    {
-      "original": "Second sentence quote",
+      "original": "Exact sentence from the essay",
       "rewrite": "Band 8.0+ version",
-      "explanation": "Explanation of improvements"
-    },
-    {
-      "original": "Third sentence quote",
-      "rewrite": "Band 8.0+ version",
-      "explanation": "Explanation of improvements"
+      "explanation": "What high-level vocabulary or structure was added"
     }
   ],
-  "criticalFixes": [
-    "First recurring error (e.g., 'Article usage - missing 'the' before specific nouns')",
-    "Second recurring error",
-    "Third recurring error"
-  ],
-  "actionableNextStep": "Specific exercise recommendation with clear instructions for what to practice before the next attempt"
+  "criticalFixes": ["Recurring error 1", "Recurring error 2"],
+  "actionableNextStep": "Specific exercise recommendation"
 }`;
+      } else {
+        userPrompt = `Analyze this IELTS Task 2 essay and provide DIAGNOSTIC FEEDBACK using the Examiner Persona template.
+${revisionNote}
+
+WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
+${wordCount < minWords ? `⚠️ PENALTY: Essay is under minimum length. Cap Task Response at 5.0.` : ''}
+
+STUDENT'S TASK 2 ESSAY:
+${content}
+
+Provide your response in this EXACT JSON format:
+{
+  "wordCount": ${wordCount},
+  "overallBand": 7.0,
+  "isRevision": ${isRevision || false},
+  "positionCheck": {
+    "isClear": true,
+    "analysis": "Analysis of thesis clarity and consistency from introduction to conclusion"
+  },
+  "argumentDevelopment": {
+    "mainIdeasCount": 3,
+    "analysis": "Analysis of idea development, which paragraphs lacked examples"
+  },
+  "academicRegister": {
+    "tone": "Formal/Informal",
+    "informalWords": [{"word": "informal word", "suggestion": "academic alternative"}]
+  },
+  "complexityScore": {
+    "complexSentenceTypes": ["Types found: Conditional, Relative, Passive, Subordinate"],
+    "recommendation": "Specific recommendation for grammatical range improvement"
+  },
+  "scoringGrid": {
+    "taskResponse": { "score": 7.0, "justification": "Brief explanation" },
+    "coherenceCohesion": { "score": 7.0, "justification": "Brief explanation" },
+    "lexicalResource": { "score": 7.0, "justification": "Brief explanation" },
+    "grammaticalRange": { "score": 7.0, "justification": "Brief explanation" }
+  },
+  "band8Transformations": [
+    {
+      "original": "Exact sentence from the essay",
+      "rewrite": "Band 8.0+ version",
+      "explanation": "What high-level vocabulary or structure was added"
+    }
+  ],
+  "criticalFixes": ["Recurring error 1", "Recurring error 2"],
+  "actionableNextStep": "Specific exercise recommendation"
+}`;
+      }
     } else if (type === "speaking") {
+      systemPrompt = SPEAKING_EXAMINER_PROMPT;
       userPrompt = `Analyze this IELTS Speaking transcription:
 
 Transcription:
@@ -219,6 +299,7 @@ Provide your response in this JSON format:
   "improvements": ["..."]
 }`;
     } else if (type === "reading") {
+      systemPrompt = READING_TUTOR_PROMPT;
       userPrompt = `The student answered incorrectly on this IELTS Reading question. Explain the logic step-by-step:
 
 Question and Context:
@@ -234,14 +315,7 @@ Provide your response in this JSON format:
 }`;
     }
 
-    let systemPrompt = DIAGNOSTIC_WRITING_PROMPT;
-    if (type === "speaking") {
-      systemPrompt = SPEAKING_EXAMINER_PROMPT;
-    } else if (type === "reading") {
-      systemPrompt = READING_TUTOR_PROMPT;
-    }
-
-    console.log("Calling AI gateway with type:", type, "taskType:", taskType);
+    console.log("Calling AI gateway with type:", type, "taskType:", taskType, "isRevision:", isRevision);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
