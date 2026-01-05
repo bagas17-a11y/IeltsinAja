@@ -8,7 +8,7 @@ const navLinks = [
   { label: "Listening", href: "#listening" },
   { label: "Writing", href: "#writing" },
   { label: "Speaking", href: "#speaking" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Get Me Started Now!", href: "#pricing" },
 ];
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
