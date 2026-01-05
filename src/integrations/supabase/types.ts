@@ -95,6 +95,98 @@ export type Database = {
         }
         Relationships: []
       }
+      listening_library: {
+        Row: {
+          ai_secret_context: string | null
+          answer_key: Json
+          audio_url: string
+          created_at: string
+          created_by: string | null
+          difficulty: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          questions: Json
+          title: string
+          transcript: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_secret_context?: string | null
+          answer_key: Json
+          audio_url: string
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          questions: Json
+          title: string
+          transcript?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_secret_context?: string | null
+          answer_key?: Json
+          audio_url?: string
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          questions?: Json
+          title?: string
+          transcript?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      listening_submissions: {
+        Row: {
+          answers: Json
+          band_score: number | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          listening_id: string | null
+          score: number | null
+          total_questions: number | null
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          band_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listening_id?: string | null
+          score?: number | null
+          total_questions?: number | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          band_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listening_id?: string | null
+          score?: number | null
+          total_questions?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listening_submissions_listening_id_fkey"
+            columns: ["listening_id"]
+            isOneToOne: false
+            referencedRelation: "listening_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_verifications: {
         Row: {
           admin_notes: string | null
