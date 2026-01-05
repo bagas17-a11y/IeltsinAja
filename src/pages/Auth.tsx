@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,20 +12,28 @@ const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get("mode");
+  const [isLogin, setIsLogin] = useState(mode !== "signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [isNewSignup, setIsNewSignup] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        // Check is_verified status
+        // If this was a new signup, go to bank transfer page
+        if (isNewSignup) {
+          navigate("/bank-transfer");
+          return;
+        }
+        // Check is_verified status for login
         setTimeout(async () => {
           const { data: profile } = await supabase
             .from("profiles")
@@ -94,16 +102,17 @@ export default function Auth() {
         if (error) throw error;
         toast({ title: "Welcome back!", description: "Successfully logged in." });
       } else {
+        setIsNewSignup(true);
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}/bank-transfer`,
             data: { full_name: fullName },
           },
         });
         if (error) throw error;
-        toast({ title: "Account created!", description: "Welcome to IELTS Elite." });
+        toast({ title: "Account created!", description: "Redirecting to payment..." });
       }
     } catch (error: any) {
       let message = error.message;
