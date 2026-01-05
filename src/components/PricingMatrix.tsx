@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Crown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { PurchaseRegistrationModal } from "./PurchaseRegistrationModal";
 
 const plans = [
   {
     name: "Pro",
-    price: "IDR 300K",
-    period: "/month",
+    price: "IDR 500K",
+    period: "for 2 months",
     description: "Complete AI suite for serious learners",
+    amount: 500000,
     features: [
       "Unlimited AI Reading Analysis",
       "Full Listening Lab access",
@@ -27,6 +29,7 @@ const plans = [
     price: "IDR 2.5M",
     period: "one-time",
     description: "Premium experience with personal consultation",
+    amount: 2500000,
     features: [
       "Everything in Pro",
       "5 hours 1-on-1 consultation",
@@ -44,8 +47,15 @@ const plans = [
 
 export const PricingMatrix = () => {
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    key: string;
+    name: string;
+    price: string;
+    amount: number;
+  } | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -71,11 +81,23 @@ export const PricingMatrix = () => {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubscribe = (planKey: string) => {
-    navigate(`/payment?plan=${planKey}`);
+  const handleSubscribe = (plan: typeof plans[0]) => {
+    setSelectedPlan({
+      key: plan.planKey,
+      name: plan.name,
+      price: plan.price,
+      amount: plan.amount,
+    });
+    setShowRegistrationModal(true);
   };
 
   return (
+    <>
+      <PurchaseRegistrationModal
+        isOpen={showRegistrationModal}
+        onClose={() => setShowRegistrationModal(false)}
+        selectedPlan={selectedPlan}
+      />
     <section id="pricing" className="py-24 md:py-32 relative">
       <div className="container mx-auto px-6">
         {/* Section Header */}
@@ -171,7 +193,7 @@ export const PricingMatrix = () => {
                     variant={plan.highlighted ? "neumorphicPrimary" : "glass"}
                     className={`w-full ${plan.tier === "elite" ? "border-elite-gold/30 text-elite-gold hover:bg-elite-gold/10" : ""}`}
                     size="lg"
-                    onClick={() => handleSubscribe(plan.planKey)}
+                    onClick={() => handleSubscribe(plan)}
                   >
                     {plan.planKey === "road_to_8" ? "Purchase" : "Subscribe"}
                   </Button>
@@ -182,5 +204,6 @@ export const PricingMatrix = () => {
         </div>
       </div>
     </section>
+    </>
   );
 };

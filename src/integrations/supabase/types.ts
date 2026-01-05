@@ -145,6 +145,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_verified: boolean
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           target_band_score: number | null
           updated_at: string
@@ -160,6 +161,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_verified?: boolean
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           target_band_score?: number | null
           updated_at?: string
@@ -175,6 +177,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_verified?: boolean
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           target_band_score?: number | null
           updated_at?: string
@@ -218,6 +221,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      unlock_user: {
+        Args: { admin_id: string; target_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

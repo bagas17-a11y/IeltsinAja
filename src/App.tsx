@@ -14,6 +14,8 @@ import SpeakingModule from "./pages/dashboard/SpeakingModule";
 import ConsultationHub from "./pages/dashboard/ConsultationHub";
 import BankTransfer from "./pages/BankTransfer";
 import PaymentVerification from "./pages/admin/PaymentVerification";
+import AdminVerify from "./pages/admin/AdminVerify";
+import WaitingRoom from "./pages/WaitingRoom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,7 +31,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/payment" element={<BankTransfer />} />
+            <Route path="/waiting-room" element={<WaitingRoom />} />
             <Route path="/admin/payments" element={<PaymentVerification />} />
+            <Route path="/admin/verify" element={<AdminVerify />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/reading" element={<ReadingModule />} />
             <Route path="/dashboard/listening" element={<ListeningModule />} />

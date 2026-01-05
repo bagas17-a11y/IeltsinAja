@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BookOpen, Headphones, PenTool, Mic, TrendingUp, Target } from "lucide-react";
@@ -35,8 +36,18 @@ const moduleCards = [
 ];
 
 export default function Dashboard() {
-  const { profile } = useAuth();
+  const { profile, user, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to waiting room if not verified
+  useEffect(() => {
+    if (!isLoading && user && profile && !profile.is_verified) {
+      navigate("/waiting-room");
+    }
+    if (!isLoading && !user) {
+      navigate("/auth");
+    }
+  }, [isLoading, user, profile, navigate]);
 
   const scores = [
     { label: "Reading", score: profile?.current_reading_score },

@@ -13,6 +13,7 @@ interface Profile {
   current_listening_score: number | null;
   current_writing_score: number | null;
   current_speaking_score: number | null;
+  is_verified: boolean;
 }
 
 interface AuthContextType {

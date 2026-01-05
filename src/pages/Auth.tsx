@@ -25,13 +25,36 @@ export default function Auth() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        navigate("/dashboard");
+        // Check is_verified status
+        setTimeout(async () => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("is_verified")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+          
+          if (profile?.is_verified) {
+            navigate("/dashboard");
+          } else {
+            navigate("/waiting-room");
+          }
+        }, 0);
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        navigate("/dashboard");
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_verified")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        
+        if (profile?.is_verified) {
+          navigate("/dashboard");
+        } else {
+          navigate("/waiting-room");
+        }
       }
     });
 
