@@ -5,114 +5,102 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// IELTS Writing Grading Framework
-const IELTS_GRADING_LOGIC = {
-  penalties: {
-    under_length_task_1: "If < 150 words, max Task Achievement = 5.0",
-    under_length_task_2: "If < 250 words, max Task Response = 5.0",
-    off_topic: "If response does not address the prompt, max score = 4.0"
-  },
-  scoring_criteria: [
-    "Task Response",
-    "Coherence and Cohesion", 
-    "Lexical Resource",
-    "Grammatical Range and Accuracy"
-  ]
-};
+// Band Examples for Calibration
+const BAND_EXAMPLES = {
+  task1: {
+    band9: `The line graph displays the stock values of four different high-tech corporations from 2011 to 2016. Overall, Facebook's value steadily increased, while Yahoo's decreased. Apple's stock price fluctuated wildly throughout the period and Google's stayed relatively unchanged. Facebook started the period with a stock market valuation of approximately 7,500 and this consistently moved up in value year on year to reach a peak of around 20,000 in 2016. Yahoo began the recorded period with a very similar value to Facebook, but in contrast, its stock devalued every year, until it reached a low of about 2,500 in 2016. Apple stock was valued at just below 5,000 in 2011 and this jumped dramatically to nearly 35,000 the following year, before plummeting to around 7,000 in 2013. It recovered slightly in 2014 to around 12,000 and subsequently fell to a price of just over 5,000 in 2016. Google's shares remained at around 1,000 for the entire period.`,
+    band5: `The chart shows how people travel to work in one city. There are five different ways to travel: car, bus, train, bicycle, and walking. The numbers are in percentages.
 
-// Band 5 vs Band 9 Calibration Benchmarks
-const BAND_BENCHMARKS = {
-  band_5: {
-    vocabulary: "Uses only high-frequency words; repetitive; significant spelling/formation errors that cause some difficulty for the reader.",
-    grammar: "Limited range of structures; complex sentences are attempted but usually contain errors that obscure meaning.",
-    cohesion: "Uses 'and', 'but', and 'then' excessively. Paragraphing is missing or illogical."
+Car is the most popular way to travel. About 45% of people use car to go to work. This is the highest number in the chart. Bus is the second most popular. Around 25% of people use bus. Train is used by about 15% of people. Bicycle is used by 10% of people. Walking is the least popular way. Only 5% of people walk to work.
+
+In summary, most people in this city use car to go to work. The second most popular is bus. Train, bicycle and walking are less common. Car is much more popular than the other ways.`
   },
-  band_9: {
-    vocabulary: "Uses a wide range of sophisticated lexical items with very natural and sophisticated control; rare minor 'slips'. Uses rare idiomatic expressions correctly.",
-    grammar: "Wide range of structures used with full flexibility and accuracy; rare minor errors typical of native speaker 'slips'.",
-    cohesion: "Uses a full range of cohesive devices seamlessly. Paragraphing is managed perfectly to sustain the argument."
+  task2: {
+    band9: `Experts throughout both the developing and developed world have debated whether the advent of sophisticated modern technology such as mobile phones, laptops and iPad have helped to enhance and improve people's social lives or whether the opposite has become the case.
+
+Personally, I strongly advocate the former view. This essay will discuss both sides using examples from the UK government and Oxford University to demonstrate points and prove arguments.
+
+On the one hand there is ample, powerful, almost daily evidence that such technology can be detrimental especially to the younger generation who are more easily affected by it's addictive nature and which can result in people feeling more isolated from the society.
+
+The central reason behind this is twofold, firstly, the invention of online social media sites and apps, such as Twitter and Facebook have reduced crucial face-to-face interactions dramatically. Through use of these appealing and attractive mediums, people feel in touch and connected yet lack key social skills and the ability to communicate.
+
+Secondly, dependence on such devices is built up frighteningly easily which may have a damaging effect on mental health and encourage a sedentary lifestyle. For example, recent scientific research by the UK government demonstrated that 90% of people in their 30s spend over 20 hours per week on Messenger and similar applications to chat with their friends instead of meeting up and spending quality time together or doing sport. As a result, it is conclusively clear that these technology advancements have decreased and diminished our real life interactions.
+
+On the other hand, although there are significant downsides to technological developments, its' multifold advantages cannot be denied. This is largely because the popularity of technology such as cellphones allows people to connect freely and easily with no geographical barriers.
+
+People are able to share any type of news, information, photos and opinions with their loved ones whenever and wherever they want therefore keeping a feeling of proximity and closeness. For example, an extensive study by Oxford University illustrated that people who work, or study abroad and use applications like Facetime and WhatsApp to chat with their families, are less likely to experience loneliness and feel out of the loop than those who do not.
+
+Consistent with this line of thinking is that businessmen are also undoubtedly able to benefit from these advances by holding virtual real-time meetings using Skype which may increase the chance of closing business deals without the need to fly.
+
+From the arguments and examples given I firmly believe that overall communication and mans' sociability has been advanced enormously due to huge the huge technological progress of the past twenty years and despite some potentially serious health implications which governments should not fail to address, it is predicted that its popularity will continue to flourish in the future.`,
+    band5: `Governments need to think about spending money on public transportation or roads. This is a big problem in many countries. I think public transportation is more important to spend money on.
+
+Public transportation like buses and trains can help reduce traffic jams and pollution. Many cities have too many cars on the roads and people spend a lot of time in traffic every day. This is very bad. If the government makes good public transport, people will use their cars less. This is good for the environment because there will be less smoke from cars. Also, public transport is cheaper for poor people who cannot buy cars. This helps everyone in the city to move around easily. It is good for the economy too because people can get to work faster.
+
+But some people think building more roads is better. They think more roads means less traffic. But this is not true because when you build more roads, more people buy cars and the traffic comes back again. So it is not a good solution for the traffic problem. Also, building roads is very expensive and bad for the environment because you need to cut trees and destroy nature.
+
+In conclusion, I think governments should spend more money on public transportation instead of roads. Public transport helps reduce traffic and pollution and helps poor people. This is better for the future of cities and for the next generation. We need clean air and less traffic.`
   }
 };
 
-const IELTS_EXAMINER_PROMPT = `You are a Senior IELTS Examiner with 15+ years of experience evaluating candidates at official British Council test centers. You have graded thousands of IELTS Writing tests and are intimately familiar with the official IELTS Band Descriptors.
+const DIAGNOSTIC_WRITING_PROMPT = `You are a Senior IELTS Examiner with 15+ years of experience. Your role is to provide DIAGNOSTIC FEEDBACK that helps students understand exactly where they stand and how to improve.
 
-CRITICAL GRADING FRAMEWORK:
-${JSON.stringify(IELTS_GRADING_LOGIC, null, 2)}
+=== CALIBRATION BENCHMARKS ===
 
-CALIBRATION BENCHMARKS - Use these to distinguish Band 5 from Band 9:
+TASK 1 - BAND 9 EXAMPLE:
+${BAND_EXAMPLES.task1.band9}
 
-BAND 5 (The 'Limited' User):
-- Vocabulary: ${BAND_BENCHMARKS.band_5.vocabulary}
-- Grammar: ${BAND_BENCHMARKS.band_5.grammar}
-- Cohesion: ${BAND_BENCHMARKS.band_5.cohesion}
+TASK 1 - BAND 5 EXAMPLE:
+${BAND_EXAMPLES.task1.band5}
 
-BAND 9 (The 'Expert' User):
-- Vocabulary: ${BAND_BENCHMARKS.band_9.vocabulary}
-- Grammar: ${BAND_BENCHMARKS.band_9.grammar}
-- Cohesion: ${BAND_BENCHMARKS.band_9.cohesion}
+TASK 2 - BAND 9 EXAMPLE:
+${BAND_EXAMPLES.task2.band9}
 
-=== OFFICIAL IELTS WRITING BAND DESCRIPTORS ===
+TASK 2 - BAND 5 EXAMPLE:
+${BAND_EXAMPLES.task2.band5}
 
-TASK ACHIEVEMENT / TASK RESPONSE (Task 1 & 2):
-Band 9: Fully addresses all parts of the task; presents a fully developed position
-Band 8: Sufficiently addresses all parts; presents a well-developed position with relevant, extended ideas
-Band 7: Addresses all parts; presents a clear position throughout; main ideas developed but not always fully
-Band 6: Addresses all parts but some more fully than others; presents a relevant position but conclusions unclear
-Band 5: Only partially addresses the task; position not always clear; limited development of ideas
-Band 4: Responds minimally to the task; position unclear; few relevant ideas
+=== SCORING CRITERIA ===
 
-COHERENCE AND COHESION:
-Band 9: Uses cohesion in such a way that it attracts no attention; skilfully manages paragraphing
-Band 8: Sequences information and ideas logically; manages all aspects of cohesion well; paragraphs appropriately
-Band 7: Logically organises information; clear progression; uses cohesive devices appropriately though may be overused
-Band 6: Arranges information coherently; uses cohesive devices but not always appropriately; may be repetitive
-Band 5: Some organisation but lacks overall progression; limited use of cohesive devices; paragraphing may be inadequate
-Band 4: Presents information but not coherently; very limited use of cohesive devices; no clear progression
+TASK RESPONSE (Did they answer the prompt? Is the position clear?):
+- Band 9: Fully addresses all parts; fully developed position
+- Band 7: Addresses all parts; clear position; main ideas developed
+- Band 5: Only partially addresses; position unclear; limited development
 
-LEXICAL RESOURCE:
-Band 9: Wide range of vocabulary with very natural and sophisticated control; rare minor errors occur only as 'slips'
-Band 8: Wide range of vocabulary fluently and flexibly; skillfully uses uncommon items; occasional errors in word choice
-Band 7: Sufficient range for flexibility and precision; uses less common items; aware of style and collocation; occasional errors
-Band 6: Adequate range for the task; attempts less common vocabulary but with inaccuracy; errors in word choice/formation
-Band 5: Limited range; repetitive; may make noticeable errors in spelling and/or word formation
-Band 4: Uses only basic vocabulary; makes numerous errors in spelling and/or word formation
+COHERENCE & COHESION (Logical paragraphing and transition words):
+- Band 9: Uses cohesion seamlessly; skilful paragraphing
+- Band 7: Logically organises; clear progression; appropriate cohesive devices
+- Band 5: Some organisation; lacks progression; limited cohesive devices
 
-GRAMMATICAL RANGE AND ACCURACY:
-Band 9: Wide range of structures with full flexibility and accuracy; rare minor errors occur only as 'slips'
-Band 8: Wide range of structures; majority of sentences are error-free; occasional non-systematic errors
-Band 7: Variety of complex structures; frequent error-free sentences; good control of grammar; few errors
-Band 6: Mix of simple and complex sentences; some errors in grammar that rarely impede communication
-Band 5: Limited range of structures; attempts complex sentences but with limited accuracy; frequent errors
-Band 4: Uses only a very limited range of structures; rare use of subordinate clauses; errors are frequent
+LEXICAL RESOURCE (Vocabulary range, precision, and collocations):
+- Band 9: Wide range; sophisticated control; rare minor slips
+- Band 7: Sufficient range; less common items; aware of style
+- Band 5: Limited range; repetitive; noticeable errors
 
-=== EVALUATION PROCESS ===
+GRAMMATICAL RANGE & ACCURACY (Complex structures vs. error frequency):
+- Band 9: Wide range; full flexibility; rare minor errors
+- Band 7: Variety of complex structures; frequent error-free sentences
+- Band 5: Limited range; attempts complex sentences with limited accuracy
 
-For Writing Task 1 (Report/Letter):
-1. Check word count - if < 150 words, cap Task Achievement at 5.0
-2. Does the response cover all key features/requirements?
-3. Is there a clear overview (for Academic) or clear purpose (for General)?
-4. Are key features highlighted with appropriate data/detail?
+=== PENALTIES ===
+- Task 1: If < 150 words, cap Task Response at 5.0
+- Task 2: If < 250 words, cap Task Response at 5.0
+- Off-topic: Max score = 4.0
 
-For Writing Task 2 (Essay):
-1. Check word count - if < 250 words, cap Task Response at 5.0
-2. Does the response address all parts of the prompt?
-3. Is there a clear thesis/position stated?
-4. Are main ideas developed with relevant supporting examples?
-5. Is the conclusion logical and consistent with the body paragraphs?
+=== YOUR FEEDBACK STRUCTURE ===
 
-=== FEEDBACK GUIDELINES ===
+You MUST provide feedback in this EXACT structure:
 
-Your feedback MUST:
-- First check word count and apply penalties if needed
-- Compare the student's work against Band 5 and Band 9 benchmarks above
-- Cite specific examples from the student's work (quote exact phrases)
-- Identify the TOP 3 most impactful improvements
-- Provide one rewritten paragraph showing how to improve
-- Be direct and honest - do not inflate scores
-- Give half-band scores when appropriate (6.5, 7.5, etc.)
-- Include a "Path to 8.0" section with ONE specific grammar or vocab tip
+1. EXECUTIVE SUMMARY: A 2-sentence overview of the student's current performance level.
 
-TONE: Professional, direct, and focused on improvement. Do not sugarcoat weaknesses but always provide a path forward.`;
+2. THE SCORING GRID: Scores (1.0 - 9.0) for each criterion with brief justification.
+
+3. THE BAND 8.0+ TRANSFORMATION: Pick THREE specific sentences from the essay. Show the 'Original' and provide a 'Band 8.0+ Rewrite' for each, explaining the high-level vocabulary or grammatical structure added.
+
+4. CRITICAL FIXES: List the most obvious recurring errors (e.g., 'Article usage', 'Overuse of simple connectors') holding their score back.
+
+5. ACTIONABLE NEXT STEP: Specific exercises they should do before their next attempt.
+
+Be direct, honest, and focused on improvement. Use half-band scores when appropriate.`;
 
 const SPEAKING_EXAMINER_PROMPT = `You are a Senior IELTS Speaking Examiner with extensive experience. Analyze speech transcriptions for:
 
@@ -166,32 +154,51 @@ serve(async (req) => {
       const wordCount = content.split(/\s+/).filter(Boolean).length;
       const minWords = taskType === "Task 1" ? 150 : 250;
       
-      userPrompt = `Analyze this IELTS ${taskType || "Task 2"} essay and provide detailed feedback.
+      userPrompt = `Analyze this IELTS ${taskType} essay and provide DIAGNOSTIC FEEDBACK.
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
-${wordCount < minWords ? `⚠️ PENALTY: Essay is under minimum length. Cap Task Achievement at 5.0.` : ''}
+${wordCount < minWords ? `⚠️ PENALTY: Essay is under minimum length. Cap Task Response at 5.0.` : ''}
 
-Essay:
+TASK TYPE: ${taskType}
+${taskType === "Task 1" ? "This is an Academic Task 1 - the student should describe/summarize visual information (graph, chart, table, diagram, map, or process)." : "This is a Task 2 Essay - the student should present and justify an opinion, discuss a problem, or compare viewpoints."}
+
+STUDENT'S ESSAY:
 ${content}
-
-INSTRUCTIONS:
-1. First analyze word count and structure
-2. Compare vocabulary and grammar against the Band 5 vs Band 9 benchmarks
-3. Generate a detailed Feedback Report Card
 
 Provide your response in this EXACT JSON format:
 {
   "wordCount": ${wordCount},
   "overallBand": 7.0,
-  "taskAchievement": { "score": 7.0, "feedback": "..." },
-  "coherenceCohesion": { "score": 7.0, "feedback": "..." },
-  "lexicalResource": { "score": 7.0, "feedback": "..." },
-  "grammaticalRange": { "score": 7.0, "feedback": "..." },
-  "strengths": ["What they did well - be specific with quotes"],
-  "weaknesses": ["Specific sentences that need fixing - quote them"],
-  "improvements": ["Top 3 most impactful improvements"],
-  "pathTo8": "One specific grammar or vocab tip to reach the next band",
-  "rewrittenParagraph": "A rewritten version of their weakest paragraph showing improvement"
+  "executiveSummary": "Two sentences summarizing the student's current performance level and main areas for improvement.",
+  "scoringGrid": {
+    "taskResponse": { "score": 7.0, "justification": "Brief explanation of why this score was given" },
+    "coherenceCohesion": { "score": 7.0, "justification": "Brief explanation" },
+    "lexicalResource": { "score": 7.0, "justification": "Brief explanation" },
+    "grammaticalRange": { "score": 7.0, "justification": "Brief explanation" }
+  },
+  "band8Transformations": [
+    {
+      "original": "Quote the exact sentence from the essay",
+      "rewrite": "The Band 8.0+ version of this sentence",
+      "explanation": "What high-level vocabulary or grammatical structure was added and why it improves the score"
+    },
+    {
+      "original": "Second sentence quote",
+      "rewrite": "Band 8.0+ version",
+      "explanation": "Explanation of improvements"
+    },
+    {
+      "original": "Third sentence quote",
+      "rewrite": "Band 8.0+ version",
+      "explanation": "Explanation of improvements"
+    }
+  ],
+  "criticalFixes": [
+    "First recurring error (e.g., 'Article usage - missing 'the' before specific nouns')",
+    "Second recurring error",
+    "Third recurring error"
+  ],
+  "actionableNextStep": "Specific exercise recommendation with clear instructions for what to practice before the next attempt"
 }`;
     } else if (type === "speaking") {
       userPrompt = `Analyze this IELTS Speaking transcription:
@@ -227,12 +234,14 @@ Provide your response in this JSON format:
 }`;
     }
 
-    let systemPrompt = IELTS_EXAMINER_PROMPT;
+    let systemPrompt = DIAGNOSTIC_WRITING_PROMPT;
     if (type === "speaking") {
       systemPrompt = SPEAKING_EXAMINER_PROMPT;
     } else if (type === "reading") {
       systemPrompt = READING_TUTOR_PROMPT;
     }
+
+    console.log("Calling AI gateway with type:", type, "taskType:", taskType);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -271,6 +280,7 @@ Provide your response in this JSON format:
 
     const data = await response.json();
     const aiResponse = data.choices?.[0]?.message?.content;
+    console.log("AI Response received:", aiResponse?.substring(0, 200));
 
     // Try to parse JSON from response
     let parsedResponse;
@@ -282,6 +292,7 @@ Provide your response in this JSON format:
         parsedResponse = { rawFeedback: aiResponse };
       }
     } catch {
+      console.error("JSON parse error, returning raw feedback");
       parsedResponse = { rawFeedback: aiResponse };
     }
 
