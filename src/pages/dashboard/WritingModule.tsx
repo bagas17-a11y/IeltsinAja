@@ -2,10 +2,12 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { PenTool, Loader2, ChevronRight, Star, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PenTool, Loader2, ChevronRight, Star, Users, AlertTriangle, CheckCircle, Target, Edit3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 
 const modelEssay = `The question of whether governments should invest more in public transportation or roads has become increasingly relevant in modern urban planning. While both options have their merits, I firmly believe that prioritizing public transportation offers more substantial long-term benefits for society.
 
@@ -21,8 +23,11 @@ export default function WritingModule() {
   const [essay, setEssay] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
+  const [adminNote, setAdminNote] = useState("");
+  const [adminOverrideScore, setAdminOverrideScore] = useState("");
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const isAdmin = isSuperAdmin(user?.email);
 
   const handleAnalyze = async () => {
     if (essay.trim().length < 100) {
@@ -46,6 +51,8 @@ export default function WritingModule() {
 
       if (error) throw error;
       setFeedback(data);
+      setAdminNote("");
+      setAdminOverrideScore("");
     } catch (error: any) {
       console.error("Analysis error:", error);
       toast({
@@ -55,6 +62,24 @@ export default function WritingModule() {
       });
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleAdminOverride = () => {
+    if (adminOverrideScore && feedback) {
+      const newScore = parseFloat(adminOverrideScore);
+      if (newScore >= 1 && newScore <= 9) {
+        setFeedback({
+          ...feedback,
+          overallBand: newScore,
+          adminOverride: true,
+          adminNote: adminNote
+        });
+        toast({
+          title: "Score Override Applied",
+          description: `Band score updated to ${newScore}`,
+        });
+      }
     }
   };
 
@@ -188,6 +213,42 @@ export default function WritingModule() {
               )}
             </div>
 
+            {/* Strengths Section */}
+            {feedback.strengths && feedback.strengths.length > 0 && (
+              <div className="mt-6 p-4 bg-green-500/5 rounded-lg border border-green-500/20">
+                <h3 className="text-sm font-medium text-green-500 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" />
+                  Strengths
+                </h3>
+                <ul className="space-y-2">
+                  {feedback.strengths.map((item: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-foreground/70">
+                      <ChevronRight className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Weaknesses Section */}
+            {feedback.weaknesses && feedback.weaknesses.length > 0 && (
+              <div className="mt-4 p-4 bg-red-500/5 rounded-lg border border-red-500/20">
+                <h3 className="text-sm font-medium text-red-500 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Weaknesses (Sentences to Fix)
+                </h3>
+                <ul className="space-y-2">
+                  {feedback.weaknesses.map((item: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-foreground/70">
+                      <ChevronRight className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Improvements */}
             {feedback.improvements && (
               <div className="mt-6">
@@ -201,6 +262,78 @@ export default function WritingModule() {
                   ))}
                 </ul>
               </div>
+            )}
+
+            {/* Path to 8.0 */}
+            {feedback.pathTo8 && (
+              <div className="mt-6 p-4 bg-accent/5 rounded-lg border border-accent/20">
+                <h3 className="text-sm font-medium text-accent mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  Path to 8.0
+                </h3>
+                <p className="text-sm text-foreground/80">{feedback.pathTo8}</p>
+              </div>
+            )}
+
+            {/* Rewritten Paragraph */}
+            {feedback.rewrittenParagraph && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-accent mb-3">Improved Version</h3>
+                <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
+                  <p className="text-sm text-foreground/80 italic">{feedback.rewrittenParagraph}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Admin Override Section */}
+            {isAdmin && (
+              <Card className="mt-6 border-destructive/30 bg-destructive/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-destructive flex items-center gap-2">
+                    <Edit3 className="w-4 h-4" />
+                    Admin Score Override
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground mb-1 block">Override Band Score</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="9"
+                        step="0.5"
+                        placeholder="e.g., 7.5"
+                        value={adminOverrideScore}
+                        onChange={(e) => setAdminOverrideScore(e.target.value)}
+                        className="max-w-[120px]"
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={handleAdminOverride}
+                      disabled={!adminOverrideScore}
+                    >
+                      Apply Override
+                    </Button>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Admin Note</label>
+                    <Textarea
+                      placeholder="Add a note explaining the override..."
+                      value={adminNote}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                  {feedback.adminOverride && (
+                    <div className="text-xs text-destructive">
+                      ⚠️ Score has been manually overridden by admin
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
           </div>
         )}

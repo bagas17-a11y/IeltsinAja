@@ -8,9 +8,10 @@ import {
   LayoutDashboard,
   LogOut,
   Crown,
-  Lock
+  Lock,
+  Shield
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -27,10 +28,13 @@ const tierOrder = { free: 0, pro: 1, elite: 2 };
 export function DashboardSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, user } = useAuth();
   const userTier = profile?.subscription_tier || "free";
+  const isAdmin = isSuperAdmin(user?.email);
 
   const canAccess = (requiredTier: string) => {
+    // Super admin bypasses all tier checks
+    if (isAdmin) return true;
     return tierOrder[userTier as keyof typeof tierOrder] >= tierOrder[requiredTier as keyof typeof tierOrder];
   };
 
@@ -109,6 +113,22 @@ export function DashboardSidebar() {
             </button>
           );
         })}
+
+        {/* Admin Portal Link - Only for Super Admin */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/admin")}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-300 mt-4 border border-destructive/30",
+              location.pathname === "/admin"
+                ? "bg-destructive/20 text-destructive"
+                : "text-destructive/70 hover:bg-destructive/10 hover:text-destructive"
+            )}
+          >
+            <Shield className="w-5 h-5" />
+            <span className="flex-1 text-left">Admin Portal</span>
+          </button>
+        )}
       </nav>
 
       {/* Upgrade CTA for non-elite users */}

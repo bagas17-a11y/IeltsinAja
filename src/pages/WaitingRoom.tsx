@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 import { Clock, Mail, LogOut } from "lucide-react";
 
 export default function WaitingRoom() {
@@ -13,6 +13,12 @@ export default function WaitingRoom() {
     // Redirect if not logged in
     if (!isLoading && !user) {
       navigate("/auth");
+      return;
+    }
+
+    // Super admin bypasses waiting room
+    if (isSuperAdmin(user?.email)) {
+      navigate("/dashboard");
       return;
     }
 
