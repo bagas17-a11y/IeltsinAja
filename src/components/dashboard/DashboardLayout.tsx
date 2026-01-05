@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardSidebar } from "./DashboardSidebar";
@@ -36,7 +36,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <DashboardSidebar />
-      <main className="ml-64 min-h-screen">
+      <main className="ml-16 lg:ml-64 min-h-screen transition-all duration-300">
         <div className="p-8">
           {children}
         </div>
