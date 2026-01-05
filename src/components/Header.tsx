@@ -65,8 +65,8 @@ export const Header = () => {
             </a>)}
           <Button variant="neumorphicPrimary" size="lg" className="mt-8 animate-fade-in" style={{
           animationDelay: "500ms"
-        }}>
-            Start Free Trial
+        }} onClick={() => { setIsMobileMenuOpen(false); navigate("/auth"); }}>
+            Login
           </Button>
         </div>
       </div>
