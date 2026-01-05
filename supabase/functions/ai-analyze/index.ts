@@ -194,30 +194,55 @@ Be encouraging and constructive. Help students improve. Acknowledge improvements
   return basePrompt;
 };
 
-const SPEAKING_EXAMINER_PROMPT = `You are a Senior IELTS Speaking Examiner with extensive experience. Analyze speech transcriptions for:
+const SPEAKING_EXAMINER_PROMPT = `You are a Senior IELTS Speaking Examiner with 15+ years of experience.
 
-FLUENCY AND COHERENCE (Band Descriptors):
-- Speech rate, pausing, self-correction
-- Discourse markers and connectors
-- Topic development and extension
+=== CRITICAL: PAUSE MARKER ANALYSIS ===
+The transcript uses [pause] markers to indicate silences longer than 1.5 seconds.
+- If you see multiple [pause] markers within a single sentence, or if sentences are very short and fragmented, this indicates HESITATION
+- Multiple pauses in a short response = Lower Fluency score (cap at 5.5-6.0)
+- Explain to the student that their 'flow' was interrupted by frequent hesitations
 
-LEXICAL RESOURCE:
-- Range and precision of vocabulary
-- Idiomatic language
-- Paraphrasing ability
+=== FILLER WORD DETECTION ===
+Count ALL filler words: um, uh, like, you know, basically, actually, I mean, so, well, kind of, sort of, right, okay, yeah
+- If filler words occur more than once every 10 seconds of estimated speech, cap Fluency at 5.5
+- Calculate estimated speech duration: ~150 words per minute average
 
-GRAMMATICAL RANGE AND ACCURACY:
-- Variety of structures
-- Error frequency and type
-- Control of complex sentences
+=== FLUENCY & COHERENCE (25%) ===
+Band 9: Speaks fluently with only rare repetition or self-correction. Speech is coherent with fully appropriate cohesive features.
+Band 7: Speaks at length without noticeable effort. May demonstrate language-related hesitation at times.
+Band 5: Usually maintains flow of speech but uses repetition, self-correction and/or slow speech to keep going. May over-use certain connectors.
 
-PRONUNCIATION (inferred from transcription):
-- Note any evident pronunciation issues from spelling/transcription errors
+=== LEXICAL RESOURCE (25%) ===
+Look for:
+- Idiomatic expressions (e.g., "at the end of the day", "once in a blue moon")
+- Topic-specific vocabulary
+- Paraphrasing ability (not repeating the same words)
+- Collocations (natural word combinations)
 
-Also identify:
-- ALL filler words (um, uh, like, you know, basically, actually, I mean, so, well, kind of, sort of)
-- Overused simple vocabulary
-- Grammatical patterns that need correction`;
+Band 9: Uses vocabulary with full flexibility and precision. Uses idiomatic language naturally and accurately.
+Band 7: Uses vocabulary resource flexibly. Uses some less common and idiomatic vocabulary.
+Band 5: Manages to talk about familiar and unfamiliar topics but uses vocabulary with limited flexibility.
+
+=== GRAMMATICAL RANGE & ACCURACY (25%) ===
+Look for complex structures:
+- Conditionals (If I had known..., Were I to...)
+- Perfect tenses (I have been living..., By then I had finished...)
+- Relative clauses (which, who, that)
+- Passive voice
+- Reported speech
+
+Band 9: Uses a full range of structures naturally and appropriately. Produces consistently accurate structures.
+Band 7: Uses a range of complex structures with some flexibility. Frequently produces error-free sentences.
+Band 5: Produces basic sentence forms with reasonable accuracy. Uses a limited range of more complex structures.
+
+=== PRONUNCIATION (25%) ===
+Infer from transcription quality:
+- Words that appear misspelled might indicate pronunciation issues
+- Note: This is an estimate since we only have text
+
+=== GRADING PHILOSOPHY ===
+Be encouraging but honest. Help students understand exactly what they need to improve.
+Count pauses and filler words explicitly. Provide actionable feedback.`;
 
 const READING_TUTOR_PROMPT = `You are an IELTS Reading specialist. When a student answers incorrectly:
 
@@ -252,7 +277,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt } = await req.json();
+    const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt, speakingPart, question } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -464,22 +489,60 @@ Provide your response in this EXACT JSON format:
       }
     } else if (type === "speaking") {
       systemPrompt = SPEAKING_EXAMINER_PROMPT;
-      userPrompt = `Analyze this IELTS Speaking transcription:
+      
+      userPrompt = `Analyze this IELTS Speaking transcription. 
 
-Transcription:
+SPEAKING PART: ${speakingPart || 'part2'}
+QUESTION CONTEXT: ${question || 'General speaking practice'}
+
+TRANSCRIPTION (with [pause] markers for silences > 1.5 seconds):
 ${content}
 
-Provide your response in this JSON format:
+=== ANALYSIS INSTRUCTIONS ===
+1. Count all [pause] markers - these indicate hesitation
+2. Count all filler words (um, uh, like, you know, basically, etc.)
+3. Estimate speech duration (assume ~150 words/minute)
+4. If filler frequency > 1 per 10 seconds, cap Fluency at 5.5
+5. Identify idiomatic expressions and complex grammar structures used
+
+Provide your response in this EXACT JSON format:
 {
   "overallBand": 7.0,
-  "fluencyCoherence": { "score": 7.0, "feedback": "..." },
-  "lexicalResource": { "score": 7.0, "feedback": "..." },
-  "grammaticalRange": { "score": 7.0, "feedback": "..." },
-  "pronunciation": { "score": 7.0, "feedback": "..." },
-  "fillerWords": { "count": 5, "examples": ["um", "uh"] },
-  "vocabularyVariety": { "score": "Good", "suggestions": ["..."] },
-  "grammarErrors": ["..."],
-  "improvements": ["..."]
+  "fluencyCoherence": { 
+    "score": 7.0, 
+    "feedback": "Detailed analysis of flow, coherence, and hesitation patterns"
+  },
+  "pauseAnalysis": {
+    "count": 3,
+    "impact": "Explanation of how pauses affected fluency score"
+  },
+  "lexicalResource": { 
+    "score": 7.0, 
+    "feedback": "Analysis of vocabulary range and precision",
+    "idiomaticExpressions": ["List of good expressions used"],
+    "suggestions": ["Vocabulary improvements to try"]
+  },
+  "grammaticalRange": { 
+    "score": 7.0, 
+    "feedback": "Analysis of grammar variety and accuracy",
+    "complexStructures": ["List of complex structures successfully used"],
+    "errorsFound": ["List of grammar errors spotted"]
+  },
+  "pronunciation": { 
+    "score": 7.0, 
+    "feedback": "Inferred pronunciation assessment based on transcription"
+  },
+  "fillerWords": { 
+    "count": 5, 
+    "examples": ["um", "like"], 
+    "impact": "How fillers affected the score"
+  },
+  "grammarErrors": ["Specific error 1", "Specific error 2"],
+  "improvements": [
+    "Specific actionable improvement 1",
+    "Specific actionable improvement 2",
+    "Specific actionable improvement 3"
+  ]
 }`;
     } else if (type === "reading") {
       systemPrompt = READING_TUTOR_PROMPT;
