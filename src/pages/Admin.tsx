@@ -29,7 +29,8 @@ import {
   CreditCard,
   AlertCircle,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  BookOpen
 } from "lucide-react";
 import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -323,10 +324,16 @@ export default function Admin() {
               <p className="text-sm text-muted-foreground">Manage users and payments</p>
             </div>
           </div>
-          <Button variant="outline" onClick={fetchData} disabled={isLoadingData}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingData ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate("/admin/content")} className="gap-2">
+              <BookOpen className="w-4 h-4" />
+              Content Manager
+            </Button>
+            <Button variant="outline" onClick={fetchData} disabled={isLoadingData}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingData ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}

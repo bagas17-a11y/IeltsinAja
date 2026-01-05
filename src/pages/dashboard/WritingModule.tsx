@@ -1,40 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, Edit3, ArrowRight, Lightbulb, FileText, BarChart3, CheckCircle, XCircle, RefreshCw, BookOpen } from "lucide-react";
+import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, Edit3, ArrowRight, Lightbulb, FileText, BarChart3, CheckCircle, XCircle, RefreshCw, BookOpen, Play, ArrowLeft, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 
-// Task 1 Question and Key Features
-const task1Question = {
-  prompt: "The chart below shows the percentage of households in owned and rented accommodation in England and Wales between 1918 and 2011.",
-  instruction: "Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
-  keyFeatures: [
-    "Owned accommodation started at ~23% in 1918 and rose to ~68% by 2001",
-    "Rented accommodation started at ~77% in 1918 and fell to ~32% by 2001",
-    "The crossover point occurred around 1971 (both ~50%)",
-    "By 2011, owned accommodation was ~64% and rented was ~36%",
-    "The trends reversed after 2001 (owned decreased, rented increased)"
-  ]
-};
-
-// Task 2 Question
-const task2Question = {
-  prompt: "Some people believe that unpaid community service should be a compulsory part of high school programmes (for example, working for a charity, improving the neighbourhood, or teaching sports to younger children).",
-  instruction: "To what extent do you agree or disagree?",
-  keyPoints: [
-    "Clear position required (agree/disagree/partially)",
-    "Must discuss benefits OR drawbacks of compulsory community service",
-    "Provide specific examples to support arguments",
-    "Consider counterarguments",
-    "Conclude with a clear restatement of position"
-  ]
-};
+interface IeltsQuestion {
+  id: string;
+  task_type: string;
+  title: string;
+  question_prompt: string;
+  question_image_url: string | null;
+  model_answer_band9: string | null;
+  ai_secret_context: string | null;
+  target_keywords: string | null;
+  difficulty: string;
+  is_active: boolean;
+}
 
 // Grading Rubric for Task 1
 const task1Rubric = [
@@ -93,13 +80,18 @@ const task2Rubric = [
 ];
 
 export default function WritingModule() {
+  const [view, setView] = useState<"library" | "practice">("library");
   const [activeTask, setActiveTask] = useState<"Task 1" | "Task 2">("Task 1");
+  const [questions, setQuestions] = useState<IeltsQuestion[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
+  const [selectedQuestion, setSelectedQuestion] = useState<IeltsQuestion | null>(null);
   const [essay, setEssay] = useState("");
   const [revisedEssay, setRevisedEssay] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzingRevision, setIsAnalyzingRevision] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
   const [revisionFeedback, setRevisionFeedback] = useState<any>(null);
+  const [previousScore, setPreviousScore] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [adminOverrideScore, setAdminOverrideScore] = useState("");
   const [showRubric, setShowRubric] = useState(false);
@@ -107,9 +99,57 @@ export default function WritingModule() {
   const { user } = useAuth();
   const isAdmin = isSuperAdmin(user?.email);
 
-  const minWords = activeTask === "Task 1" ? 150 : 250;
-  const currentQuestion = activeTask === "Task 1" ? task1Question : task2Question;
-  const currentRubric = activeTask === "Task 1" ? task1Rubric : task2Rubric;
+  const isTask1 = activeTask === "Task 1";
+  const minWords = isTask1 ? 150 : 250;
+  const currentRubric = isTask1 ? task1Rubric : task2Rubric;
+
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  const fetchQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("ielts_library")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setQuestions(data || []);
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+    } finally {
+      setLoadingQuestions(false);
+    }
+  };
+
+  const filteredQuestions = questions.filter(q => {
+    if (activeTask === "Task 1") {
+      return q.task_type.startsWith("Task 1");
+    }
+    return q.task_type === "Task 2";
+  });
+
+  const handleStartPractice = (question: IeltsQuestion) => {
+    setSelectedQuestion(question);
+    setEssay("");
+    setRevisedEssay("");
+    setFeedback(null);
+    setRevisionFeedback(null);
+    setPreviousScore(null);
+    setView("practice");
+  };
+
+  const handleBackToLibrary = () => {
+    setView("library");
+    setSelectedQuestion(null);
+    setEssay("");
+    setRevisedEssay("");
+    setFeedback(null);
+    setRevisionFeedback(null);
+    setPreviousScore(null);
+  };
 
   const handleAnalyze = async (isRevision = false) => {
     const essayContent = isRevision ? revisedEssay : essay;
@@ -136,6 +176,10 @@ export default function WritingModule() {
           content: essayContent,
           taskType: activeTask,
           isRevision,
+          questionId: selectedQuestion?.id,
+          secretContext: selectedQuestion?.ai_secret_context,
+          modelAnswer: selectedQuestion?.model_answer_band9,
+          targetKeywords: selectedQuestion?.target_keywords,
         },
       });
 
@@ -143,7 +187,18 @@ export default function WritingModule() {
       
       if (isRevision) {
         setRevisionFeedback(data);
+        // Show score improvement
+        if (feedback?.overallBand && data?.overallBand) {
+          const improvement = data.overallBand - feedback.overallBand;
+          if (improvement > 0) {
+            toast({
+              title: "Score Improved! 🎉",
+              description: `Your score went up by ${improvement.toFixed(1)} bands!`,
+            });
+          }
+        }
       } else {
+        setPreviousScore(feedback?.overallBand || null);
         setFeedback(data);
         setRevisionFeedback(null);
         setRevisedEssay("");
@@ -187,10 +242,14 @@ export default function WritingModule() {
 
   const handleTaskChange = (task: string) => {
     setActiveTask(task as "Task 1" | "Task 2");
-    setFeedback(null);
-    setRevisionFeedback(null);
-    setEssay("");
-    setRevisedEssay("");
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "easy": return "bg-green-500/20 text-green-400";
+      case "hard": return "bg-red-500/20 text-red-400";
+      default: return "bg-yellow-500/20 text-yellow-400";
+    }
   };
 
   const ScoreCell = ({ label, score, justification }: { label: string; score: number; justification?: string }) => (
@@ -212,12 +271,23 @@ export default function WritingModule() {
           <p className="text-sm text-green-500 flex items-center gap-2">
             <RefreshCw className="w-4 h-4" />
             Revised Essay Feedback
+            {feedback?.overallBand && feedbackData?.overallBand && (
+              <span className="ml-2">
+                {feedbackData.overallBand > feedback.overallBand ? (
+                  <span className="text-green-400">↑ +{(feedbackData.overallBand - feedback.overallBand).toFixed(1)} bands</span>
+                ) : feedbackData.overallBand < feedback.overallBand ? (
+                  <span className="text-red-400">↓ {(feedbackData.overallBand - feedback.overallBand).toFixed(1)} bands</span>
+                ) : (
+                  <span className="text-muted-foreground">Same score</span>
+                )}
+              </span>
+            )}
           </p>
         </div>
       )}
 
       {/* Task 1 Specific Feedback */}
-      {activeTask === "Task 1" && feedbackData.overviewAudit && (
+      {isTask1 && feedbackData.overviewAudit && (
         <>
           <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
             <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
@@ -285,7 +355,7 @@ export default function WritingModule() {
       )}
 
       {/* Task 2 Specific Feedback */}
-      {activeTask === "Task 2" && feedbackData.positionCheck && (
+      {!isTask1 && feedbackData.positionCheck && (
         <>
           <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
             <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
@@ -453,247 +523,301 @@ export default function WritingModule() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
+            {view === "practice" && (
+              <Button variant="ghost" onClick={handleBackToLibrary} className="mr-2">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
             <div className="w-12 h-12 rounded-xl bg-elite-gold/10 flex items-center justify-center">
               <PenTool className="w-6 h-6 text-elite-gold" />
             </div>
             <div>
               <h1 className="text-2xl font-light">Writing Suite</h1>
-              <p className="text-sm text-muted-foreground">AI-powered diagnostic feedback</p>
+              <p className="text-sm text-muted-foreground">
+                {view === "library" ? "Choose a question to practice" : selectedQuestion?.title}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Task Tabs */}
-        <Tabs value={activeTask} onValueChange={handleTaskChange} className="mb-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="Task 1" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
-              Task 1 (Report)
-            </TabsTrigger>
-            <TabsTrigger value="Task 2" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
-              Task 2 (Essay)
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Library View */}
+        {view === "library" && (
+          <>
+            {/* Task Tabs */}
+            <Tabs value={activeTask} onValueChange={handleTaskChange} className="mb-6">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="Task 1" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                  Task 1 (Report)
+                </TabsTrigger>
+                <TabsTrigger value="Task 2" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                  Task 2 (Essay)
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-        {/* Question Section */}
-        <div className="glass-card p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-light flex items-center gap-2">
-              <FileText className="w-4 h-4 text-accent" />
-              {activeTask} Question
-            </h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRubric(!showRubric)}
-              className="text-xs"
-            >
-              <BookOpen className="w-3 h-3 mr-1" />
-              {showRubric ? "Hide" : "Show"} Rubric
-            </Button>
-          </div>
-          
-          <div className="p-4 bg-secondary/30 rounded-lg border border-border/30 mb-4">
-            <p className="text-sm text-foreground mb-3">{currentQuestion.prompt}</p>
-            <p className="text-sm text-accent italic">{currentQuestion.instruction}</p>
-          </div>
-
-          {/* Task 1 Diagram Placeholder */}
-          {activeTask === "Task 1" && (
-            <div className="p-4 bg-secondary/20 rounded-lg border border-dashed border-border/50 mb-4">
-              <div className="flex items-center justify-center h-48">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Line graph showing housing tenure</p>
-                  <p className="text-xs text-muted-foreground mt-1">England and Wales: 1918 - 2011</p>
-                  <div className="mt-4 flex justify-center gap-4 text-xs">
-                    <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
-                      Owned
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
-                      Rented
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Key Features / Points */}
-          <div className="p-3 bg-accent/5 rounded-lg border border-accent/20">
-            <p className="text-xs font-medium text-accent mb-2">
-              {activeTask === "Task 1" ? "Key Features to Include:" : "Key Points to Address:"}
-            </p>
-            <ul className="space-y-1">
-              {(activeTask === "Task 1" ? task1Question.keyFeatures : task2Question.keyPoints).map((point, i) => (
-                <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
-                  <CheckCircle className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
-                  {point}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Rubric Section */}
-        {showRubric && (
-          <div className="glass-card p-6 mb-6">
-            <h2 className="text-lg font-light mb-4">Grading Rubric - {activeTask}</h2>
+            {/* Question Library */}
             <div className="space-y-4">
-              {currentRubric.map((item, i) => (
-                <div key={i} className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-                  <h3 className="text-sm font-medium text-foreground mb-1">{item.criterion}</h3>
-                  <p className="text-xs text-accent mb-2">{item.description}</p>
-                  <div className="grid md:grid-cols-2 gap-2 mt-2">
-                    <div className="p-2 bg-green-500/5 rounded border border-green-500/20">
-                      <span className="text-xs font-medium text-green-500">Band 9:</span>
-                      <p className="text-xs text-muted-foreground mt-1">{item.band9}</p>
-                    </div>
-                    <div className="p-2 bg-yellow-500/5 rounded border border-yellow-500/20">
-                      <span className="text-xs font-medium text-yellow-500">Band 5:</span>
-                      <p className="text-xs text-muted-foreground mt-1">{item.band5}</p>
+              {loadingQuestions ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredQuestions.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <BookOpen className="w-12 h-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-2">No questions available for {activeTask}</p>
+                    <p className="text-sm text-muted-foreground">Check back later or contact your instructor.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredQuestions.map((q) => (
+                  <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              q.task_type === "Task 2" 
+                                ? "bg-purple-500/20 text-purple-400"
+                                : q.task_type === "Task 1 General"
+                                ? "bg-teal-500/20 text-teal-400"
+                                : "bg-blue-500/20 text-blue-400"
+                            }`}>
+                              {q.task_type}
+                            </span>
+                            <span className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${getDifficultyColor(q.difficulty)}`}>
+                              <Zap className="w-3 h-3" />
+                              {q.difficulty}
+                            </span>
+                          </div>
+                          <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
+                            {q.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {q.question_prompt}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" className="flex-shrink-0 gap-2 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                          <Play className="w-4 h-4" />
+                          Start Practice
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Practice View */}
+        {view === "practice" && selectedQuestion && (
+          <>
+            {/* Question Section */}
+            <div className="glass-card p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-light flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-accent" />
+                  {selectedQuestion.task_type} Question
+                </h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRubric(!showRubric)}
+                  className="text-xs"
+                >
+                  <BookOpen className="w-3 h-3 mr-1" />
+                  {showRubric ? "Hide" : "Show"} Rubric
+                </Button>
+              </div>
+              
+              <div className="p-4 bg-secondary/30 rounded-lg border border-border/30 mb-4">
+                <p className="text-sm text-foreground">{selectedQuestion.question_prompt}</p>
+              </div>
+
+              {/* Question Image */}
+              {selectedQuestion.question_image_url && (
+                <div className="p-4 bg-secondary/20 rounded-lg border border-border/50 mb-4">
+                  <img 
+                    src={selectedQuestion.question_image_url} 
+                    alt="Question diagram" 
+                    className="max-w-full h-auto rounded"
+                  />
+                </div>
+              )}
+
+              {/* Placeholder if no image */}
+              {!selectedQuestion.question_image_url && selectedQuestion.task_type.startsWith("Task 1") && (
+                <div className="p-4 bg-secondary/20 rounded-lg border border-dashed border-border/50 mb-4">
+                  <div className="flex items-center justify-center h-48">
+                    <div className="text-center">
+                      <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Diagram/chart for this question</p>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Essay Writing Area */}
-        <div className="glass-card p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-light">Your Essay</h2>
-            <span className={`text-xs ${essay.split(/\s+/).filter(Boolean).length < minWords ? 'text-red-400' : 'text-muted-foreground'}`}>
-              {essay.split(/\s+/).filter(Boolean).length} / {minWords} words min
-            </span>
-          </div>
-          <Textarea
-            value={essay}
-            onChange={(e) => setEssay(e.target.value)}
-            placeholder={`Write your ${activeTask} response here... (minimum ${minWords} words)`}
-            className="h-[300px] bg-secondary/30 border-border/30 resize-none"
-          />
-          <div className="flex items-center justify-between mt-4">
-            <Button
-              variant="neumorphicPrimary"
-              onClick={() => handleAnalyze(false)}
-              disabled={isAnalyzing}
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  Get AI Feedback
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </>
               )}
-            </Button>
-          </div>
-        </div>
+            </div>
 
-        {/* Original Feedback Section */}
-        {feedback && (
-          <div className="glass-card p-6 mb-6">
-            <h2 className="text-lg font-light mb-6">Diagnostic Feedback Report</h2>
-            <FeedbackDisplay feedbackData={feedback} />
-
-            {/* Admin Override Section */}
-            {isAdmin && (
-              <Card className="border-destructive/30 bg-destructive/5 mt-6">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-destructive flex items-center gap-2">
-                    <Edit3 className="w-4 h-4" />
-                    Admin Score Override
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <label className="text-xs text-muted-foreground mb-1 block">Override Band Score</label>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="9"
-                        step="0.5"
-                        placeholder="e.g., 7.5"
-                        value={adminOverrideScore}
-                        onChange={(e) => setAdminOverrideScore(e.target.value)}
-                        className="max-w-[120px]"
-                      />
+            {/* Rubric Section */}
+            {showRubric && (
+              <div className="glass-card p-6 mb-6">
+                <h2 className="text-lg font-light mb-4">Grading Rubric - {activeTask}</h2>
+                <div className="space-y-4">
+                  {currentRubric.map((item, i) => (
+                    <div key={i} className="p-4 bg-secondary/30 rounded-lg border border-border/30">
+                      <h3 className="text-sm font-medium text-foreground mb-1">{item.criterion}</h3>
+                      <p className="text-xs text-accent mb-2">{item.description}</p>
+                      <div className="grid md:grid-cols-2 gap-2 mt-2">
+                        <div className="p-2 bg-green-500/5 rounded border border-green-500/20">
+                          <span className="text-xs font-medium text-green-500">Band 9:</span>
+                          <p className="text-xs text-muted-foreground mt-1">{item.band9}</p>
+                        </div>
+                        <div className="p-2 bg-yellow-500/5 rounded border border-yellow-500/20">
+                          <span className="text-xs font-medium text-yellow-500">Band 5:</span>
+                          <p className="text-xs text-muted-foreground mt-1">{item.band5}</p>
+                        </div>
+                      </div>
                     </div>
-                    <Button variant="destructive" size="sm" onClick={handleAdminOverride}>
-                      Apply Override
-                    </Button>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Admin Note</label>
-                    <Textarea
-                      placeholder="Add a note explaining the override..."
-                      value={adminNote}
-                      onChange={(e) => setAdminNote(e.target.value)}
-                      className="h-20"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
-        {/* Revision Section - Only shows after getting feedback */}
-        {feedback && (
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <RefreshCw className="w-5 h-5 text-accent" />
-              <h2 className="text-lg font-light">Revise & Resubmit</h2>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Based on the feedback above, revise your essay and submit it for re-grading to track your improvement.
-            </p>
-            
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">Revised Essay</span>
-              <span className={`text-xs ${revisedEssay.split(/\s+/).filter(Boolean).length < minWords ? 'text-red-400' : 'text-muted-foreground'}`}>
-                {revisedEssay.split(/\s+/).filter(Boolean).length} / {minWords} words min
-              </span>
-            </div>
-            <Textarea
-              value={revisedEssay}
-              onChange={(e) => setRevisedEssay(e.target.value)}
-              placeholder="Paste or write your revised essay here..."
-              className="h-[250px] bg-secondary/30 border-border/30 resize-none mb-4"
-            />
-            <Button
-              variant="outline"
-              onClick={() => handleAnalyze(true)}
-              disabled={isAnalyzingRevision || revisedEssay.trim().length < 50}
-            >
-              {isAnalyzingRevision ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing Revision...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Get Revised Feedback
-                </>
-              )}
-            </Button>
-
-            {/* Revision Feedback */}
-            {revisionFeedback && (
-              <div className="mt-6 pt-6 border-t border-border/30">
-                <FeedbackDisplay feedbackData={revisionFeedback} isRevisionFeedback />
+                  ))}
+                </div>
               </div>
             )}
-          </div>
+
+            {/* Essay Writing Area */}
+            <div className="glass-card p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-light">Your Essay</h2>
+                <span className={`text-xs ${essay.split(/\s+/).filter(Boolean).length < minWords ? 'text-red-400' : 'text-muted-foreground'}`}>
+                  {essay.split(/\s+/).filter(Boolean).length} / {minWords} words min
+                </span>
+              </div>
+              <Textarea
+                value={essay}
+                onChange={(e) => setEssay(e.target.value)}
+                placeholder={`Write your ${selectedQuestion.task_type} response here... (minimum ${minWords} words)`}
+                className="h-[300px] bg-secondary/30 border-border/30 resize-none"
+              />
+              <div className="flex items-center justify-between mt-4">
+                <Button
+                  variant="default"
+                  onClick={() => handleAnalyze(false)}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      Get AI Feedback
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Original Feedback Section */}
+            {feedback && (
+              <div className="glass-card p-6 mb-6">
+                <h2 className="text-lg font-light mb-6">Diagnostic Feedback Report</h2>
+                <FeedbackDisplay feedbackData={feedback} />
+
+                {/* Admin Override Section */}
+                {isAdmin && (
+                  <Card className="border-destructive/30 bg-destructive/5 mt-6">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-destructive flex items-center gap-2">
+                        <Edit3 className="w-4 h-4" />
+                        Admin Score Override
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <label className="text-xs text-muted-foreground mb-1 block">Override Band Score</label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="9"
+                            step="0.5"
+                            placeholder="e.g., 7.5"
+                            value={adminOverrideScore}
+                            onChange={(e) => setAdminOverrideScore(e.target.value)}
+                            className="max-w-[120px]"
+                          />
+                        </div>
+                        <Button variant="destructive" size="sm" onClick={handleAdminOverride}>
+                          Apply Override
+                        </Button>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Admin Note</label>
+                        <Textarea
+                          placeholder="Add a note explaining the override..."
+                          value={adminNote}
+                          onChange={(e) => setAdminNote(e.target.value)}
+                          className="h-20"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {/* Revision Section - Only shows after getting feedback */}
+            {feedback && (
+              <div className="glass-card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <RefreshCw className="w-5 h-5 text-accent" />
+                  <h2 className="text-lg font-light">Revise & Resubmit</h2>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Based on the feedback above, revise your essay and submit it for re-grading. Your score will update if you've improved!
+                </p>
+                
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">Revised Essay</span>
+                  <span className={`text-xs ${revisedEssay.split(/\s+/).filter(Boolean).length < minWords ? 'text-red-400' : 'text-muted-foreground'}`}>
+                    {revisedEssay.split(/\s+/).filter(Boolean).length} / {minWords} words min
+                  </span>
+                </div>
+                <Textarea
+                  value={revisedEssay}
+                  onChange={(e) => setRevisedEssay(e.target.value)}
+                  placeholder="Paste or write your revised essay here..."
+                  className="h-[250px] bg-secondary/30 border-border/30 resize-none mb-4"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => handleAnalyze(true)}
+                  disabled={isAnalyzingRevision || revisedEssay.trim().length < 50}
+                >
+                  {isAnalyzingRevision ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing Revision...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Get Revised Feedback
+                    </>
+                  )}
+                </Button>
+
+                {/* Revision Feedback */}
+                {revisionFeedback && (
+                  <div className="mt-6 pt-6 border-t border-border/30">
+                    <FeedbackDisplay feedbackData={revisionFeedback} isRevisionFeedback />
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>
