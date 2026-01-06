@@ -13,14 +13,39 @@ import { useToast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
 import { 
   Plus, Save, Trash2, Loader2, ArrowLeft, 
-  Headphones, Eye, EyeOff, Upload, X, Music, HelpCircle
+  Headphones, Eye, EyeOff, Upload, X, Music, HelpCircle, Image, Grid3X3, ListChecks
 } from "lucide-react";
+
+type QuestionType = "multiple-choice" | "matching" | "map-diagram" | "form-table" | "sentence-completion";
+
+interface MatchingItem {
+  id: string;
+  text: string;
+}
+
+interface TableCell {
+  value: string;
+  isBlank: boolean;
+}
 
 interface Question {
   id: number;
-  type: "gap-fill" | "multiple-choice";
+  type: QuestionType;
   text: string;
+  // Multiple choice
   options?: string[];
+  // Matching
+  matchingOptions?: string[];
+  matchingItems?: MatchingItem[];
+  // Map/Diagram
+  diagramImageUrl?: string;
+  labels?: { id: string; label: string }[];
+  // Form/Table
+  tableRows?: number;
+  tableCols?: number;
+  tableHeaders?: string[];
+  tableData?: TableCell[][];
+  // Sentence completion uses text field with blanks
 }
 
 interface ListeningTest {
@@ -36,12 +61,22 @@ interface ListeningTest {
   ai_secret_context: string | null;
 }
 
+const QUESTION_TYPES: { value: QuestionType; label: string; icon: any }[] = [
+  { value: "multiple-choice", label: "Multiple Choice", icon: ListChecks },
+  { value: "matching", label: "Matching", icon: ListChecks },
+  { value: "map-diagram", label: "Plan/Map/Diagram Labelling", icon: Image },
+  { value: "form-table", label: "Form/Table/Flow-chart Completion", icon: Grid3X3 },
+  { value: "sentence-completion", label: "Sentence Completion", icon: HelpCircle },
+];
+
 export default function ListeningManager() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isAdmin = isSuperAdmin(user?.email);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const diagramInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingDiagramForId, setUploadingDiagramForId] = useState<number | null>(null);
 
   const [tests, setTests] = useState<ListeningTest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,16 +190,126 @@ export default function ListeningManager() {
     }
   };
 
-  const addQuestion = (type: "gap-fill" | "multiple-choice") => {
+  const handleDiagramUpload = async (e: React.ChangeEvent<HTMLInputElement>, questionId: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (PNG, JPG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingDiagramForId(questionId);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `diagrams/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('question-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('question-images')
+        .getPublicUrl(filePath);
+
+      updateQuestion(questionId, { diagramImageUrl: publicUrl });
+
+      toast({
+        title: "Image uploaded",
+        description: "The diagram has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingDiagramForId(null);
+    }
+  };
+
+  const addQuestion = (type: QuestionType) => {
     const newId = questions.length + 1;
     const newQuestion: Question = {
       id: newId,
       type,
       text: "",
-      ...(type === "multiple-choice" && { options: ["", "", "", ""] }),
     };
+
+    // Initialize type-specific fields
+    switch (type) {
+      case "multiple-choice":
+        newQuestion.options = ["", "", "", ""];
+        break;
+      case "matching":
+        newQuestion.matchingOptions = ["A", "B", "C", "D"];
+        newQuestion.matchingItems = [
+          { id: "1", text: "" },
+          { id: "2", text: "" },
+          { id: "3", text: "" },
+        ];
+        break;
+      case "map-diagram":
+        newQuestion.diagramImageUrl = "";
+        newQuestion.labels = [
+          { id: "1", label: "" },
+          { id: "2", label: "" },
+          { id: "3", label: "" },
+        ];
+        break;
+      case "form-table":
+        newQuestion.tableRows = 3;
+        newQuestion.tableCols = 3;
+        newQuestion.tableHeaders = ["Column 1", "Column 2", "Column 3"];
+        newQuestion.tableData = Array(3).fill(null).map(() =>
+          Array(3).fill(null).map(() => ({ value: "", isBlank: false }))
+        );
+        break;
+      case "sentence-completion":
+        // Uses text field with underscores for blanks
+        break;
+    }
+
     setQuestions([...questions, newQuestion]);
-    setAnswerKey({ ...answerKey, [newId.toString()]: "" });
+    
+    // For matching and table types, we might have multiple answers per question
+    if (type === "matching") {
+      setAnswerKey({ 
+        ...answerKey, 
+        [`${newId}-1`]: "", 
+        [`${newId}-2`]: "", 
+        [`${newId}-3`]: "" 
+      });
+    } else if (type === "map-diagram") {
+      setAnswerKey({ 
+        ...answerKey, 
+        [`${newId}-1`]: "", 
+        [`${newId}-2`]: "", 
+        [`${newId}-3`]: "" 
+      });
+    } else if (type === "form-table") {
+      // We'll add answer keys as blanks are marked
+    } else {
+      setAnswerKey({ ...answerKey, [newId.toString()]: "" });
+    }
   };
 
   const updateQuestion = (id: number, updates: Partial<Question>) => {
@@ -182,10 +327,172 @@ export default function ListeningManager() {
     }));
   };
 
+  const addMultipleChoiceOption = (questionId: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.options) {
+        return { ...q, options: [...q.options, ""] };
+      }
+      return q;
+    }));
+  };
+
+  const removeMultipleChoiceOption = (questionId: number, optionIndex: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.options && q.options.length > 2) {
+        const newOptions = q.options.filter((_, i) => i !== optionIndex);
+        return { ...q, options: newOptions };
+      }
+      return q;
+    }));
+  };
+
+  const updateMatchingOption = (questionId: number, optionIndex: number, value: string) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.matchingOptions) {
+        const newOptions = [...q.matchingOptions];
+        newOptions[optionIndex] = value;
+        return { ...q, matchingOptions: newOptions };
+      }
+      return q;
+    }));
+  };
+
+  const addMatchingOption = (questionId: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.matchingOptions) {
+        return { ...q, matchingOptions: [...q.matchingOptions, ""] };
+      }
+      return q;
+    }));
+  };
+
+  const updateMatchingItem = (questionId: number, itemId: string, text: string) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.matchingItems) {
+        const newItems = q.matchingItems.map(item => 
+          item.id === itemId ? { ...item, text } : item
+        );
+        return { ...q, matchingItems: newItems };
+      }
+      return q;
+    }));
+  };
+
+  const addMatchingItem = (questionId: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.matchingItems) {
+        const newId = (q.matchingItems.length + 1).toString();
+        const newItems = [...q.matchingItems, { id: newId, text: "" }];
+        return { ...q, matchingItems: newItems };
+      }
+      return q;
+    }));
+    // Add answer key for new item
+    const question = questions.find(q => q.id === questionId);
+    if (question?.matchingItems) {
+      const newItemId = (question.matchingItems.length + 1).toString();
+      setAnswerKey({ ...answerKey, [`${questionId}-${newItemId}`]: "" });
+    }
+  };
+
+  const updateDiagramLabel = (questionId: number, labelId: string, label: string) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.labels) {
+        const newLabels = q.labels.map(l => 
+          l.id === labelId ? { ...l, label } : l
+        );
+        return { ...q, labels: newLabels };
+      }
+      return q;
+    }));
+  };
+
+  const addDiagramLabel = (questionId: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.labels) {
+        const newId = (q.labels.length + 1).toString();
+        const newLabels = [...q.labels, { id: newId, label: "" }];
+        return { ...q, labels: newLabels };
+      }
+      return q;
+    }));
+    // Add answer key for new label
+    const question = questions.find(q => q.id === questionId);
+    if (question?.labels) {
+      const newLabelId = (question.labels.length + 1).toString();
+      setAnswerKey({ ...answerKey, [`${questionId}-${newLabelId}`]: "" });
+    }
+  };
+
+  const updateTableDimensions = (questionId: number, rows: number, cols: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId) {
+        const newHeaders = Array(cols).fill("").map((_, i) => 
+          q.tableHeaders?.[i] || `Column ${i + 1}`
+        );
+        const newData = Array(rows).fill(null).map((_, rowIndex) =>
+          Array(cols).fill(null).map((_, colIndex) => 
+            q.tableData?.[rowIndex]?.[colIndex] || { value: "", isBlank: false }
+          )
+        );
+        return { 
+          ...q, 
+          tableRows: rows, 
+          tableCols: cols, 
+          tableHeaders: newHeaders,
+          tableData: newData 
+        };
+      }
+      return q;
+    }));
+  };
+
+  const updateTableHeader = (questionId: number, colIndex: number, value: string) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.tableHeaders) {
+        const newHeaders = [...q.tableHeaders];
+        newHeaders[colIndex] = value;
+        return { ...q, tableHeaders: newHeaders };
+      }
+      return q;
+    }));
+  };
+
+  const updateTableCell = (questionId: number, rowIndex: number, colIndex: number, updates: Partial<TableCell>) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId && q.tableData) {
+        const newData = q.tableData.map((row, rIdx) =>
+          row.map((cell, cIdx) =>
+            rIdx === rowIndex && cIdx === colIndex ? { ...cell, ...updates } : cell
+          )
+        );
+        return { ...q, tableData: newData };
+      }
+      return q;
+    }));
+
+    // Handle answer key for blank cells
+    if (updates.isBlank !== undefined) {
+      const key = `${questionId}-r${rowIndex}c${colIndex}`;
+      if (updates.isBlank) {
+        setAnswerKey({ ...answerKey, [key]: "" });
+      } else {
+        const newAnswerKey = { ...answerKey };
+        delete newAnswerKey[key];
+        setAnswerKey(newAnswerKey);
+      }
+    }
+  };
+
   const removeQuestion = (id: number) => {
     setQuestions(questions.filter(q => q.id !== id));
+    // Clean up all answer keys related to this question
     const newAnswerKey = { ...answerKey };
-    delete newAnswerKey[id.toString()];
+    Object.keys(newAnswerKey).forEach(key => {
+      if (key.startsWith(`${id}-`) || key === id.toString()) {
+        delete newAnswerKey[key];
+      }
+    });
     setAnswerKey(newAnswerKey);
   };
 
@@ -308,6 +615,379 @@ export default function ListeningManager() {
     setFormMode("list");
   };
 
+  const getQuestionTypeLabel = (type: QuestionType) => {
+    return QUESTION_TYPES.find(t => t.value === type)?.label || type;
+  };
+
+  const renderQuestionEditor = (q: Question, index: number) => {
+    const Icon = QUESTION_TYPES.find(t => t.value === q.type)?.icon || HelpCircle;
+    
+    return (
+      <div key={q.id} className="p-4 rounded-lg bg-secondary/30 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon className="w-4 h-4 text-accent" />
+            <span className="text-sm font-medium">
+              Q{index + 1} - {getQuestionTypeLabel(q.type)}
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive"
+            onClick={() => removeQuestion(q.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Question Text (common) */}
+        <div>
+          <Label className="text-xs">Question/Instructions</Label>
+          <Input
+            value={q.text}
+            onChange={(e) => updateQuestion(q.id, { text: e.target.value })}
+            placeholder={getPlaceholderForType(q.type)}
+            className="mt-1"
+          />
+        </div>
+
+        {/* Type-specific UI */}
+        {q.type === "multiple-choice" && renderMultipleChoiceEditor(q)}
+        {q.type === "matching" && renderMatchingEditor(q)}
+        {q.type === "map-diagram" && renderMapDiagramEditor(q)}
+        {q.type === "form-table" && renderFormTableEditor(q)}
+        {q.type === "sentence-completion" && renderSentenceCompletionEditor(q)}
+      </div>
+    );
+  };
+
+  const getPlaceholderForType = (type: QuestionType) => {
+    switch (type) {
+      case "multiple-choice": return "What is the main topic of the lecture?";
+      case "matching": return "Match each person with the correct statement";
+      case "map-diagram": return "Label the map/diagram below";
+      case "form-table": return "Complete the form/table below";
+      case "sentence-completion": return "Complete the sentences below (use _____ for blanks)";
+    }
+  };
+
+  const renderMultipleChoiceEditor = (q: Question) => (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs">Options</Label>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => addMultipleChoiceOption(q.id)}
+          className="h-6 text-xs"
+        >
+          <Plus className="w-3 h-3 mr-1" />
+          Add Option
+        </Button>
+      </div>
+      <div className="grid gap-2">
+        {q.options?.map((opt, optIndex) => (
+          <div key={optIndex} className="flex items-center gap-2">
+            <span className="text-xs font-medium w-6">{String.fromCharCode(65 + optIndex)}.</span>
+            <Input
+              value={opt}
+              onChange={(e) => updateQuestionOption(q.id, optIndex, e.target.value)}
+              placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
+              className="flex-1"
+            />
+            {(q.options?.length || 0) > 2 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => removeMultipleChoiceOption(q.id, optIndex)}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+      <div>
+        <Label className="text-xs text-accent">Correct Answer (e.g., A, B, C)</Label>
+        <Input
+          value={answerKey[q.id.toString()] || ""}
+          onChange={(e) => setAnswerKey({ ...answerKey, [q.id.toString()]: e.target.value })}
+          placeholder="A"
+          className="mt-1 border-accent/50 w-24"
+        />
+      </div>
+    </div>
+  );
+
+  const renderMatchingEditor = (q: Question) => (
+    <div className="space-y-4">
+      {/* Options List (A, B, C, etc.) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Options to Match From</Label>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => addMatchingOption(q.id)}
+            className="h-6 text-xs"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add Option
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {q.matchingOptions?.map((opt, optIndex) => (
+            <div key={optIndex} className="flex items-center gap-2">
+              <span className="text-xs font-medium w-6">{String.fromCharCode(65 + optIndex)}.</span>
+              <Input
+                value={opt}
+                onChange={(e) => updateMatchingOption(q.id, optIndex, e.target.value)}
+                placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
+                className="flex-1"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Items to Match */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Items to be Matched</Label>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => addMatchingItem(q.id)}
+            className="h-6 text-xs"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add Item
+          </Button>
+        </div>
+        {q.matchingItems?.map((item, idx) => (
+          <div key={item.id} className="flex items-center gap-2 p-2 rounded bg-background/50">
+            <span className="text-xs font-medium w-6">{item.id}.</span>
+            <Input
+              value={item.text}
+              onChange={(e) => updateMatchingItem(q.id, item.id, e.target.value)}
+              placeholder="Statement or question to match"
+              className="flex-1"
+            />
+            <div className="flex items-center gap-1">
+              <Label className="text-xs text-accent">Ans:</Label>
+              <Input
+                value={answerKey[`${q.id}-${item.id}`] || ""}
+                onChange={(e) => setAnswerKey({ ...answerKey, [`${q.id}-${item.id}`]: e.target.value })}
+                placeholder="A"
+                className="w-12 border-accent/50 text-center"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderMapDiagramEditor = (q: Question) => (
+    <div className="space-y-4">
+      {/* Image Upload */}
+      <div>
+        <Label className="text-xs">Diagram/Map Image</Label>
+        <div className="mt-1">
+          {q.diagramImageUrl ? (
+            <div className="space-y-2">
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img 
+                  src={q.diagramImageUrl} 
+                  alt="Diagram" 
+                  className="max-h-48 w-full object-contain bg-muted"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => updateQuestion(q.id, { diagramImageUrl: "" })}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => {
+                diagramInputRef.current?.click();
+                setUploadingDiagramForId(q.id);
+              }}
+              className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-accent/50 transition-colors"
+            >
+              {uploadingDiagramForId === q.id ? (
+                <Loader2 className="w-6 h-6 mx-auto animate-spin text-muted-foreground" />
+              ) : (
+                <>
+                  <Image className="w-6 h-6 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-xs text-muted-foreground">Click to upload diagram</p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Labels */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Labels (students will fill these)</Label>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => addDiagramLabel(q.id)}
+            className="h-6 text-xs"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add Label
+          </Button>
+        </div>
+        {q.labels?.map((label) => (
+          <div key={label.id} className="flex items-center gap-2 p-2 rounded bg-background/50">
+            <span className="text-xs font-medium w-6">{label.id}.</span>
+            <Input
+              value={label.label}
+              onChange={(e) => updateDiagramLabel(q.id, label.id, e.target.value)}
+              placeholder="Label description (e.g., 'Reception area')"
+              className="flex-1"
+            />
+            <div className="flex items-center gap-1">
+              <Label className="text-xs text-accent">Ans:</Label>
+              <Input
+                value={answerKey[`${q.id}-${label.id}`] || ""}
+                onChange={(e) => setAnswerKey({ ...answerKey, [`${q.id}-${label.id}`]: e.target.value })}
+                placeholder="Answer"
+                className="w-24 border-accent/50"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderFormTableEditor = (q: Question) => (
+    <div className="space-y-4">
+      {/* Table Dimensions */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Label className="text-xs">Rows:</Label>
+          <Input
+            type="number"
+            min={1}
+            max={10}
+            value={q.tableRows || 3}
+            onChange={(e) => updateTableDimensions(q.id, parseInt(e.target.value) || 3, q.tableCols || 3)}
+            className="w-16"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="text-xs">Columns:</Label>
+          <Input
+            type="number"
+            min={1}
+            max={6}
+            value={q.tableCols || 3}
+            onChange={(e) => updateTableDimensions(q.id, q.tableRows || 3, parseInt(e.target.value) || 3)}
+            className="w-16"
+          />
+        </div>
+      </div>
+
+      {/* Table Builder */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              {q.tableHeaders?.map((header, colIdx) => (
+                <th key={colIdx} className="border border-border p-1">
+                  <Input
+                    value={header}
+                    onChange={(e) => updateTableHeader(q.id, colIdx, e.target.value)}
+                    placeholder={`Column ${colIdx + 1}`}
+                    className="text-xs h-8 text-center font-medium"
+                  />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {q.tableData?.map((row, rowIdx) => (
+              <tr key={rowIdx}>
+                {row.map((cell, colIdx) => (
+                  <td key={colIdx} className="border border-border p-1">
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={cell.value}
+                        onChange={(e) => updateTableCell(q.id, rowIdx, colIdx, { value: e.target.value })}
+                        placeholder={cell.isBlank ? "(blank)" : "Value"}
+                        className={`text-xs h-8 ${cell.isBlank ? "border-accent/50 bg-accent/5" : ""}`}
+                        disabled={cell.isBlank}
+                      />
+                      <Button
+                        variant={cell.isBlank ? "default" : "ghost"}
+                        size="sm"
+                        className="h-8 w-8 p-0 shrink-0"
+                        onClick={() => updateTableCell(q.id, rowIdx, colIdx, { isBlank: !cell.isBlank })}
+                        title={cell.isBlank ? "Remove blank" : "Mark as blank (student fills)"}
+                      >
+                        {cell.isBlank ? <X className="w-3 h-3" /> : <HelpCircle className="w-3 h-3" />}
+                      </Button>
+                    </div>
+                    {cell.isBlank && (
+                      <Input
+                        value={answerKey[`${q.id}-r${rowIdx}c${colIdx}`] || ""}
+                        onChange={(e) => setAnswerKey({ ...answerKey, [`${q.id}-r${rowIdx}c${colIdx}`]: e.target.value })}
+                        placeholder="Correct answer"
+                        className="text-xs h-6 mt-1 border-accent/50"
+                      />
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Click the <HelpCircle className="w-3 h-3 inline" /> icon on any cell to mark it as a blank for students to fill.
+      </p>
+    </div>
+  );
+
+  const renderSentenceCompletionEditor = (q: Question) => (
+    <div className="space-y-3">
+      <div>
+        <Label className="text-xs">Sentences (use _____ for blanks, one per line)</Label>
+        <Textarea
+          value={q.text}
+          onChange={(e) => updateQuestion(q.id, { text: e.target.value })}
+          placeholder={`1. The conference is scheduled for _____.\n2. Participants must register by _____.\n3. The venue is located at _____.`}
+          className="mt-1 min-h-[120px] font-mono text-sm"
+        />
+      </div>
+      <div>
+        <Label className="text-xs text-accent">Correct Answers (comma-separated, in order)</Label>
+        <Input
+          value={answerKey[q.id.toString()] || ""}
+          onChange={(e) => setAnswerKey({ ...answerKey, [q.id.toString()]: e.target.value })}
+          placeholder="12th March, 5pm, Central Hall"
+          className="mt-1 border-accent/50"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Enter answers in order, separated by commas. Each answer corresponds to a blank.
+        </p>
+      </div>
+    </div>
+  );
+
   if (!isAdmin) {
     return null;
   }
@@ -315,6 +995,15 @@ export default function ListeningManager() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
+        {/* Hidden file inputs */}
+        <input
+          ref={diagramInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => uploadingDiagramForId !== null && handleDiagramUpload(e, uploadingDiagramForId)}
+          className="hidden"
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -565,81 +1254,39 @@ export default function ListeningManager() {
                     <HelpCircle className="w-5 h-5 text-accent" />
                     Questions ({questions.length})
                   </CardTitle>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => addQuestion("gap-fill")}>
-                      <Plus className="w-4 h-4 mr-1" />
-                      Gap-Fill
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => addQuestion("multiple-choice")}>
-                      <Plus className="w-4 h-4 mr-1" />
-                      Multiple Choice
-                    </Button>
-                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Question Type Selector */}
+                <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
+                  <Label className="text-sm font-medium mb-3 block">Add Question by Type</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {QUESTION_TYPES.map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <Button
+                          key={type.value}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion(type.value)}
+                          className="flex flex-col h-auto py-3 px-2 gap-1"
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span className="text-xs text-center leading-tight">{type.label}</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Question List */}
                 {questions.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <HelpCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p>No questions yet. Add gap-fill or multiple choice questions above.</p>
+                    <p>No questions yet. Select a question type above to add one.</p>
                   </div>
                 ) : (
-                  questions.map((q, index) => (
-                    <div key={q.id} className="p-4 rounded-lg bg-secondary/30 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Q{index + 1} - {q.type === "gap-fill" ? "Gap-Fill" : "Multiple Choice"}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive"
-                          onClick={() => removeQuestion(q.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-
-                      <div>
-                        <Label className="text-xs">Question Text</Label>
-                        <Input
-                          value={q.text}
-                          onChange={(e) => updateQuestion(q.id, { text: e.target.value })}
-                          placeholder={q.type === "gap-fill" 
-                            ? "The conference is scheduled for _____" 
-                            : "What is the main topic of the lecture?"
-                          }
-                          className="mt-1"
-                        />
-                      </div>
-
-                      {q.type === "multiple-choice" && q.options && (
-                        <div className="grid grid-cols-2 gap-2">
-                          {q.options.map((opt, optIndex) => (
-                            <div key={optIndex}>
-                              <Label className="text-xs">Option {String.fromCharCode(65 + optIndex)}</Label>
-                              <Input
-                                value={opt}
-                                onChange={(e) => updateQuestionOption(q.id, optIndex, e.target.value)}
-                                placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
-                                className="mt-1"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div>
-                        <Label className="text-xs text-accent">Correct Answer</Label>
-                        <Input
-                          value={answerKey[q.id.toString()] || ""}
-                          onChange={(e) => setAnswerKey({ ...answerKey, [q.id.toString()]: e.target.value })}
-                          placeholder={q.type === "gap-fill" ? "12th March" : "A"}
-                          className="mt-1 border-accent/50"
-                        />
-                      </div>
-                    </div>
-                  ))
+                  questions.map((q, index) => renderQuestionEditor(q, index))
                 )}
               </CardContent>
             </Card>
