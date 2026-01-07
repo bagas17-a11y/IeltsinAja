@@ -13,7 +13,7 @@ import WritingModule from "./pages/dashboard/WritingModule";
 import SpeakingModule from "./pages/dashboard/SpeakingModule";
 import ConsultationHub from "./pages/dashboard/ConsultationHub";
 import StatsPage from "./pages/dashboard/StatsPage";
-import BankTransfer from "./pages/BankTransfer";
+import PricingSelection from "./pages/PricingSelection";
 import PaymentVerification from "./pages/admin/PaymentVerification";
 import AdminVerify from "./pages/admin/AdminVerify";
 import ContentManager from "./pages/admin/ContentManager";
@@ -34,7 +34,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/payment" element={<BankTransfer />} />
+            <Route path="/pricing-selection" element={<PricingSelection />} />
             <Route path="/waiting-room" element={<WaitingRoom />} />
             <Route path="/admin/payments" element={<PaymentVerification />} />
             <Route path="/admin/verify" element={<AdminVerify />} />

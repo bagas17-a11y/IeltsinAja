@@ -28,9 +28,9 @@ export default function Auth() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        // If this was a new signup, go to bank transfer page
+        // If this was a new signup, redirect to pricing selection
         if (isNewSignup) {
-          navigate("/bank-transfer");
+          navigate("/pricing-selection");
           return;
         }
         // Check is_verified status for login
@@ -67,7 +67,7 @@ export default function Auth() {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isNewSignup]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -107,12 +107,12 @@ export default function Auth() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/bank-transfer`,
+            emailRedirectTo: `${window.location.origin}/pricing-selection`,
             data: { full_name: fullName },
           },
         });
         if (error) throw error;
-        toast({ title: "Account created!", description: "Redirecting to payment..." });
+        toast({ title: "Account created!", description: "Select your plan..." });
       }
     } catch (error: any) {
       let message = error.message;
