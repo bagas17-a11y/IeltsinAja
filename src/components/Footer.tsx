@@ -87,14 +87,7 @@ export const Footer = () => {
           </div>
 
           {/* Company Links */}
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-4 uppercase tracking-wider">
-              Company
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.company.map(link => {})}
-            </ul>
-          </div>
+          
 
           {/* Support Links */}
           <div>
