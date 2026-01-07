@@ -735,26 +735,31 @@ function QuestionItem({
             />
           )}
           
-          {/* Show correct answer and explanation when incorrect */}
-          {isSubmitted && result === 'incorrect' && (
-            <div className="mt-3 pt-3 border-t border-border/30">
+          {/* Show explanation for ALL questions after submission */}
+          {isSubmitted && (
+            <div className={`mt-3 pt-3 border-t ${result === 'correct' ? 'border-green-500/20' : 'border-destructive/20'}`}>
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-3 h-3 text-green-400" />
-                <span className="text-xs text-green-400">Correct: {correctAnswer}</span>
+                {result === 'correct' ? (
+                  <>
+                    <CheckCircle className="w-3 h-3 text-green-400" />
+                    <span className="text-xs text-green-400">Correct!</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-3 h-3 text-destructive" />
+                    <span className="text-xs text-destructive">
+                      Your answer: {userAnswer || '(no answer)'}
+                    </span>
+                    <span className="text-xs text-muted-foreground mx-1">→</span>
+                    <CheckCircle className="w-3 h-3 text-green-400" />
+                    <span className="text-xs text-green-400">Correct: {correctAnswer}</span>
+                  </>
+                )}
               </div>
-              {isSelected && (
-                <div className="flex items-start gap-2">
-                  <Lightbulb className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-muted-foreground">{explanation}</p>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {isSubmitted && result === 'correct' && (
-            <div className="mt-2 flex items-center gap-1">
-              <CheckCircle className="w-3 h-3 text-green-400" />
-              <span className="text-xs text-green-400">Correct!</span>
+              <div className="flex items-start gap-2 bg-muted/30 p-2 rounded-md">
+                <Lightbulb className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-muted-foreground leading-relaxed">{explanation}</p>
+              </div>
             </div>
           )}
         </div>
