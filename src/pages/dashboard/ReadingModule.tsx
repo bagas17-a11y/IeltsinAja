@@ -655,6 +655,12 @@ export default function ReadingModule() {
           </div>
         )}
       </div>
+      
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName="Reading"
+      />
     </DashboardLayout>
   );
 }
@@ -818,12 +824,6 @@ function QuestionItem({
           )}
         </div>
       </div>
-      
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        featureName="Reading"
-      />
     </div>
   );
 }
