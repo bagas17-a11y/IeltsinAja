@@ -66,10 +66,7 @@ export const Footer = () => {
             <a href="#" className="text-2xl font-light tracking-tight text-foreground inline-block mb-4">
               IELTS<span className="text-accent font-medium">inAja</span>
             </a>
-            <p className="text-foreground/60 max-w-sm mb-6">
-              The intelligence to outperform. The guidance to excel. 
-              Your pathway to Band 9 excellence.
-            </p>
+            <p className="text-foreground/60 max-w-sm mb-6">The intelligence to Simplify. The guidance to IELTSinAja. Your pathway to Band 9 excellence.</p>
             <p className="text-sm text-muted-foreground italic">
               Designed for Excellence
             </p>
@@ -95,11 +92,7 @@ export const Footer = () => {
               Company
             </h4>
             <ul className="space-y-3">
-              {footerLinks.company.map(link => <li key={link.label}>
-                  <a href={link.href} className="text-foreground/60 hover:text-foreground transition-colors text-sm">
-                    {link.label}
-                  </a>
-                </li>)}
+              {footerLinks.company.map(link => {})}
             </ul>
           </div>
 
