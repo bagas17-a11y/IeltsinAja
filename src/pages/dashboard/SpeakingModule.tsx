@@ -5,6 +5,8 @@ import { Mic, MicOff, Loader2, Play, Square, Volume2, RefreshCw, ChevronRight } 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useAuth } from "@/hooks/useAuth";
 
 // IELTS Speaking Questions organized by Parts
 const SPEAKING_QUESTIONS = {
@@ -87,6 +89,8 @@ export default function SpeakingModule() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
   const { toast } = useToast();
+  const { saveProgress } = useUserProgress();
+  const { user } = useAuth();
   
   const {
     isListening,
@@ -114,6 +118,11 @@ export default function SpeakingModule() {
   const generateNewQuestion = () => {
     const maxIndex = SPEAKING_QUESTIONS[currentPart].length;
     setCurrentQuestionIndex((prev) => (prev + 1) % maxIndex);
+    resetTranscript();
+    setFeedback(null);
+  };
+
+  const handleRestartPractice = () => {
     resetTranscript();
     setFeedback(null);
   };
@@ -175,6 +184,30 @@ export default function SpeakingModule() {
 
       if (error) throw error;
       setFeedback(data);
+
+      // Save progress to user_progress for stats tracking
+      if (data?.overallBand && user) {
+        try {
+          await saveProgress({
+            exam_type: "speaking",
+            score: null,
+            band_score: data.overallBand,
+            total_questions: null,
+            correct_answers: null,
+            feedback: `${currentPart.toUpperCase()}: ${(currentQuestion as any).topic || 'Practice'}`,
+            completed_at: new Date().toISOString(),
+            time_taken: null,
+            errors_log: [],
+            metadata: {
+              speakingPart: currentPart,
+              topic: (currentQuestion as any).topic,
+              wordCount: finalTranscript.split(/\s+/).filter(Boolean).length,
+            },
+          });
+        } catch (err) {
+          console.error("Failed to save speaking progress:", err);
+        }
+      }
     } catch (error: any) {
       console.error("Analysis error:", error);
       toast({
@@ -399,7 +432,13 @@ export default function SpeakingModule() {
         {/* AI Feedback */}
         {feedback && (
           <div className="glass-card p-6">
-            <h2 className="text-lg font-light mb-6">🎯 AI Speaking Analysis</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-light">🎯 AI Speaking Analysis</h2>
+              <Button variant="outline" size="sm" onClick={handleRestartPractice}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                New Response
+              </Button>
+            </div>
 
             {/* Overall Score */}
             <div className="flex items-center justify-center mb-8">

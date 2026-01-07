@@ -9,6 +9,7 @@ import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, Edit3, Arr
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useUserProgress } from "@/hooks/useUserProgress";
 
 interface IeltsQuestion {
   id: string;
@@ -98,6 +99,7 @@ export default function WritingModule() {
   const { toast } = useToast();
   const { user } = useAuth();
   const isAdmin = isSuperAdmin(user?.email);
+  const { saveProgress } = useUserProgress();
 
   const isTask1 = activeTask === "Task 1";
   const minWords = isTask1 ? 150 : 250;
@@ -144,6 +146,14 @@ export default function WritingModule() {
   const handleBackToLibrary = () => {
     setView("library");
     setSelectedQuestion(null);
+    setEssay("");
+    setRevisedEssay("");
+    setFeedback(null);
+    setRevisionFeedback(null);
+    setPreviousScore(null);
+  };
+
+  const handleRestartPractice = () => {
     setEssay("");
     setRevisedEssay("");
     setFeedback(null);
@@ -202,6 +212,31 @@ export default function WritingModule() {
         setFeedback(data);
         setRevisionFeedback(null);
         setRevisedEssay("");
+
+        // Save progress to user_progress for stats tracking
+        if (data?.overallBand && user) {
+          try {
+            await saveProgress({
+              exam_type: "writing",
+              score: null,
+              band_score: data.overallBand,
+              total_questions: null,
+              correct_answers: null,
+              feedback: `${activeTask}: ${selectedQuestion?.title || 'Practice'}`,
+              completed_at: new Date().toISOString(),
+              time_taken: null,
+              errors_log: [],
+              metadata: {
+                taskType: activeTask,
+                questionId: selectedQuestion?.id,
+                questionTitle: selectedQuestion?.title,
+                wordCount: essay.split(/\s+/).filter(Boolean).length,
+              },
+            });
+          } catch (err) {
+            console.error("Failed to save writing progress:", err);
+          }
+        }
       }
       
       setAdminNote("");
@@ -820,23 +855,34 @@ export default function WritingModule() {
                 className="h-[300px] bg-secondary/30 border-border/30 resize-none"
               />
               <div className="flex items-center justify-between mt-4">
-                <Button
-                  variant="default"
-                  onClick={() => handleAnalyze(false)}
-                  disabled={isAnalyzing}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      Get AI Feedback
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </>
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    onClick={() => handleAnalyze(false)}
+                    disabled={isAnalyzing}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        Get AI Feedback
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                  {feedback && (
+                    <Button
+                      variant="outline"
+                      onClick={handleRestartPractice}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Restart
+                    </Button>
                   )}
-                </Button>
+                </div>
               </div>
             </div>
 
