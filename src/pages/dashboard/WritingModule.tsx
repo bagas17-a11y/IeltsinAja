@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useFeatureGating } from "@/hooks/useFeatureGating";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 interface IeltsQuestion {
   id: string;
@@ -96,10 +98,12 @@ export default function WritingModule() {
   const [adminNote, setAdminNote] = useState("");
   const [adminOverrideScore, setAdminOverrideScore] = useState("");
   const [showRubric, setShowRubric] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const isAdmin = isSuperAdmin(user?.email);
   const { saveProgress } = useUserProgress();
+  const { canAccess, refreshCounts } = useFeatureGating();
 
   const isTask1 = activeTask === "Task 1";
   const minWords = isTask1 ? 150 : 250;
@@ -162,6 +166,12 @@ export default function WritingModule() {
   };
 
   const handleAnalyze = async (isRevision = false) => {
+    // Check feature gating before analyzing (only for initial analysis, not revisions)
+    if (!isRevision && !canAccess("writing")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     const essayContent = isRevision ? revisedEssay : essay;
     
     if (essayContent.trim().length < 50) {
@@ -987,6 +997,12 @@ export default function WritingModule() {
           </>
         )}
       </div>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName="Writing"
+      />
     </DashboardLayout>
   );
 }

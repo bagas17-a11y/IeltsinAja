@@ -22,6 +22,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useFeatureGating } from "@/hooks/useFeatureGating";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 interface Question {
   id: number;
@@ -76,6 +78,7 @@ export default function ListeningModule() {
   const [score, setScore] = useState<number | null>(null);
   const [results, setResults] = useState<Record<string, { correct: boolean; correctAnswer: string }>>({});
   const [showTranscript, setShowTranscript] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -85,6 +88,7 @@ export default function ListeningModule() {
     null
   );
   const { saveProgress } = useUserProgress();
+  const { canAccess, refreshCounts } = useFeatureGating();
 
   // Load available tests
   useEffect(() => {
@@ -173,6 +177,12 @@ export default function ListeningModule() {
   };
 
   const startTest = (test: ListeningTest) => {
+    // Check feature gating before starting a test
+    if (!canAccess("listening")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    
     setCurrentTest(test);
     setAnswers({});
     setNotes("");
@@ -720,6 +730,12 @@ export default function ListeningModule() {
           </div>
         )}
       </div>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName="Listening"
+      />
     </DashboardLayout>
   );
 }

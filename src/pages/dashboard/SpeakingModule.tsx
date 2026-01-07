@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureGating } from "@/hooks/useFeatureGating";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 // IELTS Speaking Questions organized by Parts
 const SPEAKING_QUESTIONS = {
@@ -88,9 +90,11 @@ export default function SpeakingModule() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { user } = useAuth();
+  const { canAccess, refreshCounts } = useFeatureGating();
   
   const {
     isListening,
@@ -153,6 +157,12 @@ export default function SpeakingModule() {
   };
 
   const analyzeTranscript = async () => {
+    // Check feature gating before analyzing
+    if (!canAccess("speaking")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     const finalTranscript = transcript.trim();
     if (!finalTranscript) {
       toast({
@@ -590,6 +600,12 @@ export default function SpeakingModule() {
           </div>
         )}
       </div>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName="Speaking"
+      />
     </DashboardLayout>
   );
 }
