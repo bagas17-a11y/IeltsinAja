@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useUserProgress } from "@/hooks/useUserProgress";
 
 interface Question {
   id: number;
@@ -83,6 +84,7 @@ export default function ListeningModule() {
     LISTENING_CACHE_KEY,
     null
   );
+  const { saveProgress } = useUserProgress();
 
   // Load available tests
   useEffect(() => {
@@ -276,6 +278,24 @@ export default function ListeningModule() {
           total_questions: totalQuestions,
           band_score: bandScore,
           completed_at: new Date().toISOString(),
+        });
+
+        // Save to user_progress for stats tracking
+        await saveProgress({
+          exam_type: "listening",
+          score: correctCount,
+          band_score: bandScore,
+          total_questions: totalQuestions,
+          correct_answers: correctCount,
+          feedback: `Test: ${currentTest.title}. Difficulty: ${currentTest.difficulty}`,
+          completed_at: new Date().toISOString(),
+          time_taken: currentTest.duration_minutes * 60 - timeRemaining,
+          errors_log: [],
+          metadata: {
+            testId: currentTest.id,
+            testTitle: currentTest.title,
+            difficulty: currentTest.difficulty,
+          },
         });
       } catch (error) {
         console.error("Error saving submission:", error);
