@@ -18,6 +18,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useReadingCache, CachedPassage } from "@/hooks/useLocalStorage";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Question {
   number: number;
@@ -71,9 +73,12 @@ export default function ReadingModule() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [highlightedEvidence, setHighlightedEvidence] = useState<string | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null);
+  const [testStartTime, setTestStartTime] = useState<Date | null>(null);
   const passageRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { cache, addToCache, updateCacheEntry, getLatestPassage } = useReadingCache();
+  const { saveProgress } = useUserProgress();
+  const { user } = useAuth();
 
   // Load cached passage on mount
   useEffect(() => {
@@ -127,6 +132,7 @@ export default function ReadingModule() {
     setSelectedQuestion(null);
     setTimeRemaining(20 * 60);
     setIsTimerActive(false);
+    setTestStartTime(new Date());
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-reading", {
@@ -209,24 +215,35 @@ export default function ReadingModule() {
     return questions.sort((a, b) => a.number - b.number);
   }, [currentTest]);
 
-  const handleSubmit = () => {
-    if (!currentTest) return;
+  const handleSubmit = async () => {
+    if (!currentTest || !user) return;
     
     setIsSubmitted(true);
     setIsTimerActive(false);
     
     const questions = getAllQuestions();
     let correct = 0;
+    const errorsLog: { type: string; count: number }[] = [];
+    const errorCounts: Record<string, number> = { 'TFNG': 0, 'MCQ': 0, 'Completion': 0 };
     
     questions.forEach((q) => {
       const userAnswer = userAnswers[q.number]?.trim().toUpperCase();
       const correctAnswer = q.answer.trim().toUpperCase();
       if (userAnswer === correctAnswer) {
         correct++;
+      } else {
+        // Track error types
+        if (q.type === 'tfng') errorCounts['TFNG']++;
+        else if (q.type === 'mcq') errorCounts['MCQ']++;
+        else errorCounts['Completion']++;
       }
     });
+
+    // Build errors log
+    Object.entries(errorCounts).forEach(([type, count]) => {
+      if (count > 0) errorsLog.push({ type, count });
+    });
     
-    const score = correct;
     const total = questions.length;
     const percentage = (correct / total) * 100;
     
@@ -240,12 +257,39 @@ export default function ReadingModule() {
     else if (percentage >= 40) bandScore = 6.0;
     else if (percentage >= 30) bandScore = 5.5;
     else if (percentage >= 20) bandScore = 5.0;
+
+    // Calculate time taken
+    const timeTaken = testStartTime 
+      ? Math.floor((new Date().getTime() - testStartTime.getTime()) / 1000)
+      : 20 * 60 - timeRemaining;
     
     updateCacheEntry(currentTest.id, { 
       submitted: true, 
-      score,
+      score: correct,
       userAnswers 
     });
+
+    // Save to user_progress table
+    try {
+      await saveProgress({
+        exam_type: "reading",
+        score: correct,
+        band_score: bandScore,
+        total_questions: total,
+        correct_answers: correct,
+        feedback: `Topic: ${currentTest.passage.title}. Difficulty: ${currentTest.difficulty}`,
+        completed_at: new Date().toISOString(),
+        time_taken: timeTaken,
+        errors_log: errorsLog,
+        metadata: {
+          topic: currentTest.passage.topic,
+          difficulty: currentTest.difficulty,
+          passageId: currentTest.id,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to save progress:", err);
+    }
     
     toast({
       title: `Score: ${correct}/${total}`,

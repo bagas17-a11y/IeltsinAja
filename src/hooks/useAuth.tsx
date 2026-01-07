@@ -10,6 +10,7 @@ interface Profile {
   user_id: string;
   full_name: string | null;
   email: string | null;
+  avatar_url: string | null;
   subscription_tier: "free" | "pro" | "elite";
   target_band_score: number | null;
   current_reading_score: number | null;
@@ -28,6 +29,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -98,8 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const isAdmin = isSuperAdmin(user?.email);
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, isLoading, isAdmin, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

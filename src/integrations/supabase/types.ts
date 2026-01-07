@@ -325,6 +325,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_progress: {
+        Row: {
+          band_score: number | null
+          completed_at: string
+          correct_answers: number | null
+          created_at: string
+          errors_log: Json | null
+          exam_type: string
+          feedback: string | null
+          id: string
+          metadata: Json | null
+          score: number | null
+          time_taken: number | null
+          total_questions: number | null
+          user_id: string
+        }
+        Insert: {
+          band_score?: number | null
+          completed_at?: string
+          correct_answers?: number | null
+          created_at?: string
+          errors_log?: Json | null
+          exam_type: string
+          feedback?: string | null
+          id?: string
+          metadata?: Json | null
+          score?: number | null
+          time_taken?: number | null
+          total_questions?: number | null
+          user_id: string
+        }
+        Update: {
+          band_score?: number | null
+          completed_at?: string
+          correct_answers?: number | null
+          created_at?: string
+          errors_log?: Json | null
+          exam_type?: string
+          feedback?: string | null
+          id?: string
+          metadata?: Json | null
+          score?: number | null
+          time_taken?: number | null
+          total_questions?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
