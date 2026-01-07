@@ -1,7 +1,8 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { DashboardSidebar } from "./DashboardSidebar";
+import { AppSidebar } from "./AppSidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -34,13 +35,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardSidebar />
-      <main className="ml-16 lg:ml-64 min-h-screen transition-all duration-300">
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <SidebarInset className="flex-1">
+          <header className="h-12 flex items-center border-b border-border/30 px-4">
+            <SidebarTrigger className="-ml-1" />
+          </header>
+          <main className="p-6">
+            {children}
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
