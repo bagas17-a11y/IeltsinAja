@@ -20,6 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useReadingCache, CachedPassage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureGating } from "@/hooks/useFeatureGating";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 interface Question {
   number: number;
@@ -79,6 +81,8 @@ export default function ReadingModule() {
   const { cache, addToCache, updateCacheEntry, getLatestPassage } = useReadingCache();
   const { saveProgress } = useUserProgress();
   const { user } = useAuth();
+  const { canAccess, refreshCounts } = useFeatureGating();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Load cached passage on mount
   useEffect(() => {
@@ -125,6 +129,12 @@ export default function ReadingModule() {
   };
 
   const generateNewTest = async () => {
+    // Check feature gating for free users
+    if (!canAccess("reading")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setIsGenerating(true);
     setIsSubmitted(false);
     setUserAnswers({});
@@ -808,6 +818,12 @@ function QuestionItem({
           )}
         </div>
       </div>
+      
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName="Reading"
+      />
     </div>
   );
 }

@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Check, X, Eye, Loader2, Shield, Users, CreditCard } from "lucide-react";
+import { Check, X, Eye, Loader2, Shield, Users, CreditCard, MessageSquare } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ interface PaymentVerification {
   receipt_url: string;
   status: string;
   created_at: string;
+  admin_notes?: string | null;
   profiles?: {
     full_name: string | null;
     email: string | null;
@@ -58,6 +60,8 @@ export default function PaymentVerification() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   useEffect(() => {
     checkAdminAccess();
@@ -152,7 +156,10 @@ export default function PaymentVerification() {
   };
 
   const handleReject = async (paymentId: string) => {
-    if (!user) return;
+    if (!user || !rejectReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
     setProcessingId(paymentId);
 
     try {
@@ -162,12 +169,15 @@ export default function PaymentVerification() {
           status: "rejected",
           reviewed_at: new Date().toISOString(),
           reviewed_by: user.id,
+          admin_notes: rejectReason,
         })
         .eq("id", paymentId);
 
       if (error) throw error;
 
       toast.success("Payment rejected.");
+      setRejectingId(null);
+      setRejectReason("");
       fetchData();
     } catch (error: any) {
       console.error("Reject error:", error);
@@ -321,13 +331,18 @@ export default function PaymentVerification() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleReject(payment.id)}
+                                    onClick={() => setRejectingId(payment.id)}
                                     disabled={processingId === payment.id}
                                     className="text-red-500 hover:text-red-400"
                                   >
                                     <X className="w-4 h-4" />
                                   </Button>
                                 </>
+                              )}
+                              {payment.status === "rejected" && payment.admin_notes && (
+                                <span className="text-xs text-muted-foreground max-w-[150px] truncate" title={payment.admin_notes}>
+                                  {payment.admin_notes}
+                                </span>
                               )}
                             </div>
                           </TableCell>
@@ -401,6 +416,47 @@ export default function PaymentVerification() {
                 className="w-full rounded-lg"
               />
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Reject Reason Dialog */}
+        <Dialog open={!!rejectingId} onOpenChange={() => { setRejectingId(null); setRejectReason(""); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-red-500" />
+                Reject Payment
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <p className="text-sm text-muted-foreground">
+                Please provide a reason for rejecting this payment. The user will be notified.
+              </p>
+              <Textarea
+                placeholder="e.g., Incomplete amount, unclear receipt, etc."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => { setRejectingId(null); setRejectReason(""); }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => rejectingId && handleReject(rejectingId)}
+                  disabled={!rejectReason.trim() || processingId === rejectingId}
+                >
+                  {processingId === rejectingId ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : null}
+                  Reject Payment
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
