@@ -10,6 +10,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, Brain, Target, ArrowRight, Trophy } from "lucide-react";
 
+interface FamiliarityQuestion {
+  id: string;
+  text: string;
+  options: string[];
+  type: 'familiarity';
+}
+
 interface Question {
   id: number;
   text: string;
@@ -18,6 +25,53 @@ interface Question {
   band: 5 | 6 | 7;
   skill: string;
 }
+
+const familiarityQuestions: FamiliarityQuestion[] = [
+  {
+    id: 'english_level',
+    text: "How would you describe your current English proficiency?",
+    options: [
+      "Beginner - I can understand basic phrases",
+      "Intermediate - I can handle everyday conversations",
+      "Upper-Intermediate - I'm comfortable in most situations",
+      "Advanced - I can express complex ideas fluently"
+    ],
+    type: 'familiarity'
+  },
+  {
+    id: 'english_usage',
+    text: "How often do you use English in your daily life?",
+    options: [
+      "Rarely - mostly in class or study",
+      "Sometimes - casual conversations or media",
+      "Often - work or study in English",
+      "Daily - English is my primary language"
+    ],
+    type: 'familiarity'
+  },
+  {
+    id: 'ielts_familiarity',
+    text: "How familiar are you with the IELTS exam structure?",
+    options: [
+      "Not at all - this is completely new to me",
+      "Slightly - I've heard about it but don't know details",
+      "Moderately - I know the 4 sections and format",
+      "Very familiar - I've studied or taken it before"
+    ],
+    type: 'familiarity'
+  },
+  {
+    id: 'ielts_sections',
+    text: "Which IELTS sections are you most concerned about?",
+    options: [
+      "Listening - understanding audio recordings",
+      "Reading - comprehending long texts quickly",
+      "Writing - organizing and expressing ideas",
+      "Speaking - communicating verbally with confidence"
+    ],
+    type: 'familiarity'
+  }
+];
 
 const quizQuestions: Question[] = [
   // Band 5: Basic Grammar (Tenses) and Everyday Vocabulary (Q1-5)
@@ -154,21 +208,30 @@ interface QuizResult {
   band7Score: number;
   stoppedEarly: boolean;
   weakSkills: string[];
+  familiarityAnswers: Record<string, number>;
 }
+
+type Phase = 'intro' | 'familiarity' | 'quiz' | 'result';
 
 export default function DiagnosticQuiz() {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
+  const [phase, setPhase] = useState<Phase>('intro');
+  const [familiarityIndex, setFamiliarityIndex] = useState(0);
+  const [familiarityAnswers, setFamiliarityAnswers] = useState<Record<string, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>(new Array(15).fill(null));
-  const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [quizStarted, setQuizStarted] = useState(false);
 
+  const currentFamiliarityQ = familiarityQuestions[familiarityIndex];
   const question = quizQuestions[currentQuestion];
-  const progress = ((currentQuestion + 1) / quizQuestions.length) * 100;
+  const totalQuestions = familiarityQuestions.length + quizQuestions.length;
+  const currentOverallIndex = phase === 'familiarity' 
+    ? familiarityIndex + 1 
+    : familiarityQuestions.length + currentQuestion + 1;
+  const progress = (currentOverallIndex / totalQuestions) * 100;
 
   const calculateResult = (): QuizResult => {
     let band5Correct = 0;
@@ -194,7 +257,8 @@ export default function DiagnosticQuiz() {
         band6Score: 0,
         band7Score: 0,
         stoppedEarly: true,
-        weakSkills
+        weakSkills,
+        familiarityAnswers
       };
     }
 
@@ -234,7 +298,8 @@ export default function DiagnosticQuiz() {
       band6Score: band6Correct,
       band7Score: band7Correct,
       stoppedEarly: false,
-      weakSkills
+      weakSkills,
+      familiarityAnswers
     };
   };
 
@@ -270,9 +335,10 @@ export default function DiagnosticQuiz() {
           band6Score: 0,
           band7Score: 0,
           stoppedEarly: true,
-          weakSkills
+          weakSkills,
+          familiarityAnswers
         });
-        setShowResult(true);
+        setPhase('result');
         return;
       }
     }
@@ -284,7 +350,25 @@ export default function DiagnosticQuiz() {
       // Quiz complete
       const finalResult = calculateResult();
       setResult(finalResult);
-      setShowResult(true);
+      setPhase('result');
+    }
+  };
+
+  const handleFamiliarityNext = () => {
+    if (selectedAnswer === null) return;
+    
+    setFamiliarityAnswers({
+      ...familiarityAnswers,
+      [currentFamiliarityQ.id]: selectedAnswer
+    });
+    
+    if (familiarityIndex < familiarityQuestions.length - 1) {
+      setFamiliarityIndex(familiarityIndex + 1);
+      setSelectedAnswer(null);
+    } else {
+      // Move to quiz phase
+      setSelectedAnswer(null);
+      setPhase('quiz');
     }
   };
 
@@ -345,7 +429,7 @@ export default function DiagnosticQuiz() {
     }
   };
 
-  if (!quizStarted) {
+  if (phase === 'intro') {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-8">
@@ -355,7 +439,7 @@ export default function DiagnosticQuiz() {
             </div>
             <h1 className="text-3xl font-light">Diagnostic Quiz</h1>
             <p className="text-muted-foreground">
-              This 15-question assessment will determine your current IELTS band level
+              This assessment will determine your current IELTS band level
               and create a personalized learning path for you.
             </p>
           </div>
@@ -368,8 +452,8 @@ export default function DiagnosticQuiz() {
                   <span className="text-sm font-medium text-accent">1</span>
                 </div>
                 <div>
-                  <p className="font-medium">Questions 1-5: Basic Level (Band 5)</p>
-                  <p className="text-sm text-muted-foreground">Grammar tenses and everyday vocabulary</p>
+                  <p className="font-medium">First: 4 Background Questions</p>
+                  <p className="text-sm text-muted-foreground">About your English and IELTS familiarity</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -377,17 +461,8 @@ export default function DiagnosticQuiz() {
                   <span className="text-sm font-medium text-accent">2</span>
                 </div>
                 <div>
-                  <p className="font-medium">Questions 6-10: Intermediate Level (Band 6)</p>
-                  <p className="text-sm text-muted-foreground">Synonyms and connecting words</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-sm font-medium text-accent">3</span>
-                </div>
-                <div>
-                  <p className="font-medium">Questions 11-15: Advanced Level (Band 7)</p>
-                  <p className="text-sm text-muted-foreground">Complex grammar and academic collocations</p>
+                  <p className="font-medium">Then: 15 Skill Questions</p>
+                  <p className="text-sm text-muted-foreground">Testing Band 5, 6, and 7 level skills</p>
                 </div>
               </div>
             </div>
@@ -401,7 +476,7 @@ export default function DiagnosticQuiz() {
           </div>
 
           <Button 
-            onClick={() => setQuizStarted(true)} 
+            onClick={() => setPhase('familiarity')} 
             className="w-full btn-neumorphic-primary"
           >
             Start Diagnostic Quiz
@@ -412,7 +487,64 @@ export default function DiagnosticQuiz() {
     );
   }
 
-  if (showResult && result) {
+  if (phase === 'familiarity') {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Question {familiarityIndex + 1} of {totalQuestions}</span>
+              <span className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs">
+                Background
+              </span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+
+          <div className="glass-card p-8 space-y-6">
+            <h2 className="text-xl font-light">{currentFamiliarityQ.text}</h2>
+
+            <RadioGroup
+              value={selectedAnswer?.toString()}
+              onValueChange={(value) => setSelectedAnswer(parseInt(value))}
+              className="space-y-3"
+            >
+              {currentFamiliarityQ.options.map((option, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center space-x-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                    selectedAnswer === index
+                      ? "border-accent bg-accent/5"
+                      : "border-border hover:border-accent/50"
+                  }`}
+                  onClick={() => setSelectedAnswer(index)}
+                >
+                  <RadioGroupItem value={index.toString()} id={`fam-option-${index}`} />
+                  <Label 
+                    htmlFor={`fam-option-${index}`} 
+                    className="flex-1 cursor-pointer text-foreground"
+                  >
+                    {option}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+
+          <Button
+            onClick={handleFamiliarityNext}
+            disabled={selectedAnswer === null}
+            className="w-full btn-neumorphic-primary"
+          >
+            {familiarityIndex < familiarityQuestions.length - 1 ? "Next Question" : "Start Skill Assessment"}
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (phase === 'result' && result) {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-8">
