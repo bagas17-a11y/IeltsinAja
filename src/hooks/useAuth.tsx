@@ -12,6 +12,7 @@ interface Profile {
   email: string | null;
   avatar_url: string | null;
   subscription_tier: "free" | "pro" | "elite";
+  subscription_expires_at: string | null;
   target_band_score: number | null;
   current_reading_score: number | null;
   current_listening_score: number | null;

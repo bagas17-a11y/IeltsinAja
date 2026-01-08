@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { BookOpen, Headphones, PenTool, Mic, TrendingUp, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -37,6 +39,7 @@ const moduleCards = [
 
 export default function Dashboard() {
   const { profile, user, isLoading } = useAuth();
+  const { isExpired, tier } = useSubscriptionStatus();
   const navigate = useNavigate();
 
   // Redirect to waiting room if not verified
@@ -62,6 +65,9 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
+      {/* Subscription Banner */}
+      <SubscriptionBanner />
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-light mb-2">
