@@ -37,6 +37,7 @@ import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { RevenueChart } from "@/components/admin/RevenueChart";
 
 interface PaymentVerification {
   id: string;
@@ -439,6 +440,9 @@ export default function Admin() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Revenue Chart */}
+        <RevenueChart payments={payments} />
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Activity Feed */}
