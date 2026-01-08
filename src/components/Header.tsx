@@ -40,7 +40,7 @@ export const Header = () => {
           {/* CTA Button */}
           <div className="hidden lg:block">
             <Button variant="neumorphicPrimary" size="sm" onClick={() => navigate("/auth")}>
-              Start Free Trial
+              Login
             </Button>
           </div>
 
