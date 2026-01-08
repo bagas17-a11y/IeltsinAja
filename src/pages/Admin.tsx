@@ -188,6 +188,9 @@ export default function Admin() {
   const handleApprove = async (paymentId: string, userId: string) => {
     setProcessingId(paymentId);
     try {
+      // Find the payment to get user details
+      const payment = payments.find(p => p.id === paymentId);
+      
       const { error } = await supabase.rpc("approve_payment", {
         payment_id: paymentId,
         admin_id: user?.id,
@@ -195,10 +198,58 @@ export default function Admin() {
 
       if (error) throw error;
 
-      toast({
-        title: "Payment Approved",
-        description: "User has been verified and notified.",
-      });
+      // Send verification email
+      if (payment) {
+        const userProfile = users.find(u => u.user_id === payment.user_id);
+        const userEmail = userProfile?.email;
+        const userName = userProfile?.full_name;
+        const planName = payment.plan_type === "road_to_8" ? "elite" : "pro";
+
+        if (userEmail) {
+          try {
+            const { error: emailError } = await supabase.functions.invoke(
+              "send-verification-email",
+              {
+                body: {
+                  email: userEmail,
+                  full_name: userName || "IELTS Learner",
+                  plan_name: planName,
+                },
+              }
+            );
+
+            if (emailError) {
+              console.error("Email sending failed:", emailError);
+              toast({
+                title: "Payment Approved",
+                description: "⚠️ But email failed to send.",
+              });
+            } else {
+              toast({
+                title: "Payment Approved",
+                description: "User has been verified and email sent! 🎉",
+              });
+            }
+          } catch (emailError) {
+            console.error("Email sending failed:", emailError);
+            toast({
+              title: "Payment Approved",
+              description: "⚠️ But email failed to send.",
+            });
+          }
+        } else {
+          toast({
+            title: "Payment Approved",
+            description: "User verified (no email on file).",
+          });
+        }
+      } else {
+        toast({
+          title: "Payment Approved",
+          description: "User has been verified.",
+        });
+      }
+
       fetchData();
     } catch (error: any) {
       toast({
