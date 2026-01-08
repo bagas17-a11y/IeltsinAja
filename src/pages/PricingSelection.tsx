@@ -32,7 +32,7 @@ const getPlans = (hasPromoCode: boolean) => [
     name: "Pro",
     price: hasPromoCode ? "IDR 250K" : "IDR 500K",
     originalPrice: hasPromoCode ? "IDR 500K" : null,
-    period: "for 2 months",
+    period: "per month",
     description: "Full access to all features",
     amount: hasPromoCode ? 250000 : 500000,
     features: [

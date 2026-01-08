@@ -286,6 +286,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_verified: boolean
+          subscription_expires_at: string | null
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           target_band_score: number | null
           updated_at: string
@@ -302,6 +303,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_verified?: boolean
+          subscription_expires_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           target_band_score?: number | null
           updated_at?: string
@@ -318,6 +320,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_verified?: boolean
+          subscription_expires_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           target_band_score?: number | null
           updated_at?: string
