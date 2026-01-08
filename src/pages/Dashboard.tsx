@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
+import { BridgeToSuccess } from "@/components/dashboard/BridgeToSuccess";
 import { BookOpen, Headphones, PenTool, Mic, TrendingUp, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -122,8 +123,12 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Bridge to Success - Gap Analysis */}
+      <h2 className="text-xl font-light mb-4">Your Path to Success</h2>
+      <BridgeToSuccess />
+
       {/* Module Cards */}
-      <h2 className="text-xl font-light mb-4">Practice Modules</h2>
+      <h2 className="text-xl font-light mb-4 mt-8">Practice Modules</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {moduleCards.map((module) => {
           const Icon = module.icon;
