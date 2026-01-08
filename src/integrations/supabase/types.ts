@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_logs: {
+        Row: {
+          action_type: string
+          admin_id: string | null
+          created_at: string
+          details: Json | null
+          error_message: string | null
+          id: string
+          status: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          status?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          status?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       consultation_bookings: {
         Row: {
           consultant_name: string

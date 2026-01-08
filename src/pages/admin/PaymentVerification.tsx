@@ -138,6 +138,7 @@ export default function PaymentVerification() {
     setProcessingId(payment.id);
 
     try {
+      // Step 1: Approve the payment
       const { error } = await supabase.rpc("approve_payment", {
         payment_id: payment.id,
         admin_id: user.id,
@@ -145,10 +146,79 @@ export default function PaymentVerification() {
 
       if (error) throw error;
 
-      toast.success("Payment approved! User tier updated.");
+      // Step 2: Send verification email
+      const userEmail = payment.profiles?.email;
+      const userName = payment.profiles?.full_name;
+      const planName = payment.plan_type === "road_to_8" ? "elite" : "pro";
+
+      if (userEmail) {
+        try {
+          const { data: emailResult, error: emailError } = await supabase.functions.invoke(
+            "send-verification-email",
+            {
+              body: {
+                email: userEmail,
+                full_name: userName || "IELTS Learner",
+                plan_name: planName,
+              },
+            }
+          );
+
+          if (emailError) throw emailError;
+
+          // Log success
+          await supabase.from("admin_logs").insert({
+            action_type: "payment_approved_email_sent",
+            target_user_id: payment.user_id,
+            admin_id: user.id,
+            status: "success",
+            details: {
+              payment_id: payment.id,
+              plan_type: planName,
+              email_sent_to: userEmail,
+            },
+          });
+
+          toast.success("Payment approved & verification email sent! 🎉");
+        } catch (emailError: any) {
+          console.error("Email sending failed:", emailError);
+          
+          // Log the email error
+          await supabase.from("admin_logs").insert({
+            action_type: "payment_approved_email_failed",
+            target_user_id: payment.user_id,
+            admin_id: user.id,
+            status: "error",
+            details: {
+              payment_id: payment.id,
+              plan_type: planName,
+              email_attempted: userEmail,
+            },
+            error_message: emailError.message || "Failed to send verification email",
+          });
+
+          toast.success("Payment approved!", { 
+            description: "⚠️ But email failed to send. Check admin logs." 
+          });
+        }
+      } else {
+        toast.success("Payment approved! (No email on file)");
+      }
+
       fetchData();
     } catch (error: any) {
       console.error("Approve error:", error);
+      
+      // Log the approval error
+      await supabase.from("admin_logs").insert({
+        action_type: "payment_approval_failed",
+        target_user_id: payment.user_id,
+        admin_id: user.id,
+        status: "error",
+        details: { payment_id: payment.id },
+        error_message: error.message || "Failed to approve payment",
+      });
+
       toast.error(error.message || "Failed to approve payment");
     } finally {
       setProcessingId(null);
