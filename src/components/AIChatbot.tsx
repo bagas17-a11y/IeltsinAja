@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
@@ -146,7 +145,7 @@ export const AIChatbot = () => {
             ) : (
               /* Chat Messages */
               <>
-                <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
                   <div className="space-y-4">
                     {messages.map((msg, idx) => (
                       <div
@@ -154,7 +153,7 @@ export const AIChatbot = () => {
                         className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+                          className={`max-w-[80%] p-3 rounded-2xl text-sm whitespace-pre-wrap ${
                             msg.role === "user"
                               ? "bg-[#ADD8E6] text-slate-700"
                               : "bg-muted text-foreground"
@@ -172,7 +171,7 @@ export const AIChatbot = () => {
                       </div>
                     )}
                   </div>
-                </ScrollArea>
+                </div>
 
                 {/* Input */}
                 <div className="p-4 border-t border-border">

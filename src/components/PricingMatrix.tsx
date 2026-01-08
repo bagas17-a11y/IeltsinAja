@@ -8,6 +8,24 @@ import { toast } from "sonner";
 
 const getPlans = (hasPromoCode: boolean) => [
   {
+    name: "Free",
+    price: "IDR 0",
+    originalPrice: null,
+    period: "",
+    description: "Try 1 practice for each feature",
+    amount: 0,
+    features: [
+      "1 Reading practice",
+      "1 Listening practice",
+      "1 Writing practice",
+      "1 Speaking practice",
+    ],
+    highlighted: false,
+    badge: null,
+    tier: "free",
+    planKey: "free",
+  },
+  {
     name: "Pro",
     price: hasPromoCode ? "IDR 250K" : "IDR 500K",
     originalPrice: hasPromoCode ? "IDR 500K" : null,
@@ -160,7 +178,7 @@ export const PricingMatrix = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => {
             const isRevealed = revealedCards.has(index);
 
