@@ -35,6 +35,7 @@ const socialLinks = [{
 }, {
   icon: Instagram,
   href: "https://www.instagram.com/ieltsinaja/",
+  deepLink: "instagram://user?username=ieltsinaja",
   label: "Instagram",
   external: true
 }];
@@ -99,12 +100,25 @@ export const Footer = () => {
           <div className="flex items-center gap-4">
             {socialLinks.map(social => {
             const Icon = social.icon;
+            const handleClick = (e: React.MouseEvent) => {
+              if ((social as any).deepLink) {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile) {
+                  e.preventDefault();
+                  window.location.href = (social as any).deepLink;
+                  setTimeout(() => {
+                    window.open(social.href, '_blank', 'noopener,noreferrer');
+                  }, 500);
+                }
+              }
+            };
             return <a 
               key={social.label} 
               href={social.href} 
               aria-label={social.label} 
               target={(social as any).external ? "_blank" : undefined}
               rel={(social as any).external ? "noopener noreferrer" : undefined}
+              onClick={handleClick}
               className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all"
             >
                   <Icon className="w-4 h-4" />
