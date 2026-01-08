@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.generate-reading]
 verify_jwt = false
+
+[functions.ai-chatbot]
+verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = false
