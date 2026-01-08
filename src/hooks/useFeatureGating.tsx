@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useSubscriptionStatus } from "./useSubscriptionStatus";
 
 type ModuleType = "reading" | "listening" | "writing" | "speaking";
 
@@ -10,12 +11,14 @@ interface FeatureGatingResult {
   isLoading: boolean;
   checkAccess: (module: ModuleType) => boolean;
   refreshCounts: () => Promise<void>;
+  isSubscriptionExpired: boolean;
 }
 
 const FREE_PRACTICE_LIMIT = 1;
 
 export function useFeatureGating(): FeatureGatingResult {
   const { user, profile } = useAuth();
+  const { isExpired } = useSubscriptionStatus();
   const [practiceCount, setPracticeCount] = useState<Record<ModuleType, number>>({
     reading: 0,
     listening: 0,
@@ -69,6 +72,11 @@ export function useFeatureGating(): FeatureGatingResult {
 
   const canAccess = useCallback(
     (module: ModuleType): boolean => {
+      // If pro subscription is expired, treat as free tier
+      if (profile?.subscription_tier === "pro" && isExpired) {
+        return practiceCount[module] < FREE_PRACTICE_LIMIT;
+      }
+
       // If user is not on free tier, they have unlimited access
       if (profile?.subscription_tier !== "free") {
         return true;
@@ -77,7 +85,7 @@ export function useFeatureGating(): FeatureGatingResult {
       // Free tier users can only do 1 practice per module
       return practiceCount[module] < FREE_PRACTICE_LIMIT;
     },
-    [profile, practiceCount]
+    [profile, practiceCount, isExpired]
   );
 
   const checkAccess = useCallback(
@@ -97,5 +105,6 @@ export function useFeatureGating(): FeatureGatingResult {
     isLoading,
     checkAccess,
     refreshCounts,
+    isSubscriptionExpired: isExpired,
   };
 }
