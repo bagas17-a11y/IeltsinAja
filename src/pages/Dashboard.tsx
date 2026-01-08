@@ -1,11 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { BridgeToSuccess } from "@/components/dashboard/BridgeToSuccess";
-import { BookOpen, Headphones, PenTool, Mic, TrendingUp, Target } from "lucide-react";
+import { BookOpen, Headphones, PenTool, Mic, TrendingUp, Target, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+const TARGET_SCORE_OPTIONS = [5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9];
 
 const moduleCards = [
   {
@@ -39,9 +44,27 @@ const moduleCards = [
 ];
 
 export default function Dashboard() {
-  const { profile, user, isLoading } = useAuth();
+  const { profile, user, isLoading, refreshProfile } = useAuth();
   const { isExpired, tier } = useSubscriptionStatus();
   const navigate = useNavigate();
+  const [isEditingTarget, setIsEditingTarget] = useState(false);
+
+  const handleTargetChange = async (value: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ target_band_score: parseFloat(value) })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      await refreshProfile();
+      toast.success("Target score updated!");
+      setIsEditingTarget(false);
+    } catch (error) {
+      toast.error("Failed to update target score");
+    }
+  };
 
   // Redirect to waiting room if not verified
   useEffect(() => {
@@ -99,12 +122,37 @@ export default function Dashboard() {
         <div className="glass-card p-6 col-span-1">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm text-muted-foreground">Target Score</span>
-            <Target className="w-5 h-5 text-elite-gold" />
+            <button 
+              onClick={() => setIsEditingTarget(!isEditingTarget)}
+              className="flex items-center gap-1 text-elite-gold hover:text-elite-gold/80 transition-colors"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
           </div>
-          <p className="text-4xl font-light text-elite-gold">
-            {profile?.target_band_score || 7.0}
+          {isEditingTarget ? (
+            <Select
+              defaultValue={(profile?.target_band_score || 7).toString()}
+              onValueChange={handleTargetChange}
+            >
+              <SelectTrigger className="w-full text-3xl font-light text-elite-gold border-elite-gold/30 bg-transparent h-auto py-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-border">
+                {TARGET_SCORE_OPTIONS.map((score) => (
+                  <SelectItem key={score} value={score.toString()}>
+                    {score}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-4xl font-light text-elite-gold">
+              {profile?.target_band_score || 7.0}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground mt-1">
+            {isEditingTarget ? "Select new target" : "Click edit to change"}
           </p>
-          <p className="text-xs text-muted-foreground mt-1">Band score goal</p>
         </div>
 
         {/* Score Breakdown */}
