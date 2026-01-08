@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -20,6 +21,8 @@ import ContentManager from "./pages/admin/ContentManager";
 import ListeningManager from "./pages/admin/ListeningManager";
 import Admin from "./pages/Admin";
 import WaitingRoom from "./pages/WaitingRoom";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +39,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/pricing-selection" element={<PricingSelection />} />
             <Route path="/waiting-room" element={<WaitingRoom />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/admin/payments" element={<PaymentVerification />} />
             <Route path="/admin/verify" element={<AdminVerify />} />
             <Route path="/admin/content" element={<ContentManager />} />
@@ -51,6 +56,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <WhatsAppButton />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

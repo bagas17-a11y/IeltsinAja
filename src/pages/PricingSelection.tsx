@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Sparkles, Crown, Upload, Copy, CheckCircle, Loader2, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Sparkles, Crown, Upload, Copy, CheckCircle, Loader2, ArrowLeft, Tag } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const plans = [
+const getPlans = (hasPromoCode: boolean) => [
   {
     name: "Free",
     price: "IDR 0",
+    originalPrice: null,
     period: "",
     description: "Try 1 practice for each feature",
     amount: 0,
@@ -28,10 +30,11 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "IDR 500K",
+    price: hasPromoCode ? "IDR 250K" : "IDR 500K",
+    originalPrice: hasPromoCode ? "IDR 500K" : null,
     period: "for 2 months",
     description: "Full access to all features",
-    amount: 500000,
+    amount: hasPromoCode ? 250000 : 500000,
     features: [
       "Unlimited AI Reading Analysis",
       "Full Listening Lab access",
@@ -46,8 +49,9 @@ const plans = [
     planKey: "pro",
   },
   {
-    name: "Road to 8.0+",
+    name: "Human+AI",
     price: "IDR 2.5M",
+    originalPrice: null,
     period: "one-time",
     description: "Full access + VIP IELTS alumni coaching",
     amount: 2500000,
@@ -75,11 +79,16 @@ const bankDetails = {
 export default function PricingSelection() {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<ReturnType<typeof getPlans>[0] | null>(null);
   const [showBankTransfer, setShowBankTransfer] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState(false);
+  const [showPromoInput, setShowPromoInput] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState(false);
+
+  const plans = getPlans(promoApplied);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -88,7 +97,16 @@ export default function PricingSelection() {
     setTimeout(() => setCopiedAccount(false), 2000);
   };
 
-  const handleSelectPlan = async (plan: typeof plans[0]) => {
+  const handleApplyPromo = () => {
+    if (promoCode.toUpperCase() === "BAGASCUTS") {
+      setPromoApplied(true);
+      toast.success("Promo code applied! 50% off Pro plan.");
+    } else {
+      toast.error("Invalid promo code");
+    }
+  };
+
+  const handleSelectPlan = async (plan: ReturnType<typeof getPlans>[0]) => {
     if (plan.tier === "free") {
       // Update profile to verified and go to dashboard
       if (user) {
@@ -200,7 +218,14 @@ export default function PricingSelection() {
               <div className="bg-secondary/30 rounded-xl p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-foreground">{selectedPlan.name}</span>
-                  <span className="text-accent font-medium">{selectedPlan.price}</span>
+                  <div className="text-right">
+                    <span className="text-accent font-medium">{selectedPlan.price}</span>
+                    {selectedPlan.originalPrice && (
+                      <span className="text-muted-foreground line-through ml-2 text-sm">
+                        {selectedPlan.originalPrice}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -291,9 +316,39 @@ export default function PricingSelection() {
           <h1 className="text-3xl md:text-4xl font-light mb-4 text-foreground">
             Choose Your <span className="text-gradient">Learning Path</span>
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="text-muted-foreground max-w-xl mx-auto mb-8">
             Select the plan that matches your ambition. All plans include AI-powered IELTS practice.
           </p>
+          
+          {/* Promo Code Section */}
+          <div className="max-w-sm mx-auto">
+            {!showPromoInput ? (
+              <Button
+                variant="ghost"
+                onClick={() => setShowPromoInput(true)}
+                className="text-accent hover:text-accent/80"
+              >
+                <Tag className="w-4 h-4 mr-2" />
+                Have a promo code?
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter promo code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="flex-1"
+                  disabled={promoApplied}
+                />
+                <Button 
+                  onClick={handleApplyPromo}
+                  disabled={promoApplied || !promoCode}
+                >
+                  {promoApplied ? "Applied!" : "Apply"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Pricing Cards */}
@@ -347,6 +402,11 @@ export default function PricingSelection() {
                       <span className="text-muted-foreground text-sm">{plan.period}</span>
                     )}
                   </div>
+                  {plan.originalPrice && (
+                    <p className="text-sm text-muted-foreground line-through mt-1">
+                      {plan.originalPrice}
+                    </p>
+                  )}
 
                   <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
                 </CardHeader>
@@ -376,11 +436,7 @@ export default function PricingSelection() {
                         : ""
                     }`}
                   >
-                    {plan.tier === "free"
-                      ? "Continue with Free Plan"
-                      : plan.tier === "elite"
-                      ? "Purchase"
-                      : "Subscribe"}
+                    {plan.tier === "free" ? "Continue with Free Plan" : "Sign me Up!"}
                   </Button>
                 </CardContent>
               </Card>

@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Crown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Sparkles, Crown, Tag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { PurchaseRegistrationModal } from "./PurchaseRegistrationModal";
+import { toast } from "sonner";
 
-const plans = [
+const getPlans = (hasPromoCode: boolean) => [
   {
     name: "Pro",
-    price: "IDR 500K",
+    price: hasPromoCode ? "IDR 250K" : "IDR 500K",
+    originalPrice: hasPromoCode ? "IDR 500K" : null,
     period: "for 2 months",
     description: "Complete AI suite for serious learners",
-    amount: 500000,
+    amount: hasPromoCode ? 250000 : 500000,
     features: [
       "Unlimited AI Reading Analysis",
       "Full Listening Lab access",
@@ -25,8 +28,9 @@ const plans = [
     planKey: "pro",
   },
   {
-    name: "Road to 8.0+",
+    name: "Human+AI",
     price: "IDR 2.5M",
+    originalPrice: null,
     period: "one-time",
     description: "Premium experience with personal consultation",
     amount: 2500000,
@@ -48,6 +52,9 @@ const plans = [
 export const PricingMatrix = () => {
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [showPromoInput, setShowPromoInput] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{
     key: string;
     name: string;
@@ -56,6 +63,8 @@ export const PricingMatrix = () => {
   } | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const { user } = useAuth();
+
+  const plans = getPlans(promoApplied);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -81,6 +90,15 @@ export const PricingMatrix = () => {
     return () => observer.disconnect();
   }, []);
 
+  const handleApplyPromo = () => {
+    if (promoCode.toUpperCase() === "BAGASCUTS") {
+      setPromoApplied(true);
+      toast.success("Promo code applied! 50% off Pro plan.");
+    } else {
+      toast.error("Invalid promo code");
+    }
+  };
+
   const handleSubscribe = (plan: typeof plans[0]) => {
     setSelectedPlan({
       key: plan.planKey,
@@ -105,10 +123,40 @@ export const PricingMatrix = () => {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light mb-6">
             Investment in Your <span className="text-gradient">Future</span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto">
+          <p className="text-lg max-w-2xl mx-auto mb-8">
             Choose the path that matches your ambition. Every plan is designed
             to deliver measurable results.
           </p>
+          
+          {/* Promo Code Section */}
+          <div className="max-w-sm mx-auto">
+            {!showPromoInput ? (
+              <Button
+                variant="ghost"
+                onClick={() => setShowPromoInput(true)}
+                className="text-accent hover:text-accent/80"
+              >
+                <Tag className="w-4 h-4 mr-2" />
+                Have a promo code?
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter promo code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="flex-1"
+                  disabled={promoApplied}
+                />
+                <Button 
+                  onClick={handleApplyPromo}
+                  disabled={promoApplied || !promoCode}
+                >
+                  {promoApplied ? "Applied!" : "Apply"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Pricing Cards */}
@@ -164,12 +212,17 @@ export const PricingMatrix = () => {
                   </h3>
 
                   {/* Price */}
-                  <div className="flex items-baseline gap-1 mb-4">
+                  <div className="flex items-baseline gap-2 mb-4">
                     <span className="text-4xl md:text-5xl font-light text-foreground">
                       {plan.price}
                     </span>
                     <span className="text-muted-foreground">{plan.period}</span>
                   </div>
+                  {plan.originalPrice && (
+                    <p className="text-sm text-muted-foreground line-through mb-2">
+                      {plan.originalPrice}
+                    </p>
+                  )}
 
                   {/* Description */}
                   <p className="text-foreground/60 mb-8">{plan.description}</p>
@@ -195,7 +248,7 @@ export const PricingMatrix = () => {
                     size="lg"
                     onClick={() => handleSubscribe(plan)}
                   >
-                    {plan.planKey === "road_to_8" ? "Purchase" : "Subscribe"}
+                    Sign me Up!
                   </Button>
                 </div>
               </div>
