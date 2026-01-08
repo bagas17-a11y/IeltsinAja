@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -6,6 +9,12 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="container mx-auto px-6 py-24 max-w-4xl">
+        <Link to="/">
+          <Button variant="ghost" className="mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
         <h1 className="text-4xl font-light mb-8">Privacy Policy</h1>
         <p className="text-muted-foreground mb-8">Last updated: January 8, 2026</p>
 
