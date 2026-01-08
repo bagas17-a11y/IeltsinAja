@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Brain, Target, ArrowRight, Trophy } from "lucide-react";
+import { Brain, Target, ArrowRight, Trophy, Edit2 } from "lucide-react";
 
 interface FamiliarityQuestion {
   id: string;
@@ -213,9 +214,11 @@ interface QuizResult {
 
 type Phase = 'intro' | 'familiarity' | 'quiz' | 'result';
 
+const TARGET_SCORE_OPTIONS = [5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9];
+
 export default function DiagnosticQuiz() {
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [phase, setPhase] = useState<Phase>('intro');
   const [familiarityIndex, setFamiliarityIndex] = useState(0);
   const [familiarityAnswers, setFamiliarityAnswers] = useState<Record<string, number>>({});
@@ -224,6 +227,7 @@ export default function DiagnosticQuiz() {
   const [answers, setAnswers] = useState<(number | null)[]>(new Array(15).fill(null));
   const [result, setResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [targetScore, setTargetScore] = useState<number>(profile?.target_band_score || 7);
 
   const currentFamiliarityQ = familiarityQuestions[familiarityIndex];
   const question = quizQuestions[currentQuestion];
@@ -248,11 +252,11 @@ export default function DiagnosticQuiz() {
       }
     }
 
-    // Check if we should stop at Band 5
+    // Check if we should stop at Band 5 (more lenient - only stop if 3+ missed)
     const band5Missed = 5 - band5Correct;
-    if (band5Missed > 2) {
+    if (band5Missed >= 3) {
       return {
-        assignedBand: 5,
+        assignedBand: 5.5, // More generous - give 5.5 instead of 5
         band5Score: band5Correct,
         band6Score: 0,
         band7Score: 0,
@@ -280,16 +284,27 @@ export default function DiagnosticQuiz() {
       }
     }
 
-    // Determine assigned band
+    // More realistic and generous scoring
+    const totalCorrect = band5Correct + band6Correct + band7Correct;
+    const percentage = (totalCorrect / 15) * 100;
+    
     let assignedBand = 5;
-    if (band5Correct >= 3 && band6Correct >= 3 && band7Correct === 5) {
+    
+    // Generous scoring thresholds
+    if (percentage >= 93) {
+      assignedBand = 8; // Cap at 8, never give higher
+    } else if (percentage >= 80) {
+      assignedBand = 7.5;
+    } else if (percentage >= 67) {
       assignedBand = 7;
-    } else if (band5Correct >= 3 && band6Correct >= 3) {
+    } else if (percentage >= 53) {
       assignedBand = 6.5;
-    } else if (band5Correct >= 3) {
+    } else if (percentage >= 40) {
       assignedBand = 6;
-    } else {
+    } else if (percentage >= 27) {
       assignedBand = 5.5;
+    } else {
+      assignedBand = 5;
     }
 
     return {
@@ -372,16 +387,31 @@ export default function DiagnosticQuiz() {
     }
   };
 
+  // Auto-set target score based on assigned band when result is calculated
+  useEffect(() => {
+    if (result) {
+      // If they score 8, set target to 9
+      if (result.assignedBand >= 8) {
+        setTargetScore(9);
+      } else {
+        // Set target to assigned band + 1, but cap at 9
+        const suggestedTarget = Math.min(result.assignedBand + 1, 9);
+        setTargetScore(suggestedTarget);
+      }
+    }
+  }, [result]);
+
   const saveResult = async () => {
     if (!user || !result) return;
     
     setIsSubmitting(true);
     try {
-      // Update profile with diagnostic band score
+      // Update profile with diagnostic band score and target score
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           current_reading_score: result.assignedBand,
+          target_band_score: targetScore,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -398,13 +428,14 @@ export default function DiagnosticQuiz() {
           score: result.band5Score + result.band6Score + result.band7Score,
           total_questions: result.stoppedEarly ? 5 : 15,
           correct_answers: result.band5Score + result.band6Score + result.band7Score,
-          feedback: `Diagnostic Quiz completed. Assigned Band: ${result.assignedBand}. Weak areas: ${result.weakSkills.join(', ')}`,
+          feedback: `Diagnostic Quiz completed. Assigned Band: ${result.assignedBand}. Target: ${targetScore}. Weak areas: ${result.weakSkills.join(', ')}`,
           metadata: {
             band5Score: result.band5Score,
             band6Score: result.band6Score,
             band7Score: result.band7Score,
             stoppedEarly: result.stoppedEarly,
-            weakSkills: result.weakSkills
+            weakSkills: result.weakSkills,
+            targetScore
           }
         });
 
@@ -558,14 +589,41 @@ export default function DiagnosticQuiz() {
             </p>
           </div>
 
-          <div className="glass-card p-8 text-center">
-            <p className="text-sm text-muted-foreground mb-2">Your Assigned Band</p>
-            <p className="text-6xl font-light text-accent mb-4">{result.assignedBand}</p>
-            {result.stoppedEarly && (
-              <p className="text-sm text-elite-gold">
-                Quiz stopped early to focus on fundamentals
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="glass-card p-8 text-center">
+              <p className="text-sm text-muted-foreground mb-2">Your Current Band</p>
+              <p className="text-5xl font-light text-accent mb-2">{result.assignedBand}</p>
+              {result.stoppedEarly && (
+                <p className="text-xs text-elite-gold">
+                  Focus on fundamentals first
+                </p>
+              )}
+            </div>
+
+            <div className="glass-card p-8 text-center">
+              <p className="text-sm text-muted-foreground mb-2 flex items-center justify-center gap-1">
+                Your Target Band
+                <Edit2 className="w-3 h-3" />
               </p>
-            )}
+              <Select
+                value={targetScore.toString()}
+                onValueChange={(val) => setTargetScore(parseFloat(val))}
+              >
+                <SelectTrigger className="w-32 mx-auto text-4xl font-light text-elite-gold border-none bg-transparent justify-center h-auto py-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TARGET_SCORE_OPTIONS.filter(score => score > result.assignedBand).map((score) => (
+                    <SelectItem key={score} value={score.toString()}>
+                      {score}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-2">
+                Click to change
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
