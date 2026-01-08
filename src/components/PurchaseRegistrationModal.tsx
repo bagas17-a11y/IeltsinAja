@@ -10,12 +10,16 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, User } from "lucide-react";
+import { Loader2, Mail, Lock, User, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const phoneSchema = z.string()
+  .min(10, "Phone number must be at least 10 digits")
+  .max(15, "Phone number is too long")
+  .regex(/^(\+62|62|0)?8[1-9][0-9]{7,11}$/, "Please enter a valid Indonesian phone number");
 
 interface PurchaseRegistrationModalProps {
   isOpen: boolean;
@@ -38,11 +42,12 @@ export function PurchaseRegistrationModal({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; phone?: string }>({});
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string; confirmPassword?: string } = {};
+    const newErrors: { email?: string; password?: string; confirmPassword?: string; phone?: string } = {};
     
     try {
       emailSchema.parse(email);
@@ -57,6 +62,14 @@ export function PurchaseRegistrationModal({
     } catch (e) {
       if (e instanceof z.ZodError) {
         newErrors.password = e.errors[0].message;
+      }
+    }
+
+    try {
+      phoneSchema.parse(phoneNumber);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        newErrors.phone = e.errors[0].message;
       }
     }
     
@@ -95,6 +108,7 @@ export function PurchaseRegistrationModal({
           emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
+            phone_number: phoneNumber,
           },
         },
       });
@@ -151,6 +165,26 @@ export function PurchaseRegistrationModal({
                 className="pl-10 bg-background/50 border-border/50"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phoneNumber" className="text-foreground/80">
+              Phone Number (Indonesia)
+            </Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="08123456789"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="pl-10 bg-background/50 border-border/50"
+              />
+            </div>
+            {errors.phone && (
+              <p className="text-sm text-red-500">{errors.phone}</p>
+            )}
           </div>
 
           <div className="space-y-2">
