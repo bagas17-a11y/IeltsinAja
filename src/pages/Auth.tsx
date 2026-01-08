@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Phone } from "lucide-react";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const phoneSchema = z.string()
+  .min(10, "Phone number must be at least 10 digits")
+  .max(15, "Phone number is too long")
+  .regex(/^(\+62|62|0)?8[1-9][0-9]{7,11}$/, "Please enter a valid Indonesian phone number");
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -18,9 +22,10 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; phone?: string }>({});
   const [isNewSignup, setIsNewSignup] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -70,7 +75,7 @@ export default function Auth() {
   }, [navigate, isNewSignup]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
+    const newErrors: { email?: string; password?: string; phone?: string } = {};
     
     const emailResult = emailSchema.safeParse(email);
     if (!emailResult.success) {
@@ -80,6 +85,13 @@ export default function Auth() {
     const passwordResult = passwordSchema.safeParse(password);
     if (!passwordResult.success) {
       newErrors.password = passwordResult.error.errors[0].message;
+    }
+
+    if (!isLogin) {
+      const phoneResult = phoneSchema.safeParse(phoneNumber);
+      if (!phoneResult.success) {
+        newErrors.phone = phoneResult.error.errors[0].message;
+      }
     }
     
     setErrors(newErrors);
@@ -108,7 +120,7 @@ export default function Auth() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/pricing-selection`,
-            data: { full_name: fullName },
+            data: { full_name: fullName, phone_number: phoneNumber },
           },
         });
         if (error) throw error;
@@ -157,20 +169,41 @@ export default function Auth() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-foreground/80">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="pl-10 bg-secondary/50 border-border/50"
-                    placeholder="John Doe"
-                  />
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-foreground/80">Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="pl-10 bg-secondary/50 border-border/50"
+                      placeholder="John Doe"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-foreground/80">Phone Number (Indonesia)</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => {
+                        setPhoneNumber(e.target.value);
+                        setErrors((prev) => ({ ...prev, phone: undefined }));
+                      }}
+                      className={`pl-10 bg-secondary/50 border-border/50 ${errors.phone ? "border-destructive" : ""}`}
+                      placeholder="08123456789"
+                    />
+                  </div>
+                  {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
