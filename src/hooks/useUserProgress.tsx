@@ -6,7 +6,7 @@ import { Json } from "@/integrations/supabase/types";
 export interface ProgressEntry {
   id: string;
   user_id: string;
-  exam_type: "reading" | "listening" | "writing" | "speaking";
+  exam_type: "reading" | "listening" | "writing" | "speaking" | "diagnostic";
   score: number | null;
   band_score: number | null;
   total_questions: number | null;

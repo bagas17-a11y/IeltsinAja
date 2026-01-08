@@ -14,6 +14,7 @@ import WritingModule from "./pages/dashboard/WritingModule";
 import SpeakingModule from "./pages/dashboard/SpeakingModule";
 import ConsultationHub from "./pages/dashboard/ConsultationHub";
 import StatsPage from "./pages/dashboard/StatsPage";
+import DiagnosticQuiz from "./pages/dashboard/DiagnosticQuiz";
 import PricingSelection from "./pages/PricingSelection";
 import PaymentVerification from "./pages/admin/PaymentVerification";
 import AdminVerify from "./pages/admin/AdminVerify";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/dashboard/writing" element={<WritingModule />} />
             <Route path="/dashboard/speaking" element={<SpeakingModule />} />
             <Route path="/dashboard/stats" element={<StatsPage />} />
+            <Route path="/dashboard/diagnostic" element={<DiagnosticQuiz />} />
             <Route path="/dashboard/consultation" element={<ConsultationHub />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
