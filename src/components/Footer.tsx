@@ -1,4 +1,6 @@
-import { Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
+import { Linkedin, Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
+
 const footerLinks = {
   product: [{
     label: "Reading Engine",
@@ -13,49 +15,28 @@ const footerLinks = {
     label: "Consultation",
     href: "#consultation"
   }],
-  company: [{
-    label: "About Us",
-    href: "#"
-  }, {
-    label: "Careers",
-    href: "#"
-  }, {
-    label: "Blog",
-    href: "#"
-  }, {
-    label: "Press",
-    href: "#"
-  }],
   support: [{
     label: "Help Center",
     href: "#"
   }, {
-    label: "Contact",
-    href: "#"
-  }, {
     label: "Privacy Policy",
-    href: "#"
+    href: "/privacy-policy",
+    isRoute: true
   }, {
     label: "Terms of Service",
-    href: "#"
+    href: "/terms-of-service",
+    isRoute: true
   }]
 };
 const socialLinks = [{
-  icon: Twitter,
-  href: "#",
-  label: "Twitter"
-}, {
   icon: Linkedin,
   href: "#",
   label: "LinkedIn"
 }, {
   icon: Instagram,
-  href: "#",
-  label: "Instagram"
-}, {
-  icon: Youtube,
-  href: "#",
-  label: "YouTube"
+  href: "https://www.instagram.com/ieltsinaja/",
+  label: "Instagram",
+  external: true
 }];
 export const Footer = () => {
   return <footer className="py-16 md:py-20 border-t border-border/50">
@@ -96,9 +77,15 @@ export const Footer = () => {
             </h4>
             <ul className="space-y-3">
               {footerLinks.support.map(link => <li key={link.label}>
-                  <a href={link.href} className="text-foreground/60 hover:text-foreground transition-colors text-sm">
-                    {link.label}
-                  </a>
+                  {(link as any).isRoute ? (
+                    <Link to={link.href} className="text-foreground/60 hover:text-foreground transition-colors text-sm">
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a href={link.href} className="text-foreground/60 hover:text-foreground transition-colors text-sm">
+                      {link.label}
+                    </a>
+                  )}
                 </li>)}
             </ul>
           </div>
@@ -112,7 +99,14 @@ export const Footer = () => {
           <div className="flex items-center gap-4">
             {socialLinks.map(social => {
             const Icon = social.icon;
-            return <a key={social.label} href={social.href} aria-label={social.label} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all">
+            return <a 
+              key={social.label} 
+              href={social.href} 
+              aria-label={social.label} 
+              target={(social as any).external ? "_blank" : undefined}
+              rel={(social as any).external ? "noopener noreferrer" : undefined}
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all"
+            >
                   <Icon className="w-4 h-4" />
                 </a>;
           })}
