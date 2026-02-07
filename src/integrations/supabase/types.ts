@@ -309,6 +309,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auto_renew: boolean
           avatar_url: string | null
           created_at: string
           current_listening_score: number | null
@@ -319,13 +320,18 @@ export type Database = {
           full_name: string | null
           id: string
           is_verified: boolean
+          last_payment_date: string | null
+          subscription_end_date: string | null
           subscription_expires_at: string | null
+          subscription_start_date: string | null
+          subscription_status: string | null
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           target_band_score: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          auto_renew?: boolean
           avatar_url?: string | null
           created_at?: string
           current_listening_score?: number | null
@@ -336,13 +342,18 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_verified?: boolean
+          last_payment_date?: string | null
+          subscription_end_date?: string | null
           subscription_expires_at?: string | null
+          subscription_start_date?: string | null
+          subscription_status?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           target_band_score?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          auto_renew?: boolean
           avatar_url?: string | null
           created_at?: string
           current_listening_score?: number | null
@@ -353,7 +364,11 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_verified?: boolean
+          last_payment_date?: string | null
+          subscription_end_date?: string | null
           subscription_expires_at?: string | null
+          subscription_start_date?: string | null
+          subscription_status?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           target_band_score?: number | null
           updated_at?: string
@@ -439,11 +454,19 @@ export type Database = {
         Args: { admin_id: string; payment_id: string }
         Returns: undefined
       }
+      extend_subscription: {
+        Args: { target_user_id: string; days_to_add: number; admin_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      toggle_admin_role: {
+        Args: { target_user_id: string; admin_id: string }
         Returns: boolean
       }
       unlock_user: {
