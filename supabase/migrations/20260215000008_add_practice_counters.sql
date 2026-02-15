@@ -151,7 +151,10 @@ COMMENT ON FUNCTION auto_increment_practice_count IS 'Trigger function to auto-i
 
 -- Add constraint to ensure practice counts cannot be negative
 ALTER TABLE profiles
-ADD CONSTRAINT IF NOT EXISTS check_practice_counts_positive
+DROP CONSTRAINT IF EXISTS check_practice_counts_positive;
+
+ALTER TABLE profiles
+ADD CONSTRAINT check_practice_counts_positive
   CHECK (
     (reading_practice_count IS NULL OR reading_practice_count >= 0) AND
     (listening_practice_count IS NULL OR listening_practice_count >= 0) AND
