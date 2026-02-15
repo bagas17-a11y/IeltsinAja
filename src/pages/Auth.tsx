@@ -114,7 +114,7 @@ export default function Auth() {
         if (error) throw error;
         toast({ title: "Welcome back!", description: "Successfully logged in." });
       } else {
-        setIsNewSignup(true);
+        // Sign up with OTP verification
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -123,8 +123,16 @@ export default function Auth() {
             data: { full_name: fullName, phone_number: phoneNumber },
           },
         });
+
         if (error) throw error;
-        toast({ title: "Account created!", description: "Select your plan..." });
+
+        toast({
+          title: "Check your email!",
+          description: "We sent you a 6-digit verification code."
+        });
+
+        // Redirect to verification page
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`);
       }
     } catch (error: any) {
       let message = error.message;
