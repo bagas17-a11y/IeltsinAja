@@ -1,16 +1,25 @@
-project_id = "gnfkeeuyooontthhtbyf"
+project_id = "jryjpjkutwrieneuaoxv"
 
 [functions.ai-analyze]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-model]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-reading]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ai-chatbot]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-verification-email]
+verify_jwt = true
+
+[functions.cron-expire-subscriptions]
+verify_jwt = false
+
+[functions.cron-renewal-reminders]
+verify_jwt = false
+
+[functions.health]
 verify_jwt = false

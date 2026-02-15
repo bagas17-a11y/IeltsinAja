@@ -1,9 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { validateRequest, AIAnalyzeSchema } from "../shared/validation.ts";
+import {
+  corsHeaders,
+  handleCorsPreflightRequest,
+  successResponse,
+  validationError,
+  unauthorizedError,
+  rateLimitError,
+  aiServiceError,
+  internalError
+} from "../shared/errors.ts";
+import { extractJsonObject } from "../shared/json-utils.ts";
 
 // Band Examples for Calibration
 const BAND_EXAMPLES = {
@@ -272,16 +279,35 @@ For Task 2:
 Return the model answer only, no explanations.`;
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   try {
-    const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt, speakingPart, question } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return validationError("Invalid JSON body", undefined, corsHeaders);
+    }
+
+    // Validate request data
+    const validation = validateRequest(AIAnalyzeSchema, requestBody);
+    if (!validation.success) {
+      return validationError(
+        validation.error.message,
+        validation.error.details,
+        corsHeaders
+      );
+    }
+
+    const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt, speakingPart, question } = validation.data;
+
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) {
+      return internalError("AI service not configured", undefined, corsHeaders);
     }
 
     let userPrompt = "";
@@ -298,34 +324,40 @@ Write only the model answer, formatted as a proper IELTS response.`;
 
       console.log("Generating model answer for:", taskType);
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
+          model: "claude-sonnet-4-5-20250929",
+          max_tokens: 4096,
           temperature: 0.7,
+          messages: [
+            { role: "user", content: `${systemPrompt}\n\n${userPrompt}` },
+          ],
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("AI gateway error:", response.status, errorText);
-        throw new Error("AI gateway error");
+        console.error("Claude API error:", response.status, errorText);
+
+        if (response.status === 429) {
+          return rateLimitError(undefined, 60, corsHeaders);
+        }
+        if (response.status === 401) {
+          return unauthorizedError("Invalid API key", corsHeaders);
+        }
+        return aiServiceError("Failed to generate model answer", { status: response.status }, corsHeaders);
       }
 
       const data = await response.json();
-      const modelAnswerText = data.choices?.[0]?.message?.content;
+      const modelAnswerText = data.content?.[0]?.text;
 
-      return new Response(JSON.stringify({ modelAnswer: modelAnswerText }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return successResponse({ modelAnswer: modelAnswerText }, 200, corsHeaders);
     }
     
     if (type === "writing") {
@@ -561,70 +593,49 @@ Provide your response in this JSON format:
 }`;
     }
 
-    console.log("Calling AI gateway with type:", type, "taskType:", taskType, "isRevision:", isRevision);
+    console.log("Calling Claude API with type:", type, "taskType:", taskType, "isRevision:", isRevision);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 4096,
         temperature: 0.3,
+        messages: [
+          { role: "user", content: `${systemPrompt}\n\n${userPrompt}` },
+        ],
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
+      console.error("Claude API error:", response.status, errorText);
+
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return rateLimitError(undefined, 60, corsHeaders);
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (response.status === 401) {
+        return unauthorizedError("Invalid API key", corsHeaders);
       }
-      throw new Error("AI gateway error");
+      return aiServiceError("AI analysis failed", { status: response.status }, corsHeaders);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
+    const aiResponse = data.content?.[0]?.text;
     console.log("AI Response received:", aiResponse?.substring(0, 200));
 
-    // Try to parse JSON from response
-    let parsedResponse;
-    try {
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResponse = JSON.parse(jsonMatch[0]);
-      } else {
-        parsedResponse = { rawFeedback: aiResponse };
-      }
-    } catch {
-      console.error("JSON parse error, returning raw feedback");
-      parsedResponse = { rawFeedback: aiResponse };
-    }
+    // Try to parse JSON from response using robust extraction
+    const parsedResponse = extractJsonObject(aiResponse) || { rawFeedback: aiResponse };
 
-    return new Response(JSON.stringify(parsedResponse), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return successResponse(parsedResponse, 200, corsHeaders);
   } catch (error: unknown) {
     console.error("AI analyze error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return internalError(errorMessage, { error: String(error) }, corsHeaders);
   }
 });

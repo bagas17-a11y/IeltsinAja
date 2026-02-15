@@ -2,9 +2,6 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-// Super Admin email - bypasses all checks
-const SUPER_ADMIN_EMAIL = "bagasshryo@gmail.com";
-
 interface Profile {
   id: string;
   user_id: string;
@@ -21,16 +18,13 @@ interface Profile {
   is_verified: boolean;
 }
 
-export const isSuperAdmin = (email: string | null | undefined): boolean => {
-  return email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
-};
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
   isAdmin: boolean;
+  isCheckingAdmin: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -42,6 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCheckingAdmin, setIsCheckingAdmin] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -55,6 +51,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
     return data as Profile | null;
+  };
+
+  const checkAdminRole = async (userId: string) => {
+    setIsCheckingAdmin(true);
+    try {
+      const { data, error } = await supabase.rpc('has_role', {
+        _user_id: userId,
+        _role: 'admin'
+      });
+
+      if (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      } else {
+        setIsAdmin(data || false);
+      }
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      setIsAdmin(false);
+    } finally {
+      setIsCheckingAdmin(false);
+    }
   };
 
   const refreshProfile = async () => {
@@ -73,9 +91,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setTimeout(() => {
             fetchProfile(session.user.id).then(setProfile);
+            checkAdminRole(session.user.id);
           }, 0);
         } else {
           setProfile(null);
+          setIsAdmin(false);
+          setIsCheckingAdmin(false);
         }
         setIsLoading(false);
       }
@@ -87,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (session?.user) {
         fetchProfile(session.user.id).then(setProfile);
+        checkAdminRole(session.user.id);
       }
       setIsLoading(false);
     });
@@ -99,12 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setIsAdmin(false);
   };
 
-  const isAdmin = isSuperAdmin(user?.email);
-
   return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, isAdmin, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, isLoading, isAdmin, isCheckingAdmin, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
