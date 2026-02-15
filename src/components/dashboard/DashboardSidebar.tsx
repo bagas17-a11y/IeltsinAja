@@ -14,7 +14,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -36,7 +36,7 @@ export function DashboardSidebar() {
   const navigate = useNavigate();
   const { profile, signOut, user } = useAuth();
   const userTier = profile?.subscription_tier || "free";
-  const isAdmin = isSuperAdmin(user?.email);
+  // isAdmin comes from useAuth hook
 
   const canAccess = (requiredTier: string) => {
     if (isAdmin) return true;

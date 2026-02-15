@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, Save, Trash2, Loader2, Wand2, TestTube, ArrowLeft, 
@@ -32,7 +32,7 @@ export default function ContentManager() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAdmin = isSuperAdmin(user?.email);
+  // isAdmin comes from useAuth hook
 
   const [questions, setQuestions] = useState<IeltsQuestion[]>([]);
   const [loading, setLoading] = useState(true);

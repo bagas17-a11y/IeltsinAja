@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
 import { 
@@ -73,7 +73,7 @@ export default function ListeningManager() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAdmin = isSuperAdmin(user?.email);
+  // isAdmin comes from useAuth hook
   const audioInputRef = useRef<HTMLInputElement>(null);
   const diagramInputRef = useRef<HTMLInputElement>(null);
   const [uploadingDiagramForId, setUploadingDiagramForId] = useState<number | null>(null);
