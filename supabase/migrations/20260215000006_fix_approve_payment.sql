@@ -1,6 +1,9 @@
 -- Fix Payment Approval Function
 -- Adds idempotency and better error handling
 
+-- Drop existing function first to allow changing return type
+DROP FUNCTION IF EXISTS approve_payment(UUID, UUID);
+
 CREATE OR REPLACE FUNCTION approve_payment(
   payment_id UUID,
   admin_id UUID

@@ -148,3 +148,15 @@ COMMENT ON COLUMN profiles.writing_practice_count IS 'Cached count of writing pr
 COMMENT ON COLUMN profiles.speaking_practice_count IS 'Cached count of speaking practices for fast feature gating';
 COMMENT ON FUNCTION increment_practice_counter IS 'Increments practice counter for a specific module type';
 COMMENT ON FUNCTION auto_increment_practice_count IS 'Trigger function to auto-increment practice counters';
+
+-- Add constraint to ensure practice counts cannot be negative
+ALTER TABLE profiles
+ADD CONSTRAINT IF NOT EXISTS check_practice_counts_positive
+  CHECK (
+    (reading_practice_count IS NULL OR reading_practice_count >= 0) AND
+    (listening_practice_count IS NULL OR listening_practice_count >= 0) AND
+    (writing_practice_count IS NULL OR writing_practice_count >= 0) AND
+    (speaking_practice_count IS NULL OR speaking_practice_count >= 0)
+  );
+
+COMMENT ON CONSTRAINT check_practice_counts_positive ON profiles IS 'Practice counts cannot be negative';
