@@ -24,10 +24,10 @@ export default function VerifyEmail() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (code.length !== 6) {
+    if (code.length < 6 || code.length > 8) {
       toast({
         title: "Invalid code",
-        description: "Please enter the 6-digit code from your email",
+        description: "Please enter the verification code from your email (6-8 digits)",
         variant: "destructive",
       });
       return;
@@ -130,22 +130,22 @@ export default function VerifyEmail() {
           <form onSubmit={handleVerify} className="space-y-5">
             <div className="space-y-2">
               <label className="text-sm text-foreground/80">
-                Enter 6-digit code
+                Enter verification code
               </label>
               <Input
                 type="text"
                 value={code}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 8);
                   setCode(value);
                 }}
                 className="text-center text-2xl tracking-widest bg-secondary/50 border-border/50"
-                placeholder="000000"
-                maxLength={6}
+                placeholder="00000000"
+                maxLength={8}
                 autoFocus
               />
               <p className="text-xs text-muted-foreground text-center">
-                Check your email for the verification code
+                Enter the code from your email (6-8 digits)
               </p>
             </div>
 
@@ -153,7 +153,7 @@ export default function VerifyEmail() {
               type="submit"
               variant="neumorphicPrimary"
               className="w-full"
-              disabled={isLoading || code.length !== 6}
+              disabled={isLoading || code.length < 6}
             >
               {isLoading ? "Verifying..." : "Verify Email"}
             </Button>
