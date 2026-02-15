@@ -115,7 +115,7 @@ export default function Auth() {
         toast({ title: "Welcome back!", description: "Successfully logged in." });
       } else {
         // Sign up with OTP verification
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -126,13 +126,24 @@ export default function Auth() {
 
         if (error) throw error;
 
-        toast({
-          title: "Check your email!",
-          description: "We sent you a 6-digit verification code."
-        });
+        // Check if email confirmation is required
+        const needsEmailConfirmation = data.user && !data.user.email_confirmed_at && data.user.identities?.length === 1;
 
-        // Redirect to verification page
-        navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+        if (needsEmailConfirmation) {
+          // Email confirmation required - redirect to verification
+          toast({
+            title: "Check your email!",
+            description: "We sent you a 6-digit verification code."
+          });
+          navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+        } else {
+          // Email confirmation disabled - user is auto-confirmed
+          toast({
+            title: "Account created!",
+            description: "Redirecting to pricing selection..."
+          });
+          // Auth state change will handle redirect
+        }
       }
     } catch (error: any) {
       let message = error.message;
