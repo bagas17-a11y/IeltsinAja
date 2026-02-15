@@ -145,13 +145,23 @@ export default function ReadingModule() {
     setTestStartTime(new Date());
 
     try {
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error("You must be logged in to generate tests. Please sign in again.");
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-reading", {
         body: { difficulty },
       });
 
-      if (error) throw error;
-      
-      if (data.error) {
+      if (error) {
+        console.error("Function invoke error:", error);
+        throw error;
+      }
+
+      if (data?.error) {
         throw new Error(data.error);
       }
 
