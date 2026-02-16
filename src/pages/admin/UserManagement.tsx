@@ -65,7 +65,6 @@ interface UserProfile {
   subscription_status: string | null;
   subscription_start_date: string | null;
   subscription_end_date: string | null;
-  subscription_expires_at: string | null;
   auto_renew: boolean;
   last_payment_date: string | null;
   is_verified: boolean;
@@ -99,7 +98,7 @@ interface AdminLogRecord {
 
 export default function UserManagement() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const { toast } = useToast();
 
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -193,8 +192,8 @@ export default function UserManagement() {
   };
 
   const getEffectiveSubStatus = useCallback((u: UserProfile): string => {
-    // Use subscription_end_date or subscription_expires_at to determine status
-    const endDate = u.subscription_end_date || u.subscription_expires_at;
+    // Use subscription_end_date to determine status
+    const endDate = u.subscription_end_date;
     if (u.subscription_tier === "free" && !u.is_verified) return "none";
     if (u.subscription_tier === "free") return "none";
     if (endDate && isPast(new Date(endDate))) return "expired";
@@ -205,7 +204,7 @@ export default function UserManagement() {
   }, []);
 
   const getDaysLeft = useCallback((u: UserProfile): number | null => {
-    const endDate = u.subscription_end_date || u.subscription_expires_at;
+    const endDate = u.subscription_end_date;
     if (!endDate) return null;
     const days = differenceInDays(new Date(endDate), new Date());
     return days < 0 ? 0 : days;
@@ -842,7 +841,7 @@ export default function UserManagement() {
                       {getSubStatusBadge(getEffectiveSubStatus(selectedUser))}
                     </div>
                     {(selectedUser.subscription_start_date ||
-                      selectedUser.subscription_expires_at) && (
+                      selectedUser.subscription_end_date) && (
                       <>
                         {selectedUser.subscription_start_date && (
                           <div className="flex justify-between">
@@ -864,9 +863,7 @@ export default function UserManagement() {
                           <span className="text-sm">
                             {format(
                               new Date(
-                                selectedUser.subscription_end_date ||
-                                  selectedUser.subscription_expires_at ||
-                                  ""
+                                selectedUser.subscription_end_date || ""
                               ),
                               "MMM d, yyyy"
                             )}

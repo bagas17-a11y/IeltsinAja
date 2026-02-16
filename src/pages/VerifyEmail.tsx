@@ -36,7 +36,7 @@ export default function VerifyEmail() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const { data, error } = await supabase.auth.verifyOtp({
         email: email!,
         token: code,
         type: 'email',
@@ -44,14 +44,27 @@ export default function VerifyEmail() {
 
       if (error) throw error;
 
+      // Ensure session is established
+      if (data?.session) {
+        // Explicitly set the session to ensure it's available throughout the app
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+      }
+
       toast({
         title: "Email verified!",
         description: "Your account is now active.",
       });
 
+      // Small delay to ensure session is fully established
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Redirect to pricing selection for new users
       navigate("/pricing-selection");
     } catch (error: any) {
+      console.error("Verification error:", error);
       toast({
         title: "Verification failed",
         description: error.message || "Invalid or expired code",

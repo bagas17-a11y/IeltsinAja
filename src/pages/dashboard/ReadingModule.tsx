@@ -145,19 +145,46 @@ export default function ReadingModule() {
     setTestStartTime(new Date());
 
     try {
-      // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
+      // Force session refresh to ensure we have a valid JWT token
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+
+      if (refreshError) {
+        console.error("Session refresh error:", refreshError);
+        // Fallback to existing session if refresh fails
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+          throw new Error("Session expired. Please log out and log in again.");
+        }
+      }
+
+      const session = refreshedSession || (await supabase.auth.getSession()).data.session;
 
       if (!session) {
         throw new Error("You must be logged in to generate tests. Please sign in again.");
       }
 
+      // Log session details for debugging
+      console.log("Session exists:", !!session);
+      console.log("Access token exists:", !!session.access_token);
+      console.log("User email confirmed:", session.user.email_confirmed_at);
+      console.log("Token expires at:", new Date(session.expires_at! * 1000).toLocaleString());
+
+      // Explicitly pass the Authorization header
       const { data, error } = await supabase.functions.invoke("generate-reading", {
         body: { difficulty },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (error) {
         console.error("Function invoke error:", error);
+        console.error("Error details:", JSON.stringify(error, null, 2));
+
+        if (error.message?.includes("401") || error.message?.includes("Unauthorized")) {
+          throw new Error("Authentication failed. Please log out and log in again to refresh your session.");
+        }
         throw error;
       }
 
@@ -175,10 +202,21 @@ export default function ReadingModule() {
       });
     } catch (error: any) {
       console.error("Generate error:", error);
+
+      let errorMessage = error.message || "Please try again.";
+      let errorAction = "";
+
+      // Provide specific guidance for authentication errors
+      if (error.message?.includes("401") || error.message?.includes("Unauthorized") || error.message?.includes("Authentication")) {
+        errorMessage = "Authentication error: Your session may have expired or is invalid.";
+        errorAction = "Please log out and log back in, then try again.";
+      }
+
       toast({
         title: "Generation failed",
-        description: error.message || "Please try again.",
+        description: errorAction ? `${errorMessage} ${errorAction}` : errorMessage,
         variant: "destructive",
+        duration: 6000,
       });
     } finally {
       setIsGenerating(false);

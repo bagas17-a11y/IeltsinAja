@@ -31,38 +31,55 @@ export default function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Check for existing session on mount
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("is_verified")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+
+        if (profile?.is_verified) {
+          navigate("/dashboard");
+        } else {
+          navigate("/waiting-room");
+        }
+      }
+    });
+
+    // Listen for auth state changes (login/logout events)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Only handle auth events, not initial session
+      if (event === 'SIGNED_OUT') {
+        navigate("/auth");
+        return;
+      }
+
+      if (event === 'SIGNED_IN' && session?.user) {
         // If this was a new signup, redirect to pricing selection
         if (isNewSignup) {
           navigate("/pricing-selection");
           return;
         }
-        // Check is_verified status for login
-        setTimeout(async () => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("is_verified")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-          
-          if (profile?.is_verified) {
-            navigate("/dashboard");
-          } else {
-            navigate("/waiting-room");
-          }
-        }, 0);
-      }
-    });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
+        // Check is_verified status for login
+        const { data: profile, error } = await supabase
           .from("profiles")
           .select("is_verified")
           .eq("user_id", session.user.id)
           .maybeSingle();
-        
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+
         if (profile?.is_verified) {
           navigate("/dashboard");
         } else {

@@ -37,8 +37,8 @@ export function useSubscriptionStatus(): SubscriptionStatus {
     }
 
     // Pro users have expiration
-    if (tier === "pro" && profile.subscription_expires_at) {
-      const expiresAt = new Date(profile.subscription_expires_at);
+    if (tier === "pro" && profile.subscription_end_date) {
+      const expiresAt = new Date(profile.subscription_end_date);
       const now = new Date();
       const diffTime = expiresAt.getTime() - now.getTime();
       const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));

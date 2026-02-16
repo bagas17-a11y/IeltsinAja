@@ -7,9 +7,10 @@ interface Profile {
   user_id: string;
   full_name: string | null;
   email: string | null;
+  phone_number: string | null;
   avatar_url: string | null;
   subscription_tier: "free" | "pro" | "elite";
-  subscription_expires_at: string | null;
+  subscription_end_date: string | null;
   target_band_score: number | null;
   current_reading_score: number | null;
   current_listening_score: number | null;
