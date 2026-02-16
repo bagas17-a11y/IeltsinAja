@@ -27,6 +27,7 @@ import Admin from "./pages/Admin";
 import WaitingRoom from "./pages/WaitingRoom";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import DiagnosticTest from "./pages/DiagnosticTest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/dashboard/stats" element={<StatsPage />} />
             <Route path="/dashboard/diagnostic" element={<DiagnosticQuiz />} />
             <Route path="/dashboard/consultation" element={<ConsultationHub />} />
+            <Route path="/diagnostic-test" element={<DiagnosticTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
