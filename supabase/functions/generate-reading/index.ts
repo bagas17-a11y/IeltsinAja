@@ -10,6 +10,7 @@ import {
   aiServiceError,
   internalError
 } from "../shared/errors.ts";
+import { getMockReadingTest } from "./mock-data.ts";
 
 const READING_GENERATOR_PROMPT = `You are an IELTS Academic Reading test designer with 20+ years of experience creating official Cambridge IELTS materials.
 
@@ -135,9 +136,19 @@ serve(async (req) => {
 
     const { difficulty } = validation.data;
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_READING_DATA") === "true";
 
-    if (!ANTHROPIC_API_KEY) {
-      return internalError("AI service not configured", undefined, corsHeaders);
+    // Use mock data if enabled or if API key is missing
+    if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {
+      console.log("Using mock reading data (API key missing or mock mode enabled)");
+      const mockTest = getMockReadingTest(difficulty);
+      const responseData = {
+        ...mockTest,
+        generatedAt: new Date().toISOString(),
+        id: crypto.randomUUID(),
+        isMock: true
+      };
+      return successResponse(responseData, 200, corsHeaders);
     }
 
     // Randomly select a topic
@@ -193,6 +204,20 @@ Return ONLY valid JSON in the specified format.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
+
+      // Check if it's a credit/billing issue - use mock data as fallback
+      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
+        console.log("Claude API unavailable (credits/billing issue), falling back to mock data");
+        const mockTest = getMockReadingTest(difficulty);
+        const responseData = {
+          ...mockTest,
+          generatedAt: new Date().toISOString(),
+          id: crypto.randomUUID(),
+          isMock: true,
+          note: "Generated using mock data (Claude API credits exhausted)"
+        };
+        return successResponse(responseData, 200, corsHeaders);
+      }
 
       if (response.status === 429) {
         return rateLimitError(undefined, 60, corsHeaders);
