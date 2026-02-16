@@ -214,16 +214,43 @@ Return ONLY valid JSON in the specified format.`;
       if (jsonMatch) {
         parsedResponse = JSON.parse(jsonMatch[0]);
       } else {
+        console.error("No JSON found in AI response. Response:", aiResponse?.substring(0, 500));
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
       console.error("JSON parse error:", parseError);
-      return aiServiceError("Failed to parse AI response. Please try again.", { error: String(parseError) }, corsHeaders);
+      console.error("AI response text:", aiResponse?.substring(0, 500));
+      return aiServiceError("Failed to parse AI response. Please try again.", {
+        error: String(parseError),
+        responsePreview: aiResponse?.substring(0, 200)
+      }, corsHeaders);
+    }
+
+    // Validate response structure
+    if (!parsedResponse.passage || !parsedResponse.questions) {
+      console.error("Invalid response structure:", parsedResponse);
+      return aiServiceError("AI returned incomplete data. Please try again.", {
+        hasPassage: !!parsedResponse.passage,
+        hasQuestions: !!parsedResponse.questions
+      }, corsHeaders);
+    }
+
+    if (!parsedResponse.passage.title || !parsedResponse.passage.content) {
+      console.error("Invalid passage structure:", parsedResponse.passage);
+      return aiServiceError("AI returned invalid passage format. Please try again.", {
+        hasTitle: !!parsedResponse.passage?.title,
+        hasContent: !!parsedResponse.passage?.content
+      }, corsHeaders);
     }
 
     // Add timestamp for caching
     parsedResponse.generatedAt = new Date().toISOString();
     parsedResponse.id = crypto.randomUUID();
+
+    console.log("Successfully generated reading passage:", {
+      title: parsedResponse.passage.title,
+      questionCount: Object.values(parsedResponse.questions).reduce((sum: number, q: any) => sum + (q.items?.length || 0), 0)
+    });
 
     return successResponse(parsedResponse, 200, corsHeaders);
   } catch (error: unknown) {

@@ -188,17 +188,35 @@ export default function ReadingModule() {
         throw error;
       }
 
+      // Validate response data
+      console.log("Function response:", data);
+
+      if (!data) {
+        throw new Error("No data received from server");
+      }
+
       if (data?.error) {
         throw new Error(data.error);
+      }
+
+      // Validate required fields
+      if (!data.passage || !data.questions) {
+        console.error("Invalid response structure:", data);
+        throw new Error("Invalid response from server - missing passage or questions");
+      }
+
+      if (!data.passage.title || !data.passage.content) {
+        console.error("Invalid passage structure:", data.passage);
+        throw new Error("Invalid response - passage missing title or content");
       }
 
       setCurrentTest(data);
       addToCache(data as CachedPassage);
       setIsTimerActive(true);
-      
+
       toast({
         title: "Test generated!",
-        description: `${data.passage.topic} passage ready. Timer started.`,
+        description: `${data.passage.topic || 'Reading'} passage ready. Timer started.`,
       });
     } catch (error: any) {
       console.error("Generate error:", error);
