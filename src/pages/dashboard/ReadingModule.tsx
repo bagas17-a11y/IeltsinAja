@@ -171,7 +171,7 @@ export default function ReadingModule() {
       console.log("Token expires at:", new Date(session.expires_at! * 1000).toLocaleString());
 
       // Explicitly pass the Authorization header
-      const { data, error } = await supabase.functions.invoke("generate-reading", {
+      const { data: response, error } = await supabase.functions.invoke("generate-reading", {
         body: { difficulty },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -189,19 +189,24 @@ export default function ReadingModule() {
       }
 
       // Validate response data
-      console.log("Function response:", data);
+      console.log("Function response:", response);
 
-      if (!data) {
+      if (!response) {
         throw new Error("No data received from server");
       }
 
-      if (data?.error) {
-        throw new Error(data.error);
+      // Unwrap the response - Supabase functions wrap data in {success: true, data: {...}}
+      const data = response.success ? response.data : response;
+      console.log("Unwrapped data:", data);
+
+      if (response.error || data?.error) {
+        throw new Error(response.error || data.error);
       }
 
       // Validate required fields
       if (!data.passage || !data.questions) {
         console.error("Invalid response structure:", data);
+        console.error("Available keys:", Object.keys(data));
         throw new Error("Invalid response from server - missing passage or questions");
       }
 
