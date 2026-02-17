@@ -278,6 +278,224 @@ For Task 2:
 
 Return the model answer only, no explanations.`;
 
+function getMockResponse(type: string, content: string, speakingPart?: string, taskType?: string) {
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+
+  if (type === "speaking") {
+    const fillerWords = (content.match(/\b(um|uh|like|you know|basically|actually|I mean|so|well|kind of|sort of)\b/gi) || []);
+    const pauseCount = (content.match(/\[pause\]/g) || []).length;
+
+    return {
+      overallBand: 6.5,
+      isMock: true,
+      fluencyCoherence: {
+        score: 6.5,
+        feedback: "You maintained a reasonable flow of speech with some hesitation. Try to develop your ideas more fully and use connecting phrases like 'furthermore', 'in addition', and 'on the other hand' to link your points smoothly."
+      },
+      pauseAnalysis: {
+        count: pauseCount,
+        impact: pauseCount > 3
+          ? "Frequent pauses interrupted your flow. Practice speaking on familiar topics for 2 minutes without stopping."
+          : "Your pauses were within acceptable range. Keep working on maintaining steady speech."
+      },
+      lexicalResource: {
+        score: 6.5,
+        feedback: "You used adequate vocabulary for the topic. To improve, try incorporating more topic-specific vocabulary and idiomatic expressions.",
+        idiomaticExpressions: ["Good attempt at natural speech patterns"],
+        suggestions: [
+          "Use 'from my perspective' instead of 'I think'",
+          "Try 'it goes without saying' for obvious points",
+          "Use 'a wide range of' instead of 'many'"
+        ]
+      },
+      grammaticalRange: {
+        score: 6.5,
+        feedback: "You used a mix of simple and some complex structures. Try incorporating more conditionals ('If I had the chance...'), perfect tenses ('I have been studying...'), and relative clauses ('which is something I really enjoy').",
+        complexStructures: ["Basic sentence structures used effectively"],
+        errorsFound: ["Consider varying sentence structures more", "Try using more complex tenses"]
+      },
+      pronunciation: {
+        score: 6.5,
+        feedback: "Based on the transcription, pronunciation appears adequate. Focus on word stress patterns and intonation to sound more natural. Practice with shadowing exercises."
+      },
+      fillerWords: {
+        count: fillerWords.length,
+        examples: fillerWords.slice(0, 5).map(w => w.toLowerCase()),
+        impact: fillerWords.length > 5
+          ? "High filler word frequency. Replace fillers with brief pauses — silence sounds more confident than 'um'."
+          : "Filler word usage is manageable. Continue working on reducing them."
+      },
+      grammarErrors: [
+        "Practice using past perfect tense for experiences",
+        "Work on subject-verb agreement in complex sentences"
+      ],
+      improvements: [
+        "Develop each point with a specific example or personal experience",
+        "Use a wider range of linking words (furthermore, nevertheless, consequently)",
+        "Practice the 'PEEL' structure: Point, Explain, Example, Link back"
+      ]
+    };
+  }
+
+  if (type === "writing") {
+    const isTask1 = taskType === "Task 1" || taskType?.startsWith("Task 1");
+    const minWords = isTask1 ? 150 : 250;
+    const bandScore = wordCount < minWords ? 5.5 : 6.5;
+
+    if (isTask1) {
+      return {
+        wordCount,
+        overallBand: bandScore,
+        isMock: true,
+        isRevision: false,
+        structuralGrade: {
+          paragraph1_introduction: {
+            status: "partial",
+            paraphrased: true,
+            noOpinions: true,
+            feedback: "Your introduction paraphrases the question adequately. Try to include more specific details about what the data shows."
+          },
+          paragraph2_overview: {
+            status: "partial",
+            trendsCount: 1,
+            usedGeneralTerms: true,
+            feedback: "Your overview identifies some trends. Aim to highlight 2-3 main patterns without using specific figures."
+          },
+          paragraph3_body1: {
+            status: "executed",
+            hasKeyFeature: true,
+            hasDataSupport: true,
+            feedback: "Good use of data to support your first key feature. Consider adding comparisons between data points."
+          },
+          paragraph4_body2: {
+            status: "partial",
+            hasSecondFeature: true,
+            hasPreciseFigures: false,
+            feedback: "Include more precise figures to strengthen this paragraph. Use phrases like 'approximately', 'roughly', or 'just over'."
+          }
+        },
+        keyFeaturesAudit: {
+          identified: ["Main trend identified", "Some data points mentioned"],
+          missed: ["Highest/lowest values could be highlighted more", "Notable contrasts between categories"]
+        },
+        vocabularySuggestions: {
+          sequencing: ["Subsequently", "Following this"],
+          contrast: ["Conversely", "In contrast"],
+          result: ["Consequently", "As a result"],
+          emphasis: ["Notably", "Significantly"]
+        },
+        scoringGrid: {
+          taskResponse: { score: bandScore, justification: wordCount < minWords ? "Under minimum word count" : "Adequate task coverage with room for improvement" },
+          coherenceCohesion: { score: 6.5, justification: "Logical organization but could use more cohesive devices" },
+          lexicalResource: { score: 6.5, justification: "Adequate vocabulary; try incorporating more academic collocations" },
+          grammaticalRange: { score: 6.5, justification: "Mix of simple and complex sentences; practice passive voice and comparatives" }
+        },
+        band8Transformations: [
+          {
+            original: "The chart shows...",
+            rewrite: "The chart delineates the comparative trends in...",
+            explanation: "Use more precise academic vocabulary to describe visual data"
+          }
+        ],
+        criticalFixes: [
+          "Include a clearer overview paragraph with 2-3 main trends",
+          "Use more comparison language (whereas, while, in contrast)"
+        ],
+        actionableNextStep: "Practice writing overviews for different chart types (pie, bar, line) focusing on identifying 2-3 key features without specific data."
+      };
+    } else {
+      return {
+        wordCount,
+        overallBand: bandScore,
+        isMock: true,
+        isRevision: false,
+        structuralGrade: {
+          paragraph1_introduction: {
+            status: "partial",
+            paraphrased: true,
+            hasThesis: true,
+            feedback: "Your introduction addresses the topic. Strengthen your thesis statement to clearly state your position."
+          },
+          paragraph2_body1: {
+            status: "executed",
+            hasTopicSentence: true,
+            hasExample: true,
+            feedback: "Good topic sentence and development. Try to include a more specific, real-world example."
+          },
+          paragraph3_body2: {
+            status: "partial",
+            hasTopicSentence: true,
+            developedOrCounterArg: false,
+            feedback: "Consider adding a counter-argument and then refuting it to show critical thinking."
+          },
+          paragraph4_conclusion: {
+            status: "executed",
+            summarized: true,
+            noNewIdeas: true,
+            feedback: "Your conclusion summarizes well. Try restating your thesis in different words."
+          }
+        },
+        band9Highlights: {
+          hedgingUsed: {
+            found: false,
+            examples: [],
+            suggestions: ["Use 'This could potentially lead to...' instead of 'This will lead to...'", "Try 'It is often argued that...' for introducing views"]
+          },
+          cohesiveProgression: {
+            score: "Adequate",
+            feedback: "Ideas connect reasonably but could flow more naturally. Ensure each sentence builds on the previous one."
+          },
+          ideaDepth: {
+            score: "Moderate",
+            feedback: "Ideas are explained but not deeply. Take 2 main ideas and develop them with specific examples rather than listing many points."
+          }
+        },
+        vocabularyUpgrades: [
+          { original: "I think", upgrade: "It is my firm conviction that", function: "Agreeing" },
+          { original: "This is a big problem", upgrade: "This represents a pressing societal challenge", function: "Emphasizing" },
+          { original: "For example", upgrade: "To illustrate this point, consider", function: "Proving" }
+        ],
+        scoringGrid: {
+          taskResponse: { score: bandScore, justification: wordCount < minWords ? "Under minimum word count" : "Addresses the task with room for deeper development" },
+          coherenceCohesion: { score: 6.5, justification: "Logical structure; improve transitions between paragraphs" },
+          lexicalResource: { score: 6.5, justification: "Adequate range; incorporate more academic vocabulary" },
+          grammaticalRange: { score: 6.5, justification: "Some complex structures; practice conditionals and passive voice" }
+        },
+        band8Transformations: [
+          {
+            original: "Many people think this is important",
+            rewrite: "It is widely acknowledged that this issue holds considerable significance",
+            explanation: "Replace informal language with academic register"
+          }
+        ],
+        criticalFixes: [
+          "Develop a stronger thesis statement with a clear position",
+          "Include specific examples (statistics, case studies, personal experience)"
+        ],
+        actionableNextStep: "Practice writing thesis statements for 10 different essay prompts. Each should clearly state your position in one sentence."
+      };
+    }
+  }
+
+  if (type === "reading") {
+    return {
+      isMock: true,
+      correctAnswer: "See the passage for the correct answer",
+      stepByStepLogic: [
+        "Step 1: Identify the key words in the question",
+        "Step 2: Scan the passage for synonyms or paraphrases of these key words",
+        "Step 3: Read the surrounding sentences carefully for context",
+        "Step 4: Match the information to determine the correct answer"
+      ],
+      keySignalWords: ["however", "although", "in contrast", "furthermore"],
+      commonMistake: "Students often choose answers based on matching individual words rather than understanding the overall meaning of the passage.",
+      technique: "Use the 'skim and scan' technique: first skim for general understanding, then scan for specific information related to the question."
+    };
+  }
+
+  return { isMock: true, feedback: "Mock response - AI service temporarily unavailable" };
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -615,6 +833,13 @@ Provide your response in this JSON format:
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
+
+      // If billing/credits issue, return mock responses
+      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
+        console.log("Claude API credits exhausted, returning mock response for type:", type);
+        const mockResponse = getMockResponse(type, content, speakingPart, taskType);
+        return successResponse(mockResponse, 200, corsHeaders);
+      }
 
       if (response.status === 429) {
         return rateLimitError(undefined, 60, corsHeaders);

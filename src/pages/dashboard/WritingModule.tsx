@@ -204,12 +204,15 @@ export default function WritingModule() {
       });
 
       if (error) throw error;
-      
+
+      // Unwrap response: supabase.functions.invoke returns {success, data} wrapper
+      const unwrappedData = data?.success ? data.data : data;
+
       if (isRevision) {
-        setRevisionFeedback(data);
+        setRevisionFeedback(unwrappedData);
         // Show score improvement
-        if (feedback?.overallBand && data?.overallBand) {
-          const improvement = data.overallBand - feedback.overallBand;
+        if (feedback?.overallBand && unwrappedData?.overallBand) {
+          const improvement = unwrappedData.overallBand - feedback.overallBand;
           if (improvement > 0) {
             toast({
               title: "Score Improved! 🎉",
@@ -219,17 +222,17 @@ export default function WritingModule() {
         }
       } else {
         setPreviousScore(feedback?.overallBand || null);
-        setFeedback(data);
+        setFeedback(unwrappedData);
         setRevisionFeedback(null);
         setRevisedEssay("");
 
         // Save progress to user_progress for stats tracking
-        if (data?.overallBand && user) {
+        if (unwrappedData?.overallBand && user) {
           try {
             await saveProgress({
               exam_type: "writing",
               score: null,
-              band_score: data.overallBand,
+              band_score: unwrappedData.overallBand,
               total_questions: null,
               correct_answers: null,
               feedback: `${activeTask}: ${selectedQuestion?.title || 'Practice'}`,
