@@ -436,7 +436,7 @@ export default function PricingSelection() {
                         : ""
                     }`}
                   >
-                    {plan.tier === "free" ? "Continue with Free Plan" : "Sign me Up!"}
+                    Continue
                   </Button>
                 </CardContent>
               </Card>

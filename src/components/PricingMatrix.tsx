@@ -2,8 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, Sparkles, Crown, Tag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { PurchaseRegistrationModal } from "./PurchaseRegistrationModal";
 import { toast } from "sonner";
 
 const getPlans = (hasPromoCode: boolean) => [
@@ -69,18 +67,10 @@ const getPlans = (hasPromoCode: boolean) => [
 
 export const PricingMatrix = () => {
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showPromoInput, setShowPromoInput] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{
-    key: string;
-    name: string;
-    price: string;
-    amount: number;
-  } | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const { user } = useAuth();
 
   const plans = getPlans(promoApplied);
 
@@ -117,23 +107,7 @@ export const PricingMatrix = () => {
     }
   };
 
-  const handleSubscribe = (plan: typeof plans[0]) => {
-    setSelectedPlan({
-      key: plan.planKey,
-      name: plan.name,
-      price: plan.price,
-      amount: plan.amount,
-    });
-    setShowRegistrationModal(true);
-  };
-
   return (
-    <>
-      <PurchaseRegistrationModal
-        isOpen={showRegistrationModal}
-        onClose={() => setShowRegistrationModal(false)}
-        selectedPlan={selectedPlan}
-      />
     <section id="pricing" className="py-24 md:py-32 relative">
       <div className="container mx-auto px-6">
         {/* Section Header */}
@@ -259,15 +233,6 @@ export const PricingMatrix = () => {
                     ))}
                   </ul>
 
-                  {/* CTA Button */}
-                  <Button
-                    variant={plan.highlighted ? "neumorphicPrimary" : "glass"}
-                    className={`w-full ${plan.tier === "elite" ? "border-elite-gold/30 text-elite-gold hover:bg-elite-gold/10" : ""}`}
-                    size="lg"
-                    onClick={() => handleSubscribe(plan)}
-                  >
-                    Sign me Up!
-                  </Button>
                 </div>
               </div>
             );
@@ -275,6 +240,5 @@ export const PricingMatrix = () => {
         </div>
       </div>
     </section>
-    </>
   );
 };
