@@ -145,30 +145,125 @@ export default function ReadingModule() {
     setTestStartTime(new Date());
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-reading", {
+      // Force session refresh to ensure we have a valid JWT token
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+
+      if (refreshError) {
+        console.error("Session refresh error:", refreshError);
+        // Fallback to existing session if refresh fails
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+          throw new Error("Session expired. Please log out and log in again.");
+        }
+      }
+
+      const session = refreshedSession || (await supabase.auth.getSession()).data.session;
+
+      if (!session) {
+        throw new Error("You must be logged in to generate tests. Please sign in again.");
+      }
+
+      // Log session details for debugging
+      console.log("Session exists:", !!session);
+      console.log("Access token exists:", !!session.access_token);
+      console.log("User email confirmed:", session.user.email_confirmed_at);
+      console.log("Token expires at:", new Date(session.expires_at! * 1000).toLocaleString());
+
+      // Explicitly pass the Authorization header
+      const { data: response, error } = await supabase.functions.invoke("generate-reading", {
         body: { difficulty },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
-      if (error) throw error;
-      
-      if (data.error) {
-        throw new Error(data.error);
+      if (error) {
+        console.error("Function invoke error:", error);
+        console.error("Error details:", JSON.stringify(error, null, 2));
+
+        if (error.message?.includes("401") || error.message?.includes("Unauthorized")) {
+          throw new Error("Authentication failed. Please log out and log in again to refresh your session.");
+        }
+        throw error;
+      }
+
+      // Validate response data
+      console.log("Function response:", response);
+
+      if (!response) {
+        throw new Error("No data received from server");
+      }
+
+      // Unwrap the response - Supabase functions wrap data in {success: true, data: {...}}
+      const data = response.success ? response.data : response;
+      console.log("Unwrapped data:", data);
+
+      if (response.error || data?.error) {
+        throw new Error(response.error || data.error);
+      }
+
+      // Validate required fields
+      if (!data.passage || !data.questions) {
+        console.error("Invalid response structure:", data);
+        console.error("Available keys:", Object.keys(data));
+        throw new Error("Invalid response from server - missing passage or questions");
+      }
+
+      if (!data.passage.title || !data.passage.content) {
+        console.error("Invalid passage structure:", data.passage);
+        throw new Error("Invalid response - passage missing title or content");
       }
 
       setCurrentTest(data);
       addToCache(data as CachedPassage);
       setIsTimerActive(true);
-      
+
+      // Save progress immediately on generate to count usage for free tier gating
+      try {
+        await saveProgress({
+          exam_type: "reading",
+          score: null,
+          band_score: null,
+          total_questions: null,
+          correct_answers: null,
+          feedback: `Started: ${data.passage.title}. Difficulty: ${data.difficulty}`,
+          completed_at: new Date().toISOString(),
+          time_taken: null,
+          errors_log: [],
+          metadata: {
+            topic: data.passage.topic,
+            difficulty: data.difficulty,
+            passageId: data.id,
+            status: "started",
+          },
+        });
+        await refreshCounts();
+      } catch (err) {
+        console.error("Failed to save initial progress:", err);
+      }
+
       toast({
         title: "Test generated!",
-        description: `${data.passage.topic} passage ready. Timer started.`,
+        description: `${data.passage.topic || 'Reading'} passage ready. Timer started.`,
       });
     } catch (error: any) {
       console.error("Generate error:", error);
+
+      let errorMessage = error.message || "Please try again.";
+      let errorAction = "";
+
+      // Provide specific guidance for authentication errors
+      if (error.message?.includes("401") || error.message?.includes("Unauthorized") || error.message?.includes("Authentication")) {
+        errorMessage = "Authentication error: Your session may have expired or is invalid.";
+        errorAction = "Please log out and log back in, then try again.";
+      }
+
       toast({
         title: "Generation failed",
-        description: error.message || "Please try again.",
+        description: errorAction ? `${errorMessage} ${errorAction}` : errorMessage,
         variant: "destructive",
+        duration: 6000,
       });
     } finally {
       setIsGenerating(false);

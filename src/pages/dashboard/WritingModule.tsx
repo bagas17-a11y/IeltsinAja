@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, Edit3, ArrowRight, Lightbulb, FileText, BarChart3, CheckCircle, XCircle, RefreshCw, BookOpen, Play, ArrowLeft, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -101,7 +101,7 @@ export default function WritingModule() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const isAdmin = isSuperAdmin(user?.email);
+  // isAdmin comes from useAuth hook
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts } = useFeatureGating();
 
@@ -204,12 +204,15 @@ export default function WritingModule() {
       });
 
       if (error) throw error;
-      
+
+      // Unwrap response: supabase.functions.invoke returns {success, data} wrapper
+      const unwrappedData = data?.success ? data.data : data;
+
       if (isRevision) {
-        setRevisionFeedback(data);
+        setRevisionFeedback(unwrappedData);
         // Show score improvement
-        if (feedback?.overallBand && data?.overallBand) {
-          const improvement = data.overallBand - feedback.overallBand;
+        if (feedback?.overallBand && unwrappedData?.overallBand) {
+          const improvement = unwrappedData.overallBand - feedback.overallBand;
           if (improvement > 0) {
             toast({
               title: "Score Improved! 🎉",
@@ -219,17 +222,17 @@ export default function WritingModule() {
         }
       } else {
         setPreviousScore(feedback?.overallBand || null);
-        setFeedback(data);
+        setFeedback(unwrappedData);
         setRevisionFeedback(null);
         setRevisedEssay("");
 
         // Save progress to user_progress for stats tracking
-        if (data?.overallBand && user) {
+        if (unwrappedData?.overallBand && user) {
           try {
             await saveProgress({
               exam_type: "writing",
               score: null,
-              band_score: data.overallBand,
+              band_score: unwrappedData.overallBand,
               total_questions: null,
               correct_answers: null,
               feedback: `${activeTask}: ${selectedQuestion?.title || 'Practice'}`,
@@ -243,6 +246,7 @@ export default function WritingModule() {
                 wordCount: essay.split(/\s+/).filter(Boolean).length,
               },
             });
+            await refreshCounts();
           } catch (err) {
             console.error("Failed to save writing progress:", err);
           }

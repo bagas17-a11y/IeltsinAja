@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { AIChatbot } from "@/components/AIChatbot";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import VerifyEmail from "./pages/VerifyEmail";
 import Dashboard from "./pages/Dashboard";
 import ReadingModule from "./pages/dashboard/ReadingModule";
 import ListeningModule from "./pages/dashboard/ListeningModule";
@@ -27,6 +28,7 @@ import Admin from "./pages/Admin";
 import WaitingRoom from "./pages/WaitingRoom";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import DiagnosticTest from "./pages/DiagnosticTest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +43,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/pricing-selection" element={<PricingSelection />} />
             <Route path="/waiting-room" element={<WaitingRoom />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

@@ -33,7 +33,7 @@ import {
   BookOpen,
   Headphones
 } from "lucide-react";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -74,7 +74,7 @@ interface ActivityItem {
 
 export default function Admin() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin, isCheckingAdmin } = useAuth();
   const { toast } = useToast();
   
   const [payments, setPayments] = useState<PaymentVerification[]>([]);
@@ -94,7 +94,7 @@ export default function Admin() {
       navigate("/auth");
       return;
     }
-    if (!isLoading && user && !isSuperAdmin(user.email)) {
+    if (!isLoading && !isCheckingAdmin && user && !isAdmin) {
       navigate("/dashboard");
       toast({
         title: "Access Denied",
@@ -102,11 +102,11 @@ export default function Admin() {
         variant: "destructive",
       });
     }
-  }, [user, isLoading, navigate, toast]);
+  }, [user, isLoading, isCheckingAdmin, isAdmin, navigate, toast]);
 
   // Fetch data
   useEffect(() => {
-    if (user && isSuperAdmin(user.email)) {
+    if (user && isAdmin) {
       fetchData();
     }
   }, [user]);
@@ -355,7 +355,7 @@ export default function Admin() {
 
   const pendingPayments = payments.filter(p => p.status === "pending");
 
-  if (isLoading || !user || !isSuperAdmin(user.email)) {
+  if (isLoading || isCheckingAdmin || !user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />

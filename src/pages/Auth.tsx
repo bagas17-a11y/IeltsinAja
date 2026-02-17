@@ -31,38 +31,55 @@ export default function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Check for existing session on mount
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("is_verified")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+
+        if (profile?.is_verified) {
+          navigate("/dashboard");
+        } else {
+          navigate("/waiting-room");
+        }
+      }
+    });
+
+    // Listen for auth state changes (login/logout events)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Only handle auth events, not initial session
+      if (event === 'SIGNED_OUT') {
+        navigate("/auth");
+        return;
+      }
+
+      if (event === 'SIGNED_IN' && session?.user) {
         // If this was a new signup, redirect to pricing selection
         if (isNewSignup) {
           navigate("/pricing-selection");
           return;
         }
-        // Check is_verified status for login
-        setTimeout(async () => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("is_verified")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-          
-          if (profile?.is_verified) {
-            navigate("/dashboard");
-          } else {
-            navigate("/waiting-room");
-          }
-        }, 0);
-      }
-    });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
+        // Check is_verified status for login
+        const { data: profile, error } = await supabase
           .from("profiles")
           .select("is_verified")
           .eq("user_id", session.user.id)
           .maybeSingle();
-        
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+
         if (profile?.is_verified) {
           navigate("/dashboard");
         } else {
@@ -114,8 +131,8 @@ export default function Auth() {
         if (error) throw error;
         toast({ title: "Welcome back!", description: "Successfully logged in." });
       } else {
-        setIsNewSignup(true);
-        const { error } = await supabase.auth.signUp({
+        // Sign up with OTP verification
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -123,8 +140,27 @@ export default function Auth() {
             data: { full_name: fullName, phone_number: phoneNumber },
           },
         });
+
         if (error) throw error;
-        toast({ title: "Account created!", description: "Select your plan..." });
+
+        // Check if email confirmation is required
+        const needsEmailConfirmation = data.user && !data.user.email_confirmed_at && data.user.identities?.length === 1;
+
+        if (needsEmailConfirmation) {
+          // Email confirmation required - redirect to verification
+          toast({
+            title: "Check your email!",
+            description: "We sent you a 6-digit verification code."
+          });
+          navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+        } else {
+          // Email confirmation disabled - user is auto-confirmed
+          toast({
+            title: "Account created!",
+            description: "Redirecting to pricing selection..."
+          });
+          // Auth state change will handle redirect
+        }
       }
     } catch (error: any) {
       let message = error.message;

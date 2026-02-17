@@ -50,7 +50,7 @@ import {
   CreditCard,
   RefreshCw,
 } from "lucide-react";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInDays, isPast } from "date-fns";
@@ -65,7 +65,6 @@ interface UserProfile {
   subscription_status: string | null;
   subscription_start_date: string | null;
   subscription_end_date: string | null;
-  subscription_expires_at: string | null;
   auto_renew: boolean;
   last_payment_date: string | null;
   is_verified: boolean;
@@ -99,7 +98,7 @@ interface AdminLogRecord {
 
 export default function UserManagement() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin, isCheckingAdmin } = useAuth();
   const { toast } = useToast();
 
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -138,7 +137,7 @@ export default function UserManagement() {
       navigate("/auth");
       return;
     }
-    if (!isLoading && user && !isSuperAdmin(user.email)) {
+    if (!isLoading && !isCheckingAdmin && user && !isAdmin) {
       navigate("/dashboard");
       toast({
         title: "Access Denied",
@@ -146,11 +145,11 @@ export default function UserManagement() {
         variant: "destructive",
       });
     }
-  }, [user, isLoading, navigate, toast]);
+  }, [user, isLoading, isCheckingAdmin, isAdmin, navigate, toast]);
 
   // Fetch data
   useEffect(() => {
-    if (user && isSuperAdmin(user.email)) {
+    if (user && isAdmin) {
       fetchUsers();
       fetchAdminUserIds();
     }
@@ -193,8 +192,8 @@ export default function UserManagement() {
   };
 
   const getEffectiveSubStatus = useCallback((u: UserProfile): string => {
-    // Use subscription_end_date or subscription_expires_at to determine status
-    const endDate = u.subscription_end_date || u.subscription_expires_at;
+    // Use subscription_end_date to determine status
+    const endDate = u.subscription_end_date;
     if (u.subscription_tier === "free" && !u.is_verified) return "none";
     if (u.subscription_tier === "free") return "none";
     if (endDate && isPast(new Date(endDate))) return "expired";
@@ -205,7 +204,7 @@ export default function UserManagement() {
   }, []);
 
   const getDaysLeft = useCallback((u: UserProfile): number | null => {
-    const endDate = u.subscription_end_date || u.subscription_expires_at;
+    const endDate = u.subscription_end_date;
     if (!endDate) return null;
     const days = differenceInDays(new Date(endDate), new Date());
     return days < 0 ? 0 : days;
@@ -513,7 +512,7 @@ export default function UserManagement() {
     }
   };
 
-  if (isLoading || !user || !isSuperAdmin(user.email)) {
+  if (isLoading || isCheckingAdmin || !user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
@@ -842,7 +841,7 @@ export default function UserManagement() {
                       {getSubStatusBadge(getEffectiveSubStatus(selectedUser))}
                     </div>
                     {(selectedUser.subscription_start_date ||
-                      selectedUser.subscription_expires_at) && (
+                      selectedUser.subscription_end_date) && (
                       <>
                         {selectedUser.subscription_start_date && (
                           <div className="flex justify-between">
@@ -864,9 +863,7 @@ export default function UserManagement() {
                           <span className="text-sm">
                             {format(
                               new Date(
-                                selectedUser.subscription_end_date ||
-                                  selectedUser.subscription_expires_at ||
-                                  ""
+                                selectedUser.subscription_end_date || ""
                               ),
                               "MMM d, yyyy"
                             )}

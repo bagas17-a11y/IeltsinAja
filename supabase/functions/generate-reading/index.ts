@@ -1,9 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { validateRequest, GenerateReadingSchema } from "../shared/validation.ts";
+import {
+  corsHeaders,
+  handleCorsPreflightRequest,
+  successResponse,
+  validationError,
+  unauthorizedError,
+  rateLimitError,
+  aiServiceError,
+  internalError
+} from "../shared/errors.ts";
+import { getMockReadingTest } from "./mock-data.ts";
 
 const READING_GENERATOR_PROMPT = `You are an IELTS Academic Reading test designer with 20+ years of experience creating official Cambridge IELTS materials.
 
@@ -103,16 +110,45 @@ For EVERY question, provide:
 }`;
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   try {
-    const { difficulty = "medium" } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return validationError("Invalid JSON body", undefined, corsHeaders);
+    }
+
+    // Validate request data
+    const validation = validateRequest(GenerateReadingSchema, requestBody);
+    if (!validation.success) {
+      return validationError(
+        validation.error.message,
+        validation.error.details,
+        corsHeaders
+      );
+    }
+
+    const { difficulty } = validation.data;
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_READING_DATA") === "true";
+
+    // Use mock data if enabled or if API key is missing
+    if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {
+      console.log("Using mock reading data (API key missing or mock mode enabled)");
+      const mockTest = getMockReadingTest(difficulty);
+      const responseData = {
+        ...mockTest,
+        generatedAt: new Date().toISOString(),
+        id: crypto.randomUUID(),
+        isMock: true
+      };
+      return successResponse(responseData, 200, corsHeaders);
     }
 
     // Randomly select a topic
@@ -148,43 +184,52 @@ Return ONLY valid JSON in the specified format.`;
 
     console.log("Generating reading passage with topic:", randomTopic, "difficulty:", difficulty);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: READING_GENERATOR_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 8192,
         temperature: 0.8,
+        messages: [
+          { role: "user", content: `${READING_GENERATOR_PROMPT}\n\n${userPrompt}` },
+        ],
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
+      console.error("Claude API error:", response.status, errorText);
+
+      // Check if it's a credit/billing issue - use mock data as fallback
+      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
+        console.log("Claude API unavailable (credits/billing issue), falling back to mock data");
+        const mockTest = getMockReadingTest(difficulty);
+        const responseData = {
+          ...mockTest,
+          generatedAt: new Date().toISOString(),
+          id: crypto.randomUUID(),
+          isMock: true,
+          note: "Generated using mock data (Claude API credits exhausted)"
+        };
+        return successResponse(responseData, 200, corsHeaders);
+      }
+
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return rateLimitError(undefined, 60, corsHeaders);
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (response.status === 401) {
+        return unauthorizedError("Invalid API key", corsHeaders);
       }
-      throw new Error("AI gateway error");
+      return aiServiceError("Failed to generate reading passage", { status: response.status }, corsHeaders);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
+    const aiResponse = data.content?.[0]?.text;
     console.log("AI Response received, length:", aiResponse?.length);
 
     // Parse JSON from response
@@ -194,29 +239,48 @@ Return ONLY valid JSON in the specified format.`;
       if (jsonMatch) {
         parsedResponse = JSON.parse(jsonMatch[0]);
       } else {
+        console.error("No JSON found in AI response. Response:", aiResponse?.substring(0, 500));
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
       console.error("JSON parse error:", parseError);
-      return new Response(JSON.stringify({ error: "Failed to parse AI response. Please try again." }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error("AI response text:", aiResponse?.substring(0, 500));
+      return aiServiceError("Failed to parse AI response. Please try again.", {
+        error: String(parseError),
+        responsePreview: aiResponse?.substring(0, 200)
+      }, corsHeaders);
+    }
+
+    // Validate response structure
+    if (!parsedResponse.passage || !parsedResponse.questions) {
+      console.error("Invalid response structure:", parsedResponse);
+      return aiServiceError("AI returned incomplete data. Please try again.", {
+        hasPassage: !!parsedResponse.passage,
+        hasQuestions: !!parsedResponse.questions
+      }, corsHeaders);
+    }
+
+    if (!parsedResponse.passage.title || !parsedResponse.passage.content) {
+      console.error("Invalid passage structure:", parsedResponse.passage);
+      return aiServiceError("AI returned invalid passage format. Please try again.", {
+        hasTitle: !!parsedResponse.passage?.title,
+        hasContent: !!parsedResponse.passage?.content
+      }, corsHeaders);
     }
 
     // Add timestamp for caching
     parsedResponse.generatedAt = new Date().toISOString();
     parsedResponse.id = crypto.randomUUID();
 
-    return new Response(JSON.stringify(parsedResponse), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    console.log("Successfully generated reading passage:", {
+      title: parsedResponse.passage.title,
+      questionCount: Object.values(parsedResponse.questions).reduce((sum: number, q: any) => sum + (q.items?.length || 0), 0)
     });
+
+    return successResponse(parsedResponse, 200, corsHeaders);
   } catch (error: unknown) {
     console.error("Generate reading error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return internalError(errorMessage, { error: String(error) }, corsHeaders);
   }
 });

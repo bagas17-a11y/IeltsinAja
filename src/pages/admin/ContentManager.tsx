@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, Save, Trash2, Loader2, Wand2, TestTube, ArrowLeft, 
@@ -29,10 +29,9 @@ interface IeltsQuestion {
 }
 
 export default function ContentManager() {
-  const { user } = useAuth();
+  const { user, isAdmin, isCheckingAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAdmin = isSuperAdmin(user?.email);
 
   const [questions, setQuestions] = useState<IeltsQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,12 +57,13 @@ export default function ContentManager() {
   });
 
   useEffect(() => {
+    if (isCheckingAdmin) return;
     if (!isAdmin) {
       navigate("/dashboard");
       return;
     }
     fetchQuestions();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, isCheckingAdmin, navigate]);
 
   const fetchQuestions = async () => {
     try {
@@ -344,7 +344,7 @@ export default function ContentManager() {
     setTestEssay("");
   };
 
-  if (!isAdmin) {
+  if (isCheckingAdmin || !isAdmin) {
     return null;
   }
 

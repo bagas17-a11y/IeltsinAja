@@ -193,15 +193,18 @@ export default function SpeakingModule() {
       });
 
       if (error) throw error;
-      setFeedback(data);
+
+      // Unwrap response: supabase.functions.invoke returns {success, data} wrapper
+      const unwrappedData = data?.success ? data.data : data;
+      setFeedback(unwrappedData);
 
       // Save progress to user_progress for stats tracking
-      if (data?.overallBand && user) {
+      if (unwrappedData?.overallBand && user) {
         try {
           await saveProgress({
             exam_type: "speaking",
             score: null,
-            band_score: data.overallBand,
+            band_score: unwrappedData.overallBand,
             total_questions: null,
             correct_answers: null,
             feedback: `${currentPart.toUpperCase()}: ${(currentQuestion as any).topic || 'Practice'}`,
@@ -214,6 +217,7 @@ export default function SpeakingModule() {
               wordCount: finalTranscript.split(/\s+/).filter(Boolean).length,
             },
           });
+          await refreshCounts();
         } catch (err) {
           console.error("Failed to save speaking progress:", err);
         }

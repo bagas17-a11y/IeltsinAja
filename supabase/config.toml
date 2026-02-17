@@ -1,4 +1,4 @@
-project_id = "gnfkeeuyooontthhtbyf"
+project_id = "jryjpjkutwrieneuaoxv"
 
 [functions.ai-analyze]
 verify_jwt = false
@@ -9,8 +9,20 @@ verify_jwt = false
 [functions.generate-reading]
 verify_jwt = false
 
+[functions.test-simple]
+verify_jwt = false
+
 [functions.ai-chatbot]
 verify_jwt = false
 
 [functions.send-verification-email]
+verify_jwt = false
+
+[functions.cron-expire-subscriptions]
+verify_jwt = false
+
+[functions.cron-renewal-reminders]
+verify_jwt = false
+
+[functions.health]
 verify_jwt = false

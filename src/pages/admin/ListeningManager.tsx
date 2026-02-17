@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
 import { 
@@ -70,10 +70,9 @@ const QUESTION_TYPES: { value: QuestionType; label: string; icon: any }[] = [
 ];
 
 export default function ListeningManager() {
-  const { user } = useAuth();
+  const { user, isAdmin, isCheckingAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAdmin = isSuperAdmin(user?.email);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const diagramInputRef = useRef<HTMLInputElement>(null);
   const [uploadingDiagramForId, setUploadingDiagramForId] = useState<number | null>(null);
@@ -99,12 +98,13 @@ export default function ListeningManager() {
   const [answerKey, setAnswerKey] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (isCheckingAdmin) return;
     if (!isAdmin) {
       navigate("/dashboard");
       return;
     }
     fetchTests();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, isCheckingAdmin, navigate]);
 
   const fetchTests = async () => {
     try {
@@ -988,7 +988,7 @@ export default function ListeningManager() {
     </div>
   );
 
-  if (!isAdmin) {
+  if (isCheckingAdmin || !isAdmin) {
     return null;
   }
 
