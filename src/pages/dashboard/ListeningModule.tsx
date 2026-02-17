@@ -176,13 +176,13 @@ export default function ListeningModule() {
     }
   };
 
-  const startTest = (test: ListeningTest) => {
+  const startTest = async (test: ListeningTest) => {
     // Check feature gating before starting a test
     if (!canAccess("listening")) {
       setShowUpgradeModal(true);
       return;
     }
-    
+
     setCurrentTest(test);
     setAnswers({});
     setNotes("");
@@ -192,6 +192,32 @@ export default function ListeningModule() {
     setResults({});
     setShowTranscript(false);
     setTimeRemaining(test.duration_minutes * 60);
+
+    // Save progress immediately to count usage for free tier gating
+    if (user) {
+      try {
+        await saveProgress({
+          exam_type: "listening",
+          score: null,
+          band_score: null,
+          total_questions: null,
+          correct_answers: null,
+          feedback: `Started: ${test.title}. Difficulty: ${test.difficulty}`,
+          completed_at: new Date().toISOString(),
+          time_taken: null,
+          errors_log: [],
+          metadata: {
+            testId: test.id,
+            testTitle: test.title,
+            difficulty: test.difficulty,
+            status: "started",
+          },
+        });
+        await refreshCounts();
+      } catch (err) {
+        console.error("Failed to save initial listening progress:", err);
+      }
+    }
   };
 
   const handlePlay = () => {

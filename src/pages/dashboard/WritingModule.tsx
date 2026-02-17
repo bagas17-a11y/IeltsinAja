@@ -243,6 +243,7 @@ export default function WritingModule() {
                 wordCount: essay.split(/\s+/).filter(Boolean).length,
               },
             });
+            await refreshCounts();
           } catch (err) {
             console.error("Failed to save writing progress:", err);
           }

@@ -214,6 +214,7 @@ export default function SpeakingModule() {
               wordCount: finalTranscript.split(/\s+/).filter(Boolean).length,
             },
           });
+          await refreshCounts();
         } catch (err) {
           console.error("Failed to save speaking progress:", err);
         }

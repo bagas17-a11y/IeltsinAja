@@ -219,6 +219,30 @@ export default function ReadingModule() {
       addToCache(data as CachedPassage);
       setIsTimerActive(true);
 
+      // Save progress immediately on generate to count usage for free tier gating
+      try {
+        await saveProgress({
+          exam_type: "reading",
+          score: null,
+          band_score: null,
+          total_questions: null,
+          correct_answers: null,
+          feedback: `Started: ${data.passage.title}. Difficulty: ${data.difficulty}`,
+          completed_at: new Date().toISOString(),
+          time_taken: null,
+          errors_log: [],
+          metadata: {
+            topic: data.passage.topic,
+            difficulty: data.difficulty,
+            passageId: data.id,
+            status: "started",
+          },
+        });
+        await refreshCounts();
+      } catch (err) {
+        console.error("Failed to save initial progress:", err);
+      }
+
       toast({
         title: "Test generated!",
         description: `${data.passage.topic || 'Reading'} passage ready. Timer started.`,
