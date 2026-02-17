@@ -29,10 +29,9 @@ interface IeltsQuestion {
 }
 
 export default function ContentManager() {
-  const { user } = useAuth();
+  const { user, isAdmin, isCheckingAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  // isAdmin comes from useAuth hook
 
   const [questions, setQuestions] = useState<IeltsQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,12 +57,13 @@ export default function ContentManager() {
   });
 
   useEffect(() => {
+    if (isCheckingAdmin) return;
     if (!isAdmin) {
       navigate("/dashboard");
       return;
     }
     fetchQuestions();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, isCheckingAdmin, navigate]);
 
   const fetchQuestions = async () => {
     try {
@@ -344,7 +344,7 @@ export default function ContentManager() {
     setTestEssay("");
   };
 
-  if (!isAdmin) {
+  if (isCheckingAdmin || !isAdmin) {
     return null;
   }
 

@@ -70,10 +70,9 @@ const QUESTION_TYPES: { value: QuestionType; label: string; icon: any }[] = [
 ];
 
 export default function ListeningManager() {
-  const { user } = useAuth();
+  const { user, isAdmin, isCheckingAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  // isAdmin comes from useAuth hook
   const audioInputRef = useRef<HTMLInputElement>(null);
   const diagramInputRef = useRef<HTMLInputElement>(null);
   const [uploadingDiagramForId, setUploadingDiagramForId] = useState<number | null>(null);
@@ -99,12 +98,13 @@ export default function ListeningManager() {
   const [answerKey, setAnswerKey] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (isCheckingAdmin) return;
     if (!isAdmin) {
       navigate("/dashboard");
       return;
     }
     fetchTests();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, isCheckingAdmin, navigate]);
 
   const fetchTests = async () => {
     try {
@@ -988,7 +988,7 @@ export default function ListeningManager() {
     </div>
   );
 
-  if (!isAdmin) {
+  if (isCheckingAdmin || !isAdmin) {
     return null;
   }
 

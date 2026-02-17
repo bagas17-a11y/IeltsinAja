@@ -61,7 +61,7 @@ interface QuickAction {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin, isCheckingAdmin } = useAuth();
   const { toast } = useToast();
 
   const [stats, setStats] = useState<DashboardStats>({
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
       navigate("/auth");
       return;
     }
-    if (!isLoading && user && !isAdmin) {
+    if (!isLoading && !isCheckingAdmin && user && !isAdmin) {
       navigate("/dashboard");
       toast({
         title: "Access Denied",
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
         variant: "destructive",
       });
     }
-  }, [user, isLoading, navigate, toast]);
+  }, [user, isLoading, isCheckingAdmin, isAdmin, navigate, toast]);
 
   // Fetch data
   useEffect(() => {
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (isLoading || !user || !isAdmin) {
+  if (isLoading || isCheckingAdmin || !user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />

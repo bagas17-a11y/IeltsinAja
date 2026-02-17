@@ -98,7 +98,7 @@ interface AdminLogRecord {
 
 export default function UserManagement() {
   const navigate = useNavigate();
-  const { user, isLoading, isAdmin } = useAuth();
+  const { user, isLoading, isAdmin, isCheckingAdmin } = useAuth();
   const { toast } = useToast();
 
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -137,7 +137,7 @@ export default function UserManagement() {
       navigate("/auth");
       return;
     }
-    if (!isLoading && user && !isAdmin) {
+    if (!isLoading && !isCheckingAdmin && user && !isAdmin) {
       navigate("/dashboard");
       toast({
         title: "Access Denied",
@@ -145,7 +145,7 @@ export default function UserManagement() {
         variant: "destructive",
       });
     }
-  }, [user, isLoading, navigate, toast]);
+  }, [user, isLoading, isCheckingAdmin, isAdmin, navigate, toast]);
 
   // Fetch data
   useEffect(() => {
@@ -512,7 +512,7 @@ export default function UserManagement() {
     }
   };
 
-  if (isLoading || !user || !isAdmin) {
+  if (isLoading || isCheckingAdmin || !user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
