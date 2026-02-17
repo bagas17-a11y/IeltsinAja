@@ -1,10 +1,10 @@
 project_id = "jryjpjkutwrieneuaoxv"
 
 [functions.ai-analyze]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-model]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-reading]
 verify_jwt = false
@@ -13,10 +13,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.ai-chatbot]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-verification-email]
-verify_jwt = true
+verify_jwt = false
 
 [functions.cron-expire-subscriptions]
 verify_jwt = false
