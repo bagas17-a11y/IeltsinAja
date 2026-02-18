@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,6 @@ import {
 } from "@/components/ui/accordion";
 import {
   getAllFlashcardTopics,
-  getFlashcardsBySubtopic,
-  type FlashcardTopic,
 } from "@/content/flashcards";
 import {
   ChevronRight,
@@ -21,15 +19,13 @@ import {
   PanelLeft,
   Menu,
   Circle,
-  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PRIMARY_GLOW = "#3b82f6";
-const FLASHCARD_TOPICS = getAllFlashcardTopics();
 
-function getTopicTitle(id: string): string {
-  const t = FLASHCARD_TOPICS.find((x) => x.id === id);
+function getTopicTitle(id: string, topics: ReturnType<typeof getAllFlashcardTopics>): string {
+  const t = topics.find((x) => x.id === id);
   return t?.title ?? id;
 }
 
@@ -39,6 +35,8 @@ export default function FlashcardsPage() {
   const subtopicParam = searchParams.get("subtopic");
   const viewAll = searchParams.get("view") === "all";
   const navigate = useNavigate();
+
+  const FLASHCARD_TOPICS = useMemo(() => getAllFlashcardTopics(), []);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -242,7 +240,7 @@ export default function FlashcardsPage() {
             </Button>
             {!showTopicList && topicParam && (
               <h1 className="text-lg font-semibold text-white truncate">
-                {getTopicTitle(topicParam)}: Flashcards
+                {getTopicTitle(topicParam, FLASHCARD_TOPICS)}: Flashcards
               </h1>
             )}
           </div>

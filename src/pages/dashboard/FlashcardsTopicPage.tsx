@@ -24,6 +24,9 @@ function loadFlashcardProgress(topicId: string, subtopicId: string): {
   stillLearning: Set<string>;
   know: Set<string>;
 } {
+  if (typeof window === "undefined") {
+    return { stillLearning: new Set(), know: new Set() };
+  }
   try {
     const key = `${STORAGE_KEY_PREFIX}${topicId}-${subtopicId}`;
     const raw = localStorage.getItem(key);
@@ -47,6 +50,9 @@ function saveFlashcardProgress(
   stillLearning: Set<string>,
   know: Set<string>
 ) {
+  if (typeof window === "undefined") {
+    return;
+  }
   try {
     const key = `${STORAGE_KEY_PREFIX}${topicId}-${subtopicId}`;
     localStorage.setItem(
