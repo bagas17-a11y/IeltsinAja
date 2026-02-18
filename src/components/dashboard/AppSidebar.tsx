@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, BookOpen, Headphones, PenTool, Mic, BarChart3, User, Settings, LogOut, GraduationCap, MessageCircle, Shield, Library } from "lucide-react";
+import { LayoutDashboard, BookOpen, Headphones, PenTool, Mic, BarChart3, User, Settings, LogOut, GraduationCap, MessageCircle, Shield, Library, Crown } from "lucide-react";
 const mainNavItems = [{
   title: "Dashboard",
   path: "/dashboard",
@@ -32,6 +32,10 @@ const practiceItems = [{
   icon: Mic
 }];
 const supportItems = [{
+  title: "Elite Hub",
+  path: "/dashboard/elite",
+  icon: Crown
+}, {
   title: "Materials",
   path: "/dashboard/materials",
   icon: Library
@@ -107,9 +111,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Support */}
+        {/* Human + AI */}
         <SidebarGroup>
-          <SidebarGroupLabel>Support</SidebarGroupLabel>
+          <SidebarGroupLabel>Human + AI</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {supportItems.map(item => <SidebarMenuItem key={item.path}>
