@@ -261,13 +261,13 @@ export default function EliteHubPage() {
                   </CardDescription>
                   <div className="flex flex-wrap gap-4 pt-2">
                     <Link
-                      to="/dashboard/materials"
+                      to="/dashboard/revision-notes?view=all"
                       className="text-sm font-medium text-accent hover:underline"
                     >
                       All topics
                     </Link>
                     <Link
-                      to="/dashboard/materials"
+                      to="/dashboard/revision-notes?topic=parts-of-speech"
                       className="text-sm font-medium text-accent hover:underline inline-flex items-center gap-1"
                     >
                       Continue learning
