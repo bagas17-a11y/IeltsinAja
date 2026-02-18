@@ -17,6 +17,8 @@ import ConsultationHub from "./pages/dashboard/ConsultationHub";
 import MaterialsPage from "./pages/dashboard/MaterialsPage";
 import EliteHubPage from "./pages/dashboard/EliteHubPage";
 import RevisionNotesPage from "./pages/dashboard/RevisionNotesPage";
+import FlashcardsPage from "./pages/dashboard/FlashcardsPage";
+import FlashcardsTopicPage from "./pages/dashboard/FlashcardsTopicPage";
 import StatsPage from "./pages/dashboard/StatsPage";
 import DiagnosticQuiz from "./pages/dashboard/DiagnosticQuiz";
 import PricingSelection from "./pages/PricingSelection";
@@ -71,6 +73,8 @@ const App = () => (
             <Route path="/dashboard/materials" element={<MaterialsPage />} />
             <Route path="/dashboard/elite" element={<EliteHubPage />} />
             <Route path="/dashboard/revision-notes" element={<RevisionNotesPage />} />
+            <Route path="/dashboard/flashcards" element={<FlashcardsPage />} />
+            <Route path="/dashboard/flashcards/topic" element={<FlashcardsTopicPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
