@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, BookOpen, Headphones, PenTool, Mic, BarChart3, User, Settings, LogOut, GraduationCap, MessageCircle, Shield, Library, Crown, FileText, Cards } from "lucide-react";
+import { LayoutDashboard, BookOpen, Headphones, PenTool, Mic, BarChart3, User, Settings, LogOut, GraduationCap, MessageCircle, Shield, Library, Crown, FileText, CreditCard } from "lucide-react";
 const mainNavItems = [{
   title: "Dashboard",
   path: "/dashboard",
@@ -42,7 +42,7 @@ const supportItems = [{
 }, {
   title: "Flashcards",
   path: "/dashboard/flashcards",
-  icon: Cards
+  icon: CreditCard
 }, {
   title: "Consultation",
   path: "/dashboard/consultation",

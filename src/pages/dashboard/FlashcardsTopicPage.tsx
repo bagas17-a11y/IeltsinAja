@@ -14,7 +14,7 @@ import {
   Shuffle,
   Maximize2,
   Home,
-  Cards,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -206,7 +206,7 @@ export default function FlashcardsTopicPage() {
               to="/dashboard/flashcards"
               className="hover:text-white flex items-center gap-1"
             >
-              <Cards className="h-3.5 w-3.5" />
+              <CreditCard className="h-3.5 w-3.5" />
               Flashcards
             </Link>
             <span>/</span>
