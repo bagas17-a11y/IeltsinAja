@@ -296,19 +296,18 @@ export default function EliteHubPage() {
                   </CardDescription>
                   <div className="flex flex-wrap gap-4 pt-2">
                     <Link
-                      to="/dashboard/materials"
+                      to="/dashboard/flashcards?view=all"
                       className="text-sm font-medium text-accent hover:underline"
                     >
                       All topics
                     </Link>
-                    <button
-                      className="text-sm font-medium text-muted-foreground cursor-not-allowed"
-                      disabled
-                      title="Coming soon"
+                    <Link
+                      to="/dashboard/flashcards/topic?topic=parts-of-speech&subtopic=subject"
+                      className="text-sm font-medium text-accent hover:underline"
                     >
                       Go to Flashcards
                       <ChevronRight className="inline h-4 w-4 ml-1" />
-                    </button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
