@@ -33,7 +33,6 @@ export const FLASHCARD_TOPICS: FlashcardTopic[] = [
             id: "subject-1",
             question: "In the sentence 'The percentage of students using online platforms increased between 2010 and 2020.' what is the subject?",
             answer: "The subject is 'The percentage of students using online platforms' — a noun phrase showing a specific group.",
-            category: "The Nature of Business",
           },
           {
             id: "subject-2",
