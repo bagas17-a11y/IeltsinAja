@@ -246,99 +246,105 @@ export default function FlashcardsTopicPage() {
           </div>
         </div>
 
-        {/* Main content */}
+        {/* Main content - compact card with Save My Exams-style 3D */}
         <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
-          <div className="w-full max-w-3xl perspective-1000">
+          <div
+            className="w-full max-w-md mx-auto"
+            style={{ perspective: "1200px" }}
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentCard?.id}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
                 className="w-full"
-                style={{ perspective: "1000px" }}
               >
-                <motion.div
-                  className="relative w-full aspect-[4/3] cursor-pointer"
-                  onClick={handleFlip}
-                  style={{ transformStyle: "preserve-3d", perspective: 1000 }}
-                  animate={{ rotateY: isFlipped ? 180 : 0 }}
-                  transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                >
-                  {/* Front - Question */}
+                {/* 3D card container - layered shadow for depth */}
+                <div className="relative">
+                  {/* Bottom shadow layer (creates lifted 3D effect) */}
                   <div
-                    className={cn(
-                      "absolute inset-0 rounded-2xl border border-[#334155]/80 bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 shadow-xl shadow-black/20",
-                      "flex flex-col",
-                      !isFlipped ? "z-10" : "z-0"
-                    )}
+                    className="absolute inset-0 rounded-xl bg-slate-900/40 blur-xl -z-10 translate-y-3 scale-[0.98]"
+                    aria-hidden
+                  />
+                  <motion.div
+                    className="relative w-full cursor-pointer"
+                    onClick={handleFlip}
                     style={{
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                      transform: "rotateY(0deg)",
-                      boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.03)",
+                      transformStyle: "preserve-3d",
                     }}
+                    animate={{ rotateY: isFlipped ? 180 : 0 }}
+                    transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">
-                        Question
-                      </span>
-                      {currentCard?.category && (
-                        <span className="text-xs px-2.5 py-1 rounded-lg bg-[#3b82f6]/15 text-blue-300 border border-[#3b82f6]/25">
-                          {currentCard.category}
-                        </span>
+                    {/* Front - Question */}
+                    <div
+                      className={cn(
+                        "rounded-xl border border-[#334155] bg-[#1e293b] p-6 min-h-[200px]",
+                        "flex flex-col",
+                        !isFlipped ? "z-10" : "z-0"
                       )}
-                    </div>
-                    <div className="flex-1 flex items-start justify-center pt-2">
-                      <div className="text-left w-full max-w-xl">
-                        <p className="text-sm font-medium text-slate-400 mb-2">Q:</p>
-                        <p className="text-lg text-white leading-relaxed">
+                      style={{
+                        backfaceVisibility: "hidden",
+                        WebkitBackfaceVisibility: "hidden",
+                        transform: "rotateY(0deg)",
+                        boxShadow:
+                          "0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">
+                          Question
+                        </span>
+                        {currentCard?.category && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-[#3b82f6]/15 text-blue-300">
+                            {currentCard.category}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-h-[100px] flex flex-col justify-center">
+                        <p className="text-xs font-semibold text-slate-400 mb-2">Q:</p>
+                        <p className="text-base text-white leading-relaxed">
                           {currentCard?.question}
                         </p>
                       </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-[#334155]/60">
-                      <p className="text-xs text-slate-500 text-center">
-                        Click to flip • Press SPACE
+                      <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-[#334155]/50">
+                        Click to flip • SPACE
                       </p>
                     </div>
-                  </div>
 
-                  {/* Back - Answer */}
-                  <div
-                    className={cn(
-                      "absolute inset-0 rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-950/40 to-[#0f172a] p-8",
-                      "flex flex-col",
-                      isFlipped ? "z-10" : "z-0"
-                    )}
-                    style={{
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                      transform: "rotateY(180deg)",
-                      boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(34,197,94,0.15)",
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
-                        Answer
-                      </span>
-                    </div>
-                    <div className="flex-1 flex items-start justify-center pt-2">
-                      <div className="text-left w-full max-w-xl">
-                        <p className="text-sm font-medium text-emerald-400/80 mb-2">A:</p>
-                        <p className="text-lg text-slate-200 leading-relaxed">
+                    {/* Back - Answer */}
+                    <div
+                      className={cn(
+                        "absolute inset-0 rounded-xl border border-emerald-500/20 bg-[#1e293b] p-6 min-h-[200px]",
+                        "flex flex-col",
+                        isFlipped ? "z-10" : "z-0"
+                      )}
+                      style={{
+                        backfaceVisibility: "hidden",
+                        WebkitBackfaceVisibility: "hidden",
+                        transform: "rotateY(180deg)",
+                        boxShadow:
+                          "0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">
+                          Answer
+                        </span>
+                      </div>
+                      <div className="flex-1 min-h-[100px] flex flex-col justify-center">
+                        <p className="text-xs font-semibold text-emerald-400/80 mb-2">A:</p>
+                        <p className="text-base text-slate-200 leading-relaxed">
                           {currentCard?.answer}
                         </p>
                       </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-emerald-500/20">
-                      <p className="text-xs text-slate-500 text-center">
-                        Click to flip back • Press SPACE
+                      <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-emerald-500/20">
+                        Click to flip back • SPACE
                       </p>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </div>
               </motion.div>
             </AnimatePresence>
           </div>
