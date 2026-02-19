@@ -12,7 +12,6 @@ import {
   Frown,
   Smile,
   Shuffle,
-  Maximize2,
   Home,
   CreditCard,
 } from "lucide-react";
@@ -167,20 +166,19 @@ export default function FlashcardsTopicPage() {
     setIsFlipped(false);
     if (currentIndex < totalCards - 1) {
       setCurrentIndex(currentIndex + 1);
-    } else {
-      // Loop back to start
-      setCurrentIndex(0);
     }
+    // At last card: do not advance (no loop)
   };
 
   const goToPrevious = () => {
     setIsFlipped(false);
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-    } else {
-      setCurrentIndex(totalCards - 1);
     }
   };
+
+  const isLastCard = currentIndex === totalCards - 1;
+  const isFirstCard = currentIndex === 0;
 
   const handleShuffle = () => {
     setShuffled(!shuffled);
@@ -250,29 +248,28 @@ export default function FlashcardsTopicPage() {
 
         {/* Main content */}
         <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
-          <div className="w-full max-w-3xl">
+          <div className="w-full max-w-3xl perspective-1000">
             <AnimatePresence mode="wait">
               <motion.div
-                key={`${currentCard?.id}-${isFlipped}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }}
+                key={currentCard?.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
                 className="w-full"
+                style={{ perspective: "1000px" }}
               >
-                <div
-                  className={cn(
-                    "relative w-full aspect-[4/3] cursor-pointer",
-                    "transform-gpu transition-transform duration-500",
-                    isFlipped && "[transform:rotateY(180deg)]"
-                  )}
+                <motion.div
+                  className="relative w-full aspect-[4/3] cursor-pointer"
                   onClick={handleFlip}
-                  style={{ transformStyle: "preserve-3d" }}
+                  style={{ transformStyle: "preserve-3d", perspective: 1000 }}
+                  animate={{ rotateY: isFlipped ? 180 : 0 }}
+                  transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 >
-                  {/* Front */}
+                  {/* Front - Question */}
                   <div
                     className={cn(
-                      "absolute inset-0 rounded-xl border border-[#334155] bg-[#1e293b]/90 p-8",
+                      "absolute inset-0 rounded-2xl border border-[#334155]/80 bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 shadow-xl shadow-black/20",
                       "flex flex-col",
                       !isFlipped ? "z-10" : "z-0"
                     )}
@@ -280,34 +277,38 @@ export default function FlashcardsTopicPage() {
                       backfaceVisibility: "hidden",
                       WebkitBackfaceVisibility: "hidden",
                       transform: "rotateY(0deg)",
+                      boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.03)",
                     }}
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                        Front
+                      <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">
+                        Question
                       </span>
                       {currentCard?.category && (
-                        <span className="text-xs px-2 py-1 rounded-full bg-[#3b82f6]/20 text-blue-300 border border-[#3b82f6]/30">
+                        <span className="text-xs px-2.5 py-1 rounded-lg bg-[#3b82f6]/15 text-blue-300 border border-[#3b82f6]/25">
                           {currentCard.category}
                         </span>
                       )}
                     </div>
-                    <div className="flex-1 flex items-center justify-center">
-                      <p className="text-lg text-white leading-relaxed text-center">
-                        {currentCard?.question}
-                      </p>
+                    <div className="flex-1 flex items-start justify-center pt-2">
+                      <div className="text-left w-full max-w-xl">
+                        <p className="text-sm font-medium text-slate-400 mb-2">Q:</p>
+                        <p className="text-lg text-white leading-relaxed">
+                          {currentCard?.question}
+                        </p>
+                      </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-[#334155]">
+                    <div className="mt-4 pt-4 border-t border-[#334155]/60">
                       <p className="text-xs text-slate-500 text-center">
-                        Click anywhere on the card to flip it or tap SPACE
+                        Click to flip • Press SPACE
                       </p>
                     </div>
                   </div>
 
-                  {/* Back */}
+                  {/* Back - Answer */}
                   <div
                     className={cn(
-                      "absolute inset-0 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-8",
+                      "absolute inset-0 rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-950/40 to-[#0f172a] p-8",
                       "flex flex-col",
                       isFlipped ? "z-10" : "z-0"
                     )}
@@ -315,25 +316,29 @@ export default function FlashcardsTopicPage() {
                       backfaceVisibility: "hidden",
                       WebkitBackfaceVisibility: "hidden",
                       transform: "rotateY(180deg)",
+                      boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(34,197,94,0.15)",
                     }}
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-semibold text-emerald-300 uppercase tracking-wide">
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
                         Answer
                       </span>
                     </div>
-                    <div className="flex-1 flex items-center justify-center">
-                      <p className="text-lg text-slate-200 leading-relaxed text-center">
-                        {currentCard?.answer}
-                      </p>
+                    <div className="flex-1 flex items-start justify-center pt-2">
+                      <div className="text-left w-full max-w-xl">
+                        <p className="text-sm font-medium text-emerald-400/80 mb-2">A:</p>
+                        <p className="text-lg text-slate-200 leading-relaxed">
+                          {currentCard?.answer}
+                        </p>
+                      </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-emerald-500/30">
+                    <div className="mt-4 pt-4 border-t border-emerald-500/20">
                       <p className="text-xs text-slate-500 text-center">
-                        Click anywhere on the card to flip it or tap SPACE
+                        Click to flip back • Press SPACE
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             </AnimatePresence>
           </div>
@@ -341,12 +346,18 @@ export default function FlashcardsTopicPage() {
 
         {/* Interaction controls */}
         <div className="px-6 py-4 border-t border-[#334155] shrink-0">
-          <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="flex items-center justify-center gap-5 mb-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={goToPrevious}
-              className="text-slate-400 hover:text-white"
+              disabled={isFirstCard}
+              className={cn(
+                "rounded-full h-11 w-11 transition-all",
+                isFirstCard
+                  ? "text-slate-600 cursor-not-allowed"
+                  : "text-slate-400 hover:text-white hover:bg-white/10"
+              )}
               aria-label="Previous card"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -358,15 +369,15 @@ export default function FlashcardsTopicPage() {
                 setIsFlipped(false);
                 setCurrentIndex(0);
               }}
-              className="text-slate-400 hover:text-white"
-              aria-label="Reset"
+              className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full h-11 w-11"
+              aria-label="Back to first card"
             >
               <RotateCcw className="h-5 w-5" />
             </Button>
             <Button
               size="icon"
               onClick={handleStillLearning}
-              className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-full h-12 w-12"
+              className="rounded-full h-12 w-12 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 transition-all hover:scale-105"
               aria-label="Still learning"
             >
               <Frown className="h-5 w-5" />
@@ -374,36 +385,37 @@ export default function FlashcardsTopicPage() {
             <Button
               size="icon"
               onClick={handleKnow}
-              className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 rounded-full h-12 w-12"
+              className="rounded-full h-12 w-12 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 transition-all hover:scale-105"
               aria-label="Know"
             >
               <Smile className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Footer controls */}
-          <div className="flex items-center justify-between text-sm">
-            <button className="text-slate-400 hover:text-white">
-              Stuck? Help with this card
-            </button>
-            <div className="flex items-center gap-3">
+          {/* Footer: Shuffle + End of set / Back to topics */}
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShuffle}
+              className={cn(
+                "text-slate-400 hover:text-white",
+                shuffled && "text-[#3b82f6]"
+              )}
+            >
+              <Shuffle className="h-4 w-4 mr-2" />
+              Shuffle
+            </Button>
+            {isLastCard && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={handleShuffle}
-                className={cn(
-                  "text-slate-400 hover:text-white",
-                  shuffled && "text-[#3b82f6]"
-                )}
+                onClick={() => navigate("/dashboard/flashcards")}
+                className="border-[#334155] text-slate-300 hover:bg-white/10"
               >
-                <Shuffle className="h-4 w-4 mr-2" />
-                Shuffle
+                Back to topics
               </Button>
-              <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-                <Maximize2 className="h-4 w-4 mr-2" />
-                Full screen
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>
