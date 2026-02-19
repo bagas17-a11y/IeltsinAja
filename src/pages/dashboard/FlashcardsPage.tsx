@@ -63,7 +63,11 @@ export default function FlashcardsPage() {
   };
 
   const setViewAll = () => {
-    setSearchParams({ view: "all" });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams();
+      next.set("view", "all");
+      return next;
+    });
     setMobileMenuOpen(false);
   };
 
