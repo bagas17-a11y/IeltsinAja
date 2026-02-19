@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -41,7 +41,46 @@ export default function FlashcardsPage() {
   const FLASHCARD_TOPICS = useMemo(() => getAllFlashcardTopics(), []);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [isResizing, setIsResizing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const MIN_SIDEBAR_WIDTH = 220;
+  const MAX_SIDEBAR_WIDTH = 420;
+  const resizeStartX = useRef(0);
+  const resizeStartWidth = useRef(sidebarWidth);
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    const delta = e.clientX - resizeStartX.current;
+    const next = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, resizeStartWidth.current + delta));
+    setSidebarWidth(next);
+  }, []);
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    resizeStartX.current = e.clientX;
+    resizeStartWidth.current = sidebarWidth;
+    setIsResizing(true);
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      window.addEventListener("mousemove", handleResizeMove);
+      window.addEventListener("mouseup", handleResizeEnd);
+      return () => {
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        window.removeEventListener("mousemove", handleResizeMove);
+        window.removeEventListener("mouseup", handleResizeEnd);
+      };
+    }
+  }, [isResizing, handleResizeMove, handleResizeEnd]);
   const [expandedSections, setExpandedSections] = useState<string[]>([
     FLASHCARD_TOPICS[0]?.id ?? "",
   ]);
@@ -122,15 +161,22 @@ export default function FlashcardsPage() {
   return (
     <DashboardLayout>
       <div className="-m-6 flex h-[calc(100vh-3rem)] min-h-0 bg-[#0f172a]">
-        {/* Floating glass sidebar */}
+        {/* Floating glass sidebar - resizable */}
         <aside
           className={cn(
-            "flex flex-col transition-[width] duration-200 z-10",
+            "flex flex-col z-10 shrink-0",
             "backdrop-blur-[12px] bg-[#0f172a]/80 border-r border-[#334155]",
-            sidebarCollapsed ? "w-14" : "w-[260px]",
             "hidden md:flex",
-            mobileMenuOpen && "!flex !absolute inset-y-0 left-0 z-50 w-[260px]"
+            sidebarCollapsed && "transition-[width] duration-200",
+            mobileMenuOpen && "!flex !absolute inset-y-0 left-0 z-50"
           )}
+          style={
+            mobileMenuOpen
+              ? { width: 280 }
+              : sidebarCollapsed
+                ? { width: 56 }
+                : { width: sidebarWidth, minWidth: sidebarWidth, transition: isResizing ? "none" : "width 0.2s" }
+          }
         >
           <div className="flex h-12 items-center justify-between border-b border-[#334155] px-3 shrink-0">
             {!sidebarCollapsed && (
@@ -225,10 +271,10 @@ export default function FlashcardsPage() {
                               </span>
                             ) : (
                               <>
-                                <span className="flex-1 font-medium">
+                                <span className="flex-1 min-w-0 font-medium break-words">
                                   {sectionNum}. {section.title}
                                 </span>
-                                <span className="text-xs text-slate-500">
+                                <span className="text-xs text-slate-500 shrink-0 ml-1">
                                   {totalCards}
                                 </span>
                               </>
@@ -244,10 +290,10 @@ export default function FlashcardsPage() {
                               <button
                                 key={sub.id}
                                 onClick={() => setTopic(section.id, sub.id)}
-                                className="flex w-full items-center justify-between text-xs text-slate-400 hover:text-white hover:bg-white/5 rounded px-2 py-1"
+                                className="flex w-full items-center justify-between gap-2 text-xs text-slate-400 hover:text-white hover:bg-white/5 rounded px-2 py-1 text-left"
                               >
-                                <span>{sub.title}</span>
-                                <span className="text-slate-600">{cardCount}</span>
+                                <span className="min-w-0 flex-1 break-words">{sub.title}</span>
+                                <span className="text-slate-600 shrink-0">{cardCount}</span>
                               </button>
                             );
                           })}
@@ -260,6 +306,23 @@ export default function FlashcardsPage() {
             </div>
           </ScrollArea>
         </aside>
+
+        {/* Resize handle - visible when sidebar expanded on desktop */}
+        {!sidebarCollapsed && !mobileMenuOpen && (
+          <div
+            className="hidden md:flex shrink-0 w-3 cursor-col-resize items-stretch justify-center -mx-1"
+            onMouseDown={handleResizeStart}
+            role="separator"
+            aria-label="Resize sidebar"
+          >
+            <div
+              className={cn(
+                "w-0.5 rounded-full transition-colors shrink-0",
+                isResizing ? "bg-[#3b82f6]" : "bg-[#334155] hover:bg-[#475569]"
+              )}
+            />
+          </div>
+        )}
 
         {mobileMenuOpen && (
           <button
