@@ -8,6 +8,10 @@ import { TopicSentenceStructure } from "./TopicSentenceStructure";
 import { TopicRelativeClauses } from "./TopicRelativeClauses";
 import { TopicLinkingWordsCoherence } from "./TopicLinkingWordsCoherence";
 import { TopicCollocationsParaphrasing } from "./TopicCollocationsParaphrasing";
+import { TopicModalVerbs } from "./TopicModalVerbs";
+import { TopicArticles } from "./TopicArticles";
+import { TopicReportingVerbs } from "./TopicReportingVerbs";
+import { TopicHedgingFormalStyle } from "./TopicHedgingFormalStyle";
 
 export const REVISION_TOPIC_COMPONENTS: Record<
   RevisionNoteTopicId,
@@ -22,6 +26,10 @@ export const REVISION_TOPIC_COMPONENTS: Record<
   "relative-clauses": TopicRelativeClauses,
   "linking-words-coherence": TopicLinkingWordsCoherence,
   "collocations-paraphrasing": TopicCollocationsParaphrasing,
+  "modal-verbs": TopicModalVerbs,
+  articles: TopicArticles,
+  "reporting-verbs": TopicReportingVerbs,
+  "hedging-formal-style": TopicHedgingFormalStyle,
 };
 
 export {
@@ -34,4 +42,8 @@ export {
   TopicRelativeClauses,
   TopicLinkingWordsCoherence,
   TopicCollocationsParaphrasing,
+  TopicModalVerbs,
+  TopicArticles,
+  TopicReportingVerbs,
+  TopicHedgingFormalStyle,
 };

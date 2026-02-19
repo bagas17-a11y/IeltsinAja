@@ -86,6 +86,41 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "strategies-practice", label: "Strategies & practice" },
     ],
   },
+  {
+    id: "modal-verbs",
+    title: "Modal Verbs",
+    subItems: [
+      { id: "ability-possibility", label: "Ability and possibility" },
+      { id: "obligation-necessity", label: "Obligation and necessity" },
+      { id: "advice-hedging", label: "Advice and academic hedging" },
+    ],
+  },
+  {
+    id: "articles",
+    title: "Articles (a, an, the, Ø)",
+    subItems: [
+      { id: "indefinite", label: "A / An" },
+      { id: "definite", label: "The" },
+      { id: "no-article", label: "No article" },
+    ],
+  },
+  {
+    id: "reporting-verbs",
+    title: "Reporting Verbs & Passive Reporting",
+    subItems: [
+      { id: "simple-reporting", label: "Simple reporting structures" },
+      { id: "passive-reporting", label: "Passive reporting (It is said that…)" },
+    ],
+  },
+  {
+    id: "hedging-formal-style",
+    title: "Hedging & Formal Academic Style",
+    subItems: [
+      { id: "hedging-basics", label: "What is hedging?" },
+      { id: "modals-adverbs", label: "Modals, adverbs, adjectives" },
+      { id: "academic-style", label: "Other academic style features" },
+    ],
+  },
 ];
 
 export const REVISION_NOTE_IDS = REVISION_NOTE_TOPICS.map((t) => t.id) as [
@@ -98,6 +133,10 @@ export const REVISION_NOTE_IDS = REVISION_NOTE_TOPICS.map((t) => t.id) as [
   "relative-clauses",
   "linking-words-coherence",
   "collocations-paraphrasing",
+  "modal-verbs",
+  "articles",
+  "reporting-verbs",
+  "hedging-formal-style",
 ];
 
 export type RevisionNoteTopicId = (typeof REVISION_NOTE_IDS)[number];
