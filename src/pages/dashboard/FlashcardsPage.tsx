@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,6 +20,7 @@ import {
   PanelLeft,
   Menu,
   Circle,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -45,15 +47,17 @@ export default function FlashcardsPage() {
   ]);
 
   const setTopic = (topicId: string, subtopicId?: string) => {
-    if (subtopicId) {
-      navigate(`/dashboard/flashcards/topic?topic=${topicId}&subtopic=${subtopicId}`);
-    } else {
-      // Go to first subtopic of the topic
-      const topic = FLASHCARD_TOPICS.find((t) => t.id === topicId);
-      const firstSubtopic = topic?.subtopics[0];
-      if (firstSubtopic) {
-        navigate(`/dashboard/flashcards/topic?topic=${topicId}&subtopic=${firstSubtopic.id}`);
-      }
+    const topic = FLASHCARD_TOPICS.find((t) => t.id === topicId);
+    const firstSubtopic = topic?.subtopics[0];
+    const sub = subtopicId ?? firstSubtopic?.id;
+    if (sub) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("topic", topicId);
+        next.set("subtopic", sub);
+        next.delete("view");
+        return next;
+      });
     }
     setMobileMenuOpen(false);
   };
@@ -64,6 +68,40 @@ export default function FlashcardsPage() {
   };
 
   const showTopicList = viewAll && !topicParam;
+
+  // When not viewing "all", ensure we have a topic/subtopic so a flashcard is shown
+  const effectiveTopic = useMemo(() => {
+    const id = topicParam ?? FLASHCARD_TOPICS[0]?.id;
+    return FLASHCARD_TOPICS.find((t) => t.id === id);
+  }, [topicParam, FLASHCARD_TOPICS]);
+  const effectiveSubtopic = useMemo(() => {
+    if (!effectiveTopic) return null;
+    const id = subtopicParam ?? effectiveTopic.subtopics[0]?.id;
+    return effectiveTopic.subtopics.find((st) => st.id === id);
+  }, [effectiveTopic, subtopicParam]);
+  const inlineFlashcards = effectiveSubtopic?.flashcards ?? [];
+  const [cardIndex, setCardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  useEffect(() => {
+    if (!showTopicList && !topicParam && FLASHCARD_TOPICS[0]) {
+      const t = FLASHCARD_TOPICS[0];
+      const sub = t.subtopics[0];
+      if (sub) {
+        setSearchParams({ topic: t.id, subtopic: sub.id }, { replace: true });
+      }
+    }
+  }, [showTopicList, topicParam, FLASHCARD_TOPICS, setSearchParams]);
+
+  useEffect(() => {
+    setCardIndex(0);
+    setIsFlipped(false);
+  }, [topicParam, subtopicParam]);
+
+  const currentInlineCard = inlineFlashcards[cardIndex];
+  const totalInline = inlineFlashcards.length;
+  const isFirstInline = cardIndex === 0;
+  const isLastInline = cardIndex === totalInline - 1 && totalInline > 0;
 
   const toggleSection = (id: string) => {
     setExpandedSections((prev) =>
@@ -313,17 +351,124 @@ export default function FlashcardsPage() {
                     })}
                   </div>
                 </>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-slate-400 mb-4">
-                    Select a topic from the sidebar to start studying flashcards.
-                  </p>
-                  <Button
-                    onClick={setViewAll}
-                    className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white"
+              ) : effectiveTopic && effectiveSubtopic ? (
+                <div className="flex flex-col items-center py-6">
+                  <div
+                    className="w-full max-w-lg mx-auto"
+                    style={{ perspective: "1200px" }}
                   >
-                    View all topics
-                  </Button>
+                    {totalInline === 0 ? (
+                      <p className="text-slate-400 text-center py-8">
+                        No flashcards in this subtopic yet.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-slate-400 text-sm mb-4 text-center">
+                          {effectiveTopic.title} → {effectiveSubtopic.title} ({cardIndex + 1} / {totalInline})
+                        </p>
+                        <div className="relative">
+                          <div
+                            className="absolute inset-0 rounded-xl bg-slate-900/40 blur-xl -z-10 translate-y-3 scale-[0.98]"
+                            aria-hidden
+                          />
+                          <motion.div
+                            className="relative w-full cursor-pointer select-none"
+                            style={{ transformStyle: "preserve-3d" }}
+                            animate={{ rotateY: isFlipped ? 180 : 0 }}
+                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                            onClick={() => setIsFlipped((f) => !f)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === " ") {
+                                e.preventDefault();
+                                setIsFlipped((f) => !f);
+                              }
+                            }}
+                            aria-label="Flip card"
+                          >
+                            <div
+                              className={cn(
+                                "rounded-xl border border-[#334155] bg-[#1e293b] p-6 min-h-[240px] flex flex-col",
+                                !isFlipped ? "z-10" : "z-0"
+                              )}
+                              style={{
+                                backfaceVisibility: "hidden",
+                                WebkitBackfaceVisibility: "hidden",
+                                transform: "rotateY(0deg)",
+                                boxShadow:
+                                  "0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.1)",
+                              }}
+                            >
+                              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide mb-2">Question</span>
+                              <p className="text-base text-white leading-relaxed flex-1 flex flex-col justify-center">Q: {currentInlineCard?.question}</p>
+                            </div>
+                            <div
+                              className={cn(
+                                "absolute inset-0 rounded-xl border border-emerald-500/20 bg-[#1e293b] p-6 min-h-[240px] flex flex-col",
+                                isFlipped ? "z-10" : "z-0"
+                              )}
+                              style={{
+                                backfaceVisibility: "hidden",
+                                WebkitBackfaceVisibility: "hidden",
+                                transform: "rotateY(180deg)",
+                                boxShadow:
+                                  "0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.1)",
+                              }}
+                            >
+                              <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-2">Answer</span>
+                              <p className="text-base text-slate-200 leading-relaxed flex-1 flex flex-col justify-center">A: {currentInlineCard?.answer}</p>
+                            </div>
+                          </motion.div>
+                        </div>
+                        <p className="text-slate-500 text-xs mt-2 text-center">Click or press Space to flip</p>
+                        <div className="flex items-center justify-center gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-[#334155] text-slate-300 hover:bg-white/5"
+                            disabled={isFirstInline}
+                            onClick={() => {
+                              setCardIndex((i) => Math.max(0, i - 1));
+                              setIsFlipped(false);
+                            }}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <span className="text-slate-400 text-sm min-w-[4rem] text-center">
+                            {cardIndex + 1} / {totalInline}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-[#334155] text-slate-300 hover:bg-white/5"
+                            disabled={isLastInline}
+                            onClick={() => {
+                              setCardIndex((i) => Math.min(totalInline - 1, i + 1));
+                              setIsFlipped(false);
+                            }}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Button
+                          variant="link"
+                          className="text-[#3b82f6] mt-4"
+                          onClick={() =>
+                            navigate(
+                              `/dashboard/flashcards/topic?topic=${effectiveTopic.id}&subtopic=${effectiveSubtopic.id}`
+                            )
+                          }
+                        >
+                          Open full study view
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-slate-400">Loading…</p>
                 </div>
               )}
             </div>

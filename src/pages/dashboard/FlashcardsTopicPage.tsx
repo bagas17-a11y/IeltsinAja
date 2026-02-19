@@ -249,7 +249,7 @@ export default function FlashcardsTopicPage() {
         {/* Main content - compact card with Save My Exams-style 3D */}
         <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
           <div
-            className="w-full max-w-md mx-auto"
+            className="w-full max-w-lg mx-auto"
             style={{ perspective: "1200px" }}
           >
             <AnimatePresence mode="wait">
@@ -280,7 +280,7 @@ export default function FlashcardsTopicPage() {
                     {/* Front - Question */}
                     <div
                       className={cn(
-                        "rounded-xl border border-[#334155] bg-[#1e293b] p-6 min-h-[200px]",
+                        "rounded-xl border border-[#334155] bg-[#1e293b] p-6 min-h-[240px]",
                         "flex flex-col",
                         !isFlipped ? "z-10" : "z-0"
                       )}
@@ -316,7 +316,7 @@ export default function FlashcardsTopicPage() {
                     {/* Back - Answer */}
                     <div
                       className={cn(
-                        "absolute inset-0 rounded-xl border border-emerald-500/20 bg-[#1e293b] p-6 min-h-[200px]",
+                        "absolute inset-0 rounded-xl border border-emerald-500/20 bg-[#1e293b] p-6 min-h-[240px]",
                         "flex flex-col",
                         isFlipped ? "z-10" : "z-0"
                       )}
