@@ -59,6 +59,33 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "simple-compound-complex", label: "Simple, compound, complex" },
     ],
   },
+  {
+    id: "relative-clauses",
+    title: "Relative Clauses",
+    subItems: [
+      { id: "defining", label: "Defining clauses" },
+      { id: "non-defining", label: "Non-defining clauses" },
+      { id: "pronouns-where-when", label: "Relative pronouns and where/when/why" },
+    ],
+  },
+  {
+    id: "linking-words-coherence",
+    title: "Linking Words, Referencing & Coherence",
+    subItems: [
+      { id: "linkers", label: "Linking words" },
+      { id: "referencing", label: "Referencing" },
+      { id: "paragraph-flow", label: "Paragraph flow" },
+    ],
+  },
+  {
+    id: "collocations-paraphrasing",
+    title: "Vocabulary: Collocations & Paraphrasing",
+    subItems: [
+      { id: "collocations", label: "Collocations" },
+      { id: "paraphrasing", label: "Paraphrasing" },
+      { id: "strategies-practice", label: "Strategies & practice" },
+    ],
+  },
 ];
 
 export const REVISION_NOTE_IDS = REVISION_NOTE_TOPICS.map((t) => t.id) as [
@@ -68,6 +95,9 @@ export const REVISION_NOTE_IDS = REVISION_NOTE_TOPICS.map((t) => t.id) as [
   "subject-verb-agreement",
   "punctuation",
   "sentence-structure",
+  "relative-clauses",
+  "linking-words-coherence",
+  "collocations-paraphrasing",
 ];
 
 export type RevisionNoteTopicId = (typeof REVISION_NOTE_IDS)[number];
