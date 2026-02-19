@@ -1253,6 +1253,650 @@ export const FLASHCARD_TOPICS: FlashcardTopic[] = [
       },
     ],
   },
+  {
+    id: "modal-verbs",
+    title: "Modal Verbs",
+    subtopics: [
+      {
+        id: "ability-possibility",
+        title: "Ability & possibility",
+        flashcards: [
+          {
+            id: "mod-abil-1",
+            question: "Choose the best modal: 'Young people today ______ access information easily online.' (can / might)",
+            answer: "'can' — shows ability (they are able to do it). 'Might' shows possibility, not ability.",
+          },
+          {
+            id: "mod-abil-2",
+            question: "Does this sentence show ability or possibility: 'Online courses might replace traditional classes for some students.'? Explain briefly.",
+            answer: "Possibility. 'Might' shows uncertainty about a future outcome — we are not certain it will happen.",
+          },
+          {
+            id: "mod-abil-3",
+            question: "Rewrite with a more cautious modal: 'Technology will solve all our problems.'",
+            answer: "'Technology may solve some of our problems.' or 'Technology might help to solve some problems.' — use may/might for less certainty.",
+          },
+          {
+            id: "mod-abil-4",
+            question: "Choose: 'In the past, students ______ find jobs more easily.' (can / could)",
+            answer: "'could' — past ability. 'Can' is for present.",
+          },
+          {
+            id: "mod-abil-5",
+            question: "Which modal fits: 'Many people ______ speak English at a basic level.' (may / can)",
+            answer: "'can' — ability. 'May' suggests permission or possibility, not ability.",
+          },
+        ],
+      },
+      {
+        id: "obligation-necessity",
+        title: "Obligation & necessity",
+        flashcards: [
+          {
+            id: "mod-obl-1",
+            question: "Choose: 'Students (must / don't have to) bring their ID to the exam; it is a rule.' Explain.",
+            answer: "'must' — it is a rule (obligation). 'Don't have to' means optional.",
+          },
+          {
+            id: "mod-obl-2",
+            question: "Correct: 'You mustn't to bring a dictionary into the exam.'",
+            answer: "'You mustn't bring a dictionary into the exam.' — modal + base verb (no 'to').",
+          },
+          {
+            id: "mod-obl-3",
+            question: "Change from 'not allowed' to 'not necessary': 'You mustn't wear a suit for the interview.'",
+            answer: "'You don't have to wear a suit for the interview.' — not necessary (optional).",
+          },
+          {
+            id: "mod-obl-4",
+            question: "What is the difference: 'You mustn't cheat' vs 'You don't have to cheat'?",
+            answer: "'Mustn't' = prohibited (not allowed). 'Don't have to' = not necessary (optional).",
+          },
+          {
+            id: "mod-obl-5",
+            question: "Choose: 'Employees ______ follow company regulations.' (have to / ought to)",
+            answer: "'have to' — external rule/obligation. Both work, but 'have to' stresses it is a requirement.",
+          },
+        ],
+      },
+      {
+        id: "advice-criticism",
+        title: "Advice & criticism",
+        flashcards: [
+          {
+            id: "mod-adv-1",
+            question: "Give advice with 'should': 'People eat too much fast food.'",
+            answer: "'People should eat less fast food.' or 'People should reduce their intake of fast food.'",
+          },
+          {
+            id: "mod-adv-2",
+            question: "Turn into past criticism with 'should have': 'It was a mistake that the company ignored the problem.'",
+            answer: "'The company should have considered the problem.' or 'The company should not have ignored the problem.'",
+          },
+          {
+            id: "mod-adv-3",
+            question: "Which sounds stronger and why: 'You should start preparing now' or 'You had better start preparing now'?",
+            answer: "'Had better' is stronger — it implies a warning or consequence if you do not. 'Should' is gentler advice.",
+          },
+          {
+            id: "mod-adv-4",
+            question: "Give advice: 'Governments need to invest in public transport.' (Use 'ought to'.)",
+            answer: "'Governments ought to invest in public transport.' — ought to = should (slightly more formal).",
+          },
+          {
+            id: "mod-adv-5",
+            question: "Rewrite as criticism: 'The government did not address the housing shortage.'",
+            answer: "'The government should have addressed the housing shortage.' — past criticism.",
+          },
+        ],
+      },
+      {
+        id: "hedging-modals",
+        title: "Hedging with modals",
+        flashcards: [
+          {
+            id: "mod-hedge-1",
+            question: "Rewrite with a hedging modal: 'Fast food will cause health problems for everyone.'",
+            answer: "'Fast food may cause health problems for some people.' or '...can contribute to health problems.' — softer, more cautious.",
+          },
+          {
+            id: "mod-hedge-2",
+            question: "Which is more suitable for an academic essay and why? a) 'This policy will solve the problem.' b) 'This policy may help to solve the problem.'",
+            answer: "b) — 'may' is more cautious and balanced. Academic writing avoids over-certainty; 'will' is too strong.",
+          },
+          {
+            id: "mod-hedge-3",
+            question: "Replace 'will' with a hedging modal: 'Technology will change education.'",
+            answer: "'Technology may change education.' or 'Technology could change education.' — shows possibility, not certainty.",
+          },
+          {
+            id: "mod-hedge-4",
+            question: "Why use 'might' instead of 'will' in: 'Online learning might become more popular'?",
+            answer: "To sound cautious and academic. We are not 100% certain, so 'might' shows possibility rather than certainty.",
+          },
+          {
+            id: "mod-hedge-5",
+            question: "Rewrite: 'This policy will lead to higher unemployment.' (Use hedging.)",
+            answer: "'This policy may lead to higher unemployment.' or '...could lead to...' — softer claim.",
+          },
+        ],
+      },
+      {
+        id: "modal-errors",
+        title: "Modal errors in IELTS",
+        flashcards: [
+          {
+            id: "mod-err-1",
+            question: "Correct: 'Governments should to ban smoking in public places.'",
+            answer: "'Governments should ban smoking in public places.' — modal + base verb (no 'to').",
+          },
+          {
+            id: "mod-err-2",
+            question: "Fix: 'People can not to afford higher taxes.'",
+            answer: "'People cannot afford higher taxes.' — 'can' + base verb; no 'to'. Also: 'cannot' or 'can't', not 'can not to'.",
+          },
+          {
+            id: "mod-err-3",
+            question: "Explain the problem with 'Technology must always be good for society' and rewrite with a more balanced modal.",
+            answer: "'Must' is too absolute. Better: 'Technology may be beneficial for society' or 'Technology can be good for society.' — allows for nuance.",
+          },
+          {
+            id: "mod-err-4",
+            question: "Correct: 'Students must studying hard for the exam.'",
+            answer: "'Students must study hard for the exam.' — modal + base verb (study, not studying).",
+          },
+          {
+            id: "mod-err-5",
+            question: "Fix: 'The government have to address this issue.'",
+            answer: "'The government has to address this issue.' — third person singular: 'has to', not 'have to'.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "articles",
+    title: "Articles (a, an, the, Ø)",
+    subtopics: [
+      {
+        id: "a-an",
+        title: "A / An with singular countable nouns",
+        flashcards: [
+          {
+            id: "art-a1",
+            question: "Choose: 'Many people dream of studying at (university / a university / an university) abroad.' Explain.",
+            answer: "'a university' — singular countable; 'university' starts with consonant sound /j/, so 'a'.",
+          },
+          {
+            id: "art-a2",
+            question: "Fill the gap: 'Living in ___ urban area can be expensive.' (a / an / the)",
+            answer: "'an' — 'urban' starts with vowel sound /ɜː/, so use 'an'.",
+          },
+          {
+            id: "art-a3",
+            question: "Choose: 'She has ___ MBA degree.' (a / an)",
+            answer: "'an' — 'MBA' is pronounced /em biː eɪ/; starts with vowel sound.",
+          },
+          {
+            id: "art-a4",
+            question: "Fill: 'There was ___ one-hour delay.' (a / an)",
+            answer: "'a' — 'one' starts with consonant sound /w/, so 'a'.",
+          },
+          {
+            id: "art-a5",
+            question: "Correct: 'Students need a honest teacher.'",
+            answer: "'Students need an honest teacher.' — 'honest' starts with vowel sound (h is silent).",
+          },
+        ],
+      },
+      {
+        id: "the",
+        title: "The for specific nouns",
+        flashcards: [
+          {
+            id: "art-the1",
+            question: "Fill: 'There is ___ problem with traffic. ___ problem is getting worse.'",
+            answer: "'a' (first mention); 'the' (second mention — we know which problem).",
+          },
+          {
+            id: "art-the2",
+            question: "Is 'the internet' correct in 'The internet has changed the way we communicate'? Why?",
+            answer: "Yes. 'The internet' refers to a unique/specific thing we all know. Correct.",
+          },
+          {
+            id: "art-the3",
+            question: "Add articles: '___ government should focus on ___ most important issues.'",
+            answer: "'The government' (specific — the government in general); 'the most important' (superlative needs 'the').",
+          },
+          {
+            id: "art-the4",
+            question: "Choose: 'I want to go to ___ school near my house.' (a / the)",
+            answer: "'the' — specific school (the one near my house).",
+          },
+          {
+            id: "art-the5",
+            question: "Why do we use 'the' in 'the way people communicate'?",
+            answer: "We mean the specific way (how they communicate). 'The' makes it definite.",
+          },
+        ],
+      },
+      {
+        id: "no-article",
+        title: "No article for general ideas",
+        flashcards: [
+          {
+            id: "art-zero1",
+            question: "Choose for a general idea: a) 'The pollution is harmful.' b) 'Pollution is harmful.' Explain.",
+            answer: "b) — 'Pollution' as a general uncountable concept needs no article. 'The pollution' would mean specific pollution.",
+          },
+          {
+            id: "art-zero2",
+            question: "Correct: 'The information is very important for the students.' (Is 'the' needed?)",
+            answer: "'Information is very important for students.' — both are general: uncountable 'information', plural general 'students'. No 'the'.",
+          },
+          {
+            id: "art-zero3",
+            question: "Which is correct: 'Education is important' or 'The education is important'?",
+            answer: "'Education is important' — general uncountable noun, no article.",
+          },
+          {
+            id: "art-zero4",
+            question: "Fill: '___ cars cause ___ pollution.' (general meaning)",
+            answer: "No article for both — 'Cars cause pollution.' — plural and uncountable in general.",
+          },
+          {
+            id: "art-zero5",
+            question: "Correct: 'The health is important for everyone.'",
+            answer: "'Health is important for everyone.' — uncountable general noun, no 'the'.",
+          },
+        ],
+      },
+      {
+        id: "article-errors",
+        title: "Typical IELTS article errors",
+        flashcards: [
+          {
+            id: "art-err1",
+            question: "Fix: 'City has park.' (Add articles where needed.)",
+            answer: "'The city has a park.' or 'A city has a park.' — singular countable nouns need an article.",
+          },
+          {
+            id: "art-err2",
+            question: "Find and correct: 'The education is important for society.'",
+            answer: "'Education is important for society.' — remove 'the'; education as general idea = no article.",
+          },
+          {
+            id: "art-err3",
+            question: "Correct: 'Government should invest in education.'",
+            answer: "'The government should invest in education.' — singular countable 'government' needs 'the'.",
+          },
+          {
+            id: "art-err4",
+            question: "Fix: 'The people need the access to healthcare.'",
+            answer: "'People need access to healthcare.' — 'people' (general plural) and 'access' (uncountable) usually need no article here.",
+          },
+          {
+            id: "art-err5",
+            question: "Correct: 'There is the need for more research.'",
+            answer: "Could be 'There is a need for more research.' — 'a need' (singular, first mention) or 'There is need for...' (uncountable).",
+          },
+        ],
+      },
+      {
+        id: "article-gapfills",
+        title: "Article gap-fills",
+        flashcards: [
+          {
+            id: "art-gap1",
+            question: "Insert a/an/the/Ø: '___ government should invest more in ___ public transport.'",
+            answer: "'The government' (specific); 'Ø public transport' (uncountable, general) or no article. 'The public transport' is also possible if referring to a specific system.",
+          },
+          {
+            id: "art-gap2",
+            question: "Fill: 'Many people believe that ___ university degree is essential for ___ success.'",
+            answer: "'a university degree' (singular countable, non-specific); 'Ø success' (uncountable, general) — no article.",
+          },
+          {
+            id: "art-gap3",
+            question: "Fill: '___ chart shows ___ significant increase in ___ number of online learners.'",
+            answer: "'The chart' (we know which); 'a significant increase' (first mention); 'the number' (specific — of online learners).",
+          },
+          {
+            id: "art-gap4",
+            question: "Fill: '___ technology has changed ___ way we work.'",
+            answer: "'Ø Technology' (general); 'the way' (specific — the way we work).",
+          },
+          {
+            id: "art-gap5",
+            question: "Fill: '___ research suggests that ___ exercise improves ___ mental health.'",
+            answer: "'Ø Research' (general); 'Ø exercise' (general uncountable); 'Ø mental health' (general uncountable).",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "reporting-verbs",
+    title: "Reporting Verbs & Passive Reporting",
+    subtopics: [
+      {
+        id: "basic-reporting",
+        title: "Basic reporting verbs",
+        flashcards: [
+          {
+            id: "rep-basic1",
+            question: "Rewrite using 'believe': 'Many people think that public transport should be cheaper.'",
+            answer: "'Many people believe that public transport should be cheaper.' — 'believe' is slightly more formal than 'think'.",
+          },
+          {
+            id: "rep-basic2",
+            question: "Which reporting verb is strongest in an academic essay: 'think', 'argue', or 'suggest'? Explain.",
+            answer: "'Argue' — shows a strong opinion/position. 'Suggest' is cautious; 'think' is informal.",
+          },
+          {
+            id: "rep-basic3",
+            question: "Complete: 'Research ______ that exercise improves mental health.' (suggest / say)",
+            answer: "'suggests' — common with 'research'; more formal than 'says'.",
+          },
+          {
+            id: "rep-basic4",
+            question: "Choose: 'Some people ______ that online learning is less effective.' (claim / play)",
+            answer: "'claim' — reporting verb for opinions. 'Play' does not fit.",
+          },
+          {
+            id: "rep-basic5",
+            question: "Rewrite: 'Experts say that pollution is increasing.' (Use 'report'.)",
+            answer: "'Experts report that pollution is increasing.' — 'report' is formal and fits expert sources.",
+          },
+        ],
+      },
+      {
+        id: "it-is-said",
+        title: "It is said that…",
+        flashcards: [
+          {
+            id: "rep-it1",
+            question: "Transform: 'People say that laughter is the best medicine.' → Use 'It is said that…'",
+            answer: "'It is said that laughter is the best medicine.'",
+          },
+          {
+            id: "rep-it2",
+            question: "Identify and correct: 'It is say that technology improves lives.'",
+            answer: "'It is said that technology improves lives.' — passive needs past participle 'said', not base form 'say'.",
+          },
+          {
+            id: "rep-it3",
+            question: "Transform: 'People believe that education reduces poverty.'",
+            answer: "'It is believed that education reduces poverty.' — It + passive verb + that-clause.",
+          },
+          {
+            id: "rep-it4",
+            question: "Correct: 'It has been suggest that the policy will help.'",
+            answer: "'It has been suggested that the policy will help.' — past participle: 'suggested', not 'suggest'.",
+          },
+          {
+            id: "rep-it5",
+            question: "Rewrite: 'Experts expect that prices will rise.' (Use 'It is expected that…')",
+            answer: "'It is expected that prices will rise.'",
+          },
+        ],
+      },
+      {
+        id: "noun-past-part",
+        title: "Noun + be + past participle + to + V",
+        flashcards: [
+          {
+            id: "rep-np1",
+            question: "Rewrite: 'People think that young people spend too much time online.' → 'Young people ______.' (Use 'are thought to…')",
+            answer: "'Young people are thought to spend too much time online.'",
+          },
+          {
+            id: "rep-np2",
+            question: "Correct: 'Children are believed spend too much time playing games.'",
+            answer: "'Children are believed to spend too much time playing games.' — need 'to' before infinitive.",
+          },
+          {
+            id: "rep-np3",
+            question: "Transform: 'People expect that the economy will grow.' → 'The economy ______.'",
+            answer: "'The economy is expected to grow.' — noun + be + past participle + to + infinitive.",
+          },
+          {
+            id: "rep-np4",
+            question: "Correct: 'Technology is said improve our lives.'",
+            answer: "'Technology is said to improve our lives.' — 'to' before infinitive.",
+          },
+          {
+            id: "rep-np5",
+            question: "Rewrite: 'Experts think that pollution causes health problems.' → 'Pollution ______.'",
+            answer: "'Pollution is thought to cause health problems.'",
+          },
+        ],
+      },
+      {
+        id: "choosing-verbs",
+        title: "Choosing reporting verbs",
+        flashcards: [
+          {
+            id: "rep-choose1",
+            question: "Choose: 'Some experts ______ that free public transport would reduce pollution.' (say / argue / play)",
+            answer: "'argue' or 'suggest' — reporting opinion. 'Say' is weaker; 'play' does not fit.",
+          },
+          {
+            id: "rep-choose2",
+            question: "Which is more cautious: 'Research shows…' or 'Research suggests…'? Why?",
+            answer: "'Suggests' — it implies possibility, not certainty. 'Shows' is stronger.",
+          },
+          {
+            id: "rep-choose3",
+            question: "Choose: 'Many people ______ that university should be free.' (claim / believe / both)",
+            answer: "Both work. 'Believe' is neutral; 'claim' can imply the speaker questions it. 'Believe' is safer.",
+          },
+          {
+            id: "rep-choose4",
+            question: "Which verb for a strong opinion: 'suggest' or 'argue'?",
+            answer: "'Argue' — implies a strong position. 'Suggest' is softer.",
+          },
+          {
+            id: "rep-choose5",
+            question: "Complete: 'It is widely ______ that fast food is unhealthy.' (accept / accepted)",
+            answer: "'accepted' — passive: 'It is widely accepted that…'",
+          },
+        ],
+      },
+      {
+        id: "transform-errors",
+        title: "Transformations & error correction",
+        flashcards: [
+          {
+            id: "rep-tran1",
+            question: "Change passive to simple active: 'It is believed that exercise reduces stress.'",
+            answer: "'People believe that exercise reduces stress.' or 'Many people believe that exercise reduces stress.'",
+          },
+          {
+            id: "rep-tran2",
+            question: "Correct: 'It has been suggested that the problem to be solved quickly.'",
+            answer: "'It has been suggested that the problem should be solved quickly.' or '...needs to be solved quickly.' — need a verb; 'to be' alone is wrong.",
+          },
+          {
+            id: "rep-tran3",
+            question: "Transform: 'Climate change is thought to be a serious threat.' → Active form.",
+            answer: "'People think that climate change is a serious threat.' or 'Experts think that...'",
+          },
+          {
+            id: "rep-tran4",
+            question: "Correct: 'It is believe that education reduces poverty.'",
+            answer: "'It is believed that education reduces poverty.' — past participle 'believed'.",
+          },
+          {
+            id: "rep-tran5",
+            question: "Rewrite in passive: 'Many experts argue that the policy will fail.'",
+            answer: "'It is argued by many experts that the policy will fail.' or 'It is widely argued that the policy will fail.'",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "hedging-formal-style",
+    title: "Hedging & Formal Style",
+    subtopics: [
+      {
+        id: "what-hedging",
+        title: "What hedging is",
+        flashcards: [
+          {
+            id: "hedge-1",
+            question: "Which sentence is more hedged and why? a) 'Social media causes mental health problems.' b) 'Social media can contribute to mental health problems.'",
+            answer: "b) — 'can contribute to' is cautious; 'causes' is too strong and certain. Hedging shows we are not claiming a definite cause.",
+          },
+          {
+            id: "hedge-2",
+            question: "Explain in one sentence what 'hedging' means in academic writing.",
+            answer: "Hedging is using cautious language (e.g. may, might, can contribute to) to avoid sounding too certain when we are not 100% sure.",
+          },
+          {
+            id: "hedge-3",
+            question: "Which is hedged: 'Technology destroys jobs' or 'Technology may affect employment'?",
+            answer: "The second — 'may affect' is cautious. 'Destroys' is too strong and certain.",
+          },
+          {
+            id: "hedge-4",
+            question: "Rewrite to add hedging: 'Fast food causes obesity.'",
+            answer: "'Fast food can contribute to obesity.' or 'Fast food is likely to contribute to obesity for some people.'",
+          },
+          {
+            id: "hedge-5",
+            question: "Why is 'This policy will definitely work' not good for academic writing?",
+            answer: "Too certain. Academic writing prefers cautious language — e.g. 'This policy may help' or 'is likely to help'.",
+          },
+        ],
+      },
+      {
+        id: "adj-adv-hedging",
+        title: "Adjectives/adverbs for hedging",
+        flashcards: [
+          {
+            id: "hedge-adv1",
+            question: "Rewrite using a hedging adverb: 'Online education is effective.' (Use 'generally' or 'largely'.)",
+            answer: "'Online education is generally effective.' or 'Online education is largely effective.'",
+          },
+          {
+            id: "hedge-adv2",
+            question: "Fill: 'The increase in obesity is ______ due to changes in diet.' (partly / always)",
+            answer: "'partly' — shows we are not claiming it is the only cause. 'Always' is too strong.",
+          },
+          {
+            id: "hedge-adv3",
+            question: "Add hedging: 'This trend will continue.'",
+            answer: "'This trend is likely to continue.' or 'This trend will probably continue.'",
+          },
+          {
+            id: "hedge-adv4",
+            question: "Choose: 'The results are (certain / possibly) accurate.'",
+            answer: "'possibly' — hedging. 'Certain' would remove hedging.",
+          },
+          {
+            id: "hedge-adv5",
+            question: "Rewrite: 'The policy failed.' (Add 'largely' or 'partly'.)",
+            answer: "'The policy largely failed.' or 'The policy partly failed.' — softens the claim.",
+          },
+        ],
+      },
+      {
+        id: "intro-phrases",
+        title: "Introductory phrases for hedging",
+        flashcards: [
+          {
+            id: "hedge-intro1",
+            question: "Begin with an introductory phrase: 'Technology has improved communication.' (Use 'It is widely believed that…')",
+            answer: "'It is widely believed that technology has improved communication.'",
+          },
+          {
+            id: "hedge-intro2",
+            question: "Which is more cautious: 'It is a fact that…' or 'It seems that…'? Explain.",
+            answer: "'It seems that…' — 'seems' implies uncertainty. 'It is a fact that…' suggests 100% certainty.",
+          },
+          {
+            id: "hedge-intro3",
+            question: "Complete: '______, regular exercise improves health.' (In many cases / It is certain)",
+            answer: "'In many cases' — hedged. 'It is certain' would remove hedging.",
+          },
+          {
+            id: "hedge-intro4",
+            question: "Rewrite: 'Education reduces poverty.' (Start with 'Research suggests that…')",
+            answer: "'Research suggests that education reduces poverty.' — adds distance and caution.",
+          },
+          {
+            id: "hedge-intro5",
+            question: "Which phrase is more academic: 'Everybody knows that…' or 'It is generally accepted that…'?",
+            answer: "'It is generally accepted that…' — more formal and hedged. 'Everybody knows' is informal and overconfident.",
+          },
+        ],
+      },
+      {
+        id: "avoid-informal",
+        title: "Avoiding informal language & contractions",
+        flashcards: [
+          {
+            id: "hedge-form1",
+            question: "Change to formal: 'Kids don't get enough sleep these days.'",
+            answer: "'Children do not get enough sleep these days.' — no contraction; replace 'kids' with 'children'.",
+          },
+          {
+            id: "hedge-form2",
+            question: "Replace informal phrase: 'A lot of people think that crime is going up.'",
+            answer: "'Many people believe that crime is increasing.' — 'a lot of' → 'many'; 'think' → 'believe'; 'going up' → 'increasing'.",
+          },
+          {
+            id: "hedge-form3",
+            question: "Correct: 'It's important that governments act.'",
+            answer: "'It is important that governments act.' — expand contraction for Academic Writing.",
+          },
+          {
+            id: "hedge-form4",
+            question: "Replace: 'Lots of students struggle with writing.'",
+            answer: "'Many students struggle with writing.' or 'A large number of students struggle...' — more formal than 'lots of'.",
+          },
+          {
+            id: "hedge-form5",
+            question: "Fix: 'Governments can't ignore this problem.'",
+            answer: "'Governments cannot ignore this problem.' — no contractions in Academic Writing.",
+          },
+        ],
+      },
+      {
+        id: "style-tasks",
+        title: "Style improvement tasks",
+        flashcards: [
+          {
+            id: "hedge-style1",
+            question: "Improve for an IELTS essay: 'This problem is really bad and will definitely get worse.'",
+            answer: "'This problem is serious and is likely to deteriorate.' or '...may get worse.' — replace informal words and add hedging.",
+          },
+          {
+            id: "hedge-style2",
+            question: "Rewrite to sound more academic: 'The government is kind of responsible for this issue.'",
+            answer: "'The government is partly responsible for this issue.' or '...is largely responsible...' — replace 'kind of' with a precise adverb.",
+          },
+          {
+            id: "hedge-style3",
+            question: "Improve: 'Everybody knows that pollution is bad.'",
+            answer: "'It is widely accepted that pollution has negative effects.' — avoid 'everybody knows'; use hedged, formal phrasing.",
+          },
+          {
+            id: "hedge-style4",
+            question: "Rewrite: 'This will for sure solve the problem.'",
+            answer: "'This may help to address the problem.' or 'This is likely to help solve the problem.' — remove 'for sure'; add hedging.",
+          },
+          {
+            id: "hedge-style5",
+            question: "Improve: 'People use cars way too much.'",
+            answer: "'People use cars excessively.' or '...to a great extent.' — replace 'way too much' with formal equivalent.",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 /** Get all flashcards for a topic */
