@@ -770,6 +770,489 @@ export const FLASHCARD_TOPICS: FlashcardTopic[] = [
       },
     ],
   },
+  {
+    id: "relative-clauses",
+    title: "Relative Clauses",
+    subtopics: [
+      {
+        id: "rc-basics",
+        title: "Relative clause basics",
+        flashcards: [
+          {
+            id: "rc-basics-1",
+            question: "Underline the relative clause and name the noun it describes: 'Many students who want better facilities study abroad.'",
+            answer: "Relative clause: 'who want better facilities'. It describes the noun 'students'.",
+          },
+          {
+            id: "rc-basics-2",
+            question: "Does this sentence contain a relative clause? 'Many students study abroad for better facilities.' Explain.",
+            answer: "No. There is no relative pronoun (who, which, that, etc.) introducing a clause. 'for better facilities' is a prepositional phrase.",
+          },
+          {
+            id: "rc-basics-3",
+            question: "Why is this version better for IELTS? a) 'Many students study abroad. They want better facilities.' b) 'Many students who want better facilities study abroad.'",
+            answer: "b) is better. It combines ideas into one complex sentence with a relative clause, which shows grammatical range and helps your band score.",
+          },
+          {
+            id: "rc-basics-4",
+            question: "In 'The university that I attended offers many courses,' what does the relative clause describe?",
+            answer: "The relative clause 'that I attended' describes the noun 'university'.",
+          },
+          {
+            id: "rc-basics-5",
+            question: "Identify the relative clause and the noun: 'Public transport, which is often crowded, is still cheaper than driving.'",
+            answer: "Relative clause: 'which is often crowded'. It describes 'Public transport'.",
+          },
+        ],
+      },
+      {
+        id: "defining",
+        title: "Defining relative clauses",
+        flashcards: [
+          {
+            id: "defining-1",
+            question: "Join the sentences with a defining relative clause: 'The people live in cities. They often face higher living costs.'",
+            answer: "'People who live in cities often face higher living costs.' (Defining — no commas; essential information.)",
+          },
+          {
+            id: "defining-2",
+            question: "Which sentence is correct for a defining clause and why? a) 'The city which I live in has heavy traffic.' b) 'The city, which I live in, has heavy traffic.'",
+            answer: "a) is correct. Defining clauses have no commas. The comma version (b) suggests non-defining (extra info).",
+          },
+          {
+            id: "defining-3",
+            question: "In 'Students who study regularly often get higher scores,' is the information in the clause essential or extra? Explain.",
+            answer: "Essential. It defines which students we mean (those who study regularly). Without it, we lose the meaning.",
+          },
+          {
+            id: "defining-4",
+            question: "Join with a defining clause: 'The course was very helpful. I took it last year.'",
+            answer: "'The course (that) I took last year was very helpful.' — we can omit 'that' when it is the object.",
+          },
+          {
+            id: "defining-5",
+            question: "Why are there no commas in: 'The teacher who teaches us IELTS is very experienced'?",
+            answer: "Defining clause — we need it to know which teacher. Without it, the sentence would be incomplete.",
+          },
+        ],
+      },
+      {
+        id: "non-defining",
+        title: "Non-defining relative clauses",
+        flashcards: [
+          {
+            id: "nondef-1",
+            question: "Add commas if needed: 'My brother who lives in Australia is preparing for IELTS.' (Non-defining)",
+            answer: "'My brother, who lives in Australia, is preparing for IELTS.' — commas needed for non-defining (extra info).",
+          },
+          {
+            id: "nondef-2",
+            question: "Change this to add extra information: 'Public transport is still cheaper than driving. It is often crowded.' (Use a non-defining clause.)",
+            answer: "'Public transport, which is often crowded, is still cheaper than driving.' — non-defining with commas.",
+          },
+          {
+            id: "nondef-3",
+            question: "Can we use 'that' in this sentence: 'Public transport, that is often crowded, is still cheaper than driving'? Correct it.",
+            answer: "No. We cannot use 'that' in non-defining clauses. Correct: 'Public transport, which is often crowded, is still cheaper than driving.'",
+          },
+          {
+            id: "nondef-4",
+            question: "Add commas: 'Jakarta which is the capital of Indonesia has very bad traffic.' (Non-defining)",
+            answer: "'Jakarta, which is the capital of Indonesia, has very bad traffic.'",
+          },
+          {
+            id: "nondef-5",
+            question: "Explain the difference: 'My brother who lives in Australia is a teacher' vs 'My brother, who lives in Australia, is a teacher.'",
+            answer: "First (no commas): I have more than one brother; this one lives in Australia. Second (commas): I have one brother; he lives in Australia (extra info).",
+          },
+        ],
+      },
+      {
+        id: "pronouns",
+        title: "Relative pronouns (who/which/that/where/when/whose)",
+        flashcards: [
+          {
+            id: "pron-rc-1",
+            question: "Choose the best word: 'People ____ live in big cities often face high living costs.' (who / which / where)",
+            answer: "'who' — refers to people ('People'). 'Which' is for things; 'where' is for places.",
+          },
+          {
+            id: "pron-rc-2",
+            question: "Complete: 'A period ____ many people lost their jobs was the financial crisis.' (when / where / which)",
+            answer: "'when' — refers to time ('period').",
+          },
+          {
+            id: "pron-rc-3",
+            question: "Fix: 'The country who population is ageing faces new challenges.' (Use 'whose'.)",
+            answer: "'The country whose population is ageing faces new challenges.' — 'whose' shows possession.",
+          },
+          {
+            id: "pron-rc-4",
+            question: "Choose: 'The university ____ I study has a large library.' (who / which / where)",
+            answer: "'where' — refers to a place ('university' as a location).",
+          },
+          {
+            id: "pron-rc-5",
+            question: "Choose: 'The student ____ essay won the prize is from Indonesia.' (who / whose / which)",
+            answer: "'whose' — shows possession (the student's essay).",
+          },
+        ],
+      },
+      {
+        id: "ielts-sentences",
+        title: "Relative clauses in IELTS sentences",
+        flashcards: [
+          {
+            id: "ielts-rc-1",
+            question: "Combine: 'The government introduced a new policy. The new policy aims to reduce pollution.'",
+            answer: "'The government introduced a new policy which aims to reduce pollution.' — avoids repeating 'the new policy'.",
+          },
+          {
+            id: "ielts-rc-2",
+            question: "Improve with a relative clause: 'The university is popular. It offers high-quality facilities.'",
+            answer: "'The university, which offers high-quality facilities, is popular.' — or: 'The university that offers high-quality facilities is popular.'",
+          },
+          {
+            id: "ielts-rc-3",
+            question: "Is this correct? 'The city which the traffic is heavy is unhealthy.' If not, rewrite.",
+            answer: "Wrong. Correct: 'The city where traffic is heavy is unhealthy.' or 'The city in which traffic is heavy is unhealthy.' — use 'where' or 'in which' for place.",
+          },
+          {
+            id: "ielts-rc-4",
+            question: "Avoid repetition: 'The chart shows data. The data was collected in 2020.'",
+            answer: "'The chart shows data which was collected in 2020.' — relative clause replaces the second 'The data'.",
+          },
+          {
+            id: "ielts-rc-5",
+            question: "Fix: 'The country that the population is growing faces housing shortages.'",
+            answer: "'The country whose population is growing faces housing shortages.' — use 'whose' for possession (the country's population).",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "linking-words-coherence",
+    title: "Linking Words, Referencing & Coherence",
+    subtopics: [
+      {
+        id: "linkers",
+        title: "Linking words – addition, contrast, result, example, sequence",
+        flashcards: [
+          {
+            id: "linkers-1",
+            question: "Choose the best linker: 'Many people own cars; ______, public transport is still crowded.' (however / for example / firstly)",
+            answer: "'however' — shows contrast (cars are common yet public transport is still crowded).",
+          },
+          {
+            id: "linkers-2",
+            question: "Fill the gap: 'Firstly, governments should invest more in education. ______, they should improve healthcare systems.' (In addition / However)",
+            answer: "'In addition' — adds another idea; we are not contrasting.",
+          },
+          {
+            id: "linkers-3",
+            question: "Which linker shows contrast: 'moreover', 'however', or 'for example'?",
+            answer: "'However' — contrast. 'Moreover' = addition; 'for example' = example.",
+          },
+          {
+            id: "linkers-4",
+            question: "Choose: 'Traffic causes pollution. ______, it wastes time.' (Therefore / Moreover / However)",
+            answer: "'Moreover' — we are adding another negative effect, not showing cause–result.",
+          },
+          {
+            id: "linkers-5",
+            question: "Which linker shows result? 'because', 'therefore', or 'although'?",
+            answer: "'Therefore' — shows result. 'Because' = cause; 'although' = contrast.",
+          },
+        ],
+      },
+      {
+        id: "overuse",
+        title: "Over-use and misuse of linkers",
+        flashcards: [
+          {
+            id: "overuse-1",
+            question: "What is wrong with: 'So, therefore, governments should, like, spend more on education.'? Rewrite.",
+            answer: "'So' and 'therefore' together are redundant; 'like' is informal. Better: 'Therefore, governments should spend more on education.'",
+          },
+          {
+            id: "overuse-2",
+            question: "Improve: 'And people use cars a lot. And this causes pollution. And the air quality is bad.'",
+            answer: "'People use cars a lot, which causes pollution and worsens air quality.' — use fewer linkers and vary structure.",
+          },
+          {
+            id: "overuse-3",
+            question: "Is 'plus' suitable for Academic Writing? What should you use instead?",
+            answer: "No. Use 'moreover', 'in addition', or 'furthermore' instead.",
+          },
+          {
+            id: "overuse-4",
+            question: "What is wrong: 'Firstly, I will discuss benefits. Firstly, I will look at problems. Firstly, I will give my opinion.'",
+            answer: "'Firstly' is repeated. Use 'Firstly', 'Secondly', 'Finally' (or 'Furthermore', 'In addition').",
+          },
+          {
+            id: "overuse-5",
+            question: "Replace informal linkers: 'People like technology. And so on, it helps education.'",
+            answer: "'People like technology. Furthermore, it helps education.' — avoid 'and so on'; use formal linkers.",
+          },
+        ],
+      },
+      {
+        id: "referencing",
+        title: "Referencing – pronouns and this/these",
+        flashcards: [
+          {
+            id: "ref-1",
+            question: "Replace the second 'the government' with a pronoun: 'The government increased taxes because the government needed more money.'",
+            answer: "'The government increased taxes because it needed more money.' — use 'it' to avoid repetition.",
+          },
+          {
+            id: "ref-2",
+            question: "In 'The shops closed early. This made it difficult to buy food,' what does 'This' refer to?",
+            answer: "'This' refers to the whole idea: 'The shops closed early.'",
+          },
+          {
+            id: "ref-3",
+            question: "Correct: 'People are very busy. This make traffic worse.'",
+            answer: "'People are very busy. This makes traffic worse.' — 'This' is singular, so use 'makes'.",
+          },
+          {
+            id: "ref-4",
+            question: "Replace repeated noun: 'I prefer the blue jacket, but my friend likes the red jacket.'",
+            answer: "'I prefer the blue jacket, but my friend likes the red one.' — use 'one' to substitute.",
+          },
+          {
+            id: "ref-5",
+            question: "Fix unclear reference: 'Technology and education are important. It helps students.' (What does 'it' mean?)",
+            answer: "'Technology and education are important. Technology helps students.' or '...Education helps students.' — make the pronoun refer clearly to one noun.",
+          },
+        ],
+      },
+      {
+        id: "paragraph-flow",
+        title: "Paragraph flow (topic sentence + support)",
+        flashcards: [
+          {
+            id: "flow-1",
+            question: "Which is the best topic sentence for a paragraph about traffic problems? a) 'Cars are big.' b) 'Traffic congestion is a major problem in many cities.' c) 'I drive to work.'",
+            answer: "b) — clear, general statement that introduces the main idea. The others are too vague or too personal.",
+          },
+          {
+            id: "flow-2",
+            question: "Put in order (1, 2, 3): ___ Many people spend hours commuting. ___ Traffic congestion is a serious issue. ___ Therefore, governments should invest in public transport.",
+            answer: "2, 1, 3 — topic sentence first, then support, then conclusion/link.",
+          },
+          {
+            id: "flow-3",
+            question: "What should follow a topic sentence?",
+            answer: "Supporting ideas — examples, reasons, or evidence — with linking words.",
+          },
+          {
+            id: "flow-4",
+            question: "Identify the topic sentence: 'Pollution affects health. Factories release chemicals. Cars produce exhaust. Therefore, air quality has declined.'",
+            answer: "'Pollution affects health.' — it states the main idea; the rest supports it.",
+          },
+          {
+            id: "flow-5",
+            question: "Which sentence best follows: 'Education plays a vital role in society.'? a) 'I went to school.' b) 'For example, educated people tend to earn more.'",
+            answer: "b) — gives an example that supports the topic sentence. a) is too personal.",
+          },
+        ],
+      },
+      {
+        id: "mini-cohesion",
+        title: "Mini cohesion checks",
+        flashcards: [
+          {
+            id: "cohesion-1",
+            question: "Which linking word is overused? 'Firstly, I think education is important. Firstly, it helps people find jobs. Firstly, it improves society.' Rewrite one sentence.",
+            answer: "'Firstly' is overused. Rewrite: 'Furthermore, it helps people find jobs.' or 'Secondly, it helps people find jobs.'",
+          },
+          {
+            id: "cohesion-2",
+            question: "Find the unclear pronoun: 'The government increased taxes. Companies reduced staff. This caused problems.' What does 'This' mean?",
+            answer: "'This' could mean taxes, staff cuts, or both. Fix: 'These changes caused problems.' or specify: 'The tax increase caused problems.'",
+          },
+          {
+            id: "cohesion-3",
+            question: "Check this paragraph: 'People use cars. So pollution rises. So health gets worse.' Improve.",
+            answer: "'People use cars, which causes pollution to rise. As a result, public health deteriorates.' — vary linkers and structure.",
+          },
+          {
+            id: "cohesion-4",
+            question: "Is the reference clear? 'Education and healthcare are important. It receives too little funding.'",
+            answer: "No. 'It' is unclear — education or healthcare? Specify: 'Healthcare receives too little funding.'",
+          },
+          {
+            id: "cohesion-5",
+            question: "Spot the cohesion problem: 'Governments should act. Governments have the power. Governments can change laws.'",
+            answer: "'Governments' is repeated too often. Use pronouns: 'Governments should act. They have the power and can change laws.'",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "collocations-paraphrasing",
+    title: "Collocations & Paraphrasing",
+    subtopics: [
+      {
+        id: "basic-collocations",
+        title: "Basic collocations",
+        flashcards: [
+          {
+            id: "coll-1",
+            question: "Choose the best collocation: '______ a decision' (do / make)",
+            answer: "'make a decision' — 'make' collocates with 'decision'. 'Do a decision' is wrong.",
+          },
+          {
+            id: "coll-2",
+            question: "Fill the gap: 'The government should ______ a new policy to reduce pollution.' (make / create / introduce)",
+            answer: "'introduce' — 'introduce a policy' is the most natural collocation in this context.",
+          },
+          {
+            id: "coll-3",
+            question: "Complete: 'The study ______ the conclusion that exercise improves health.' (achieved / reached / got)",
+            answer: "'reached' — we 'reach a conclusion', not 'achieve' or 'get'.",
+          },
+          {
+            id: "coll-4",
+            question: "Choose: '______ awareness about climate change' (raise / grow / increase)",
+            answer: "'raise awareness' — the correct collocation. 'Increase awareness' is possible but 'raise' is more common.",
+          },
+          {
+            id: "coll-5",
+            question: "Complete: 'Technology ______ a vital role in education.' (does / plays / makes)",
+            answer: "'plays' — 'play a vital role' is the correct collocation.",
+          },
+        ],
+      },
+      {
+        id: "academic-collocations",
+        title: "Academic collocations for IELTS",
+        flashcards: [
+          {
+            id: "acad-1",
+            question: "Complete: 'play a ______ role in society.' (important / vital / tiny — which is most natural in IELTS?)",
+            answer: "'vital' — 'play a vital role' is a strong academic collocation. 'Important' works but 'vital' is more precise.",
+          },
+          {
+            id: "acad-2",
+            question: "Which collocation is better in an essay: 'big problem' or 'serious problem'? Why?",
+            answer: "'serious problem' — more formal and academic. 'Big' is informal.",
+          },
+          {
+            id: "acad-3",
+            question: "Complete: 'There was a ______ increase in online sales.' (significant / big / huge)",
+            answer: "'significant' — academic and precise. 'Big' and 'huge' are too informal.",
+          },
+          {
+            id: "acad-4",
+            question: "Choose: 'The government should ______ the problem of housing shortages.' (address / talk / say)",
+            answer: "'address' — 'address a problem' is a formal collocation. 'Talk' and 'say' don't collocate well here.",
+          },
+          {
+            id: "acad-5",
+            question: "Complete: 'traffic ______' (congestion / jam / problem)",
+            answer: "'traffic congestion' — noun + noun collocation. 'Traffic jam' is fine but 'congestion' is more formal.",
+          },
+        ],
+      },
+      {
+        id: "wrong-collocations",
+        title: "Spotting wrong collocations",
+        flashcards: [
+          {
+            id: "wrong-1",
+            question: "Correct: 'People do a decision based on salary.'",
+            answer: "'People make a decision based on salary.' — 'make a decision', not 'do'.",
+          },
+          {
+            id: "wrong-2",
+            question: "What is wrong in 'achieve a conclusion'? Give a better collocation.",
+            answer: "We 'reach a conclusion', not 'achieve'. 'Achieve' collocates with goals, success, etc.",
+          },
+          {
+            id: "wrong-3",
+            question: "Fix: 'There was a strong down in sales last year.' (Use 'drop'.)",
+            answer: "'There was a sharp drop in sales last year.' — 'sharp drop' or 'significant drop', not 'strong down'.",
+          },
+          {
+            id: "wrong-4",
+            question: "Correct: 'The research did a survey of 500 people.'",
+            answer: "'The research conducted a survey of 500 people.' or 'The researchers conducted a survey...' — 'conduct research/survey'.",
+          },
+          {
+            id: "wrong-5",
+            question: "Fix: 'Education has a big impact on society.'",
+            answer: "'Education has a significant impact on society.' — 'significant impact' is more academic than 'big impact'.",
+          },
+        ],
+      },
+      {
+        id: "simple-paraphrasing",
+        title: "Simple paraphrasing – synonyms & word form",
+        flashcards: [
+          {
+            id: "parap-1",
+            question: "Paraphrase by changing the verb: 'The chart shows the number of car owners.' (Use 'illustrates'.)",
+            answer: "'The chart illustrates the number of car owners.' — 'illustrates' is a synonym for 'shows'.",
+          },
+          {
+            id: "parap-2",
+            question: "Change verb to noun: 'People migrated to cities' → 'There was an increase in ______ to cities.'",
+            answer: "'migration' — change 'migrated' (verb) to 'migration' (noun).",
+          },
+          {
+            id: "parap-3",
+            question: "Choose the best synonym for 'important' in a Task 2 introduction: 'crucial', 'funny', or 'crowded'?",
+            answer: "'crucial' — same meaning, formal. 'Funny' and 'crowded' have different meanings.",
+          },
+          {
+            id: "parap-4",
+            question: "Paraphrase: 'The graph displays a rise in pollution.' (Change 'displays' and 'rise'.)",
+            answer: "'The graph presents an increase in pollution.' — synonyms: display→present, rise→increase.",
+          },
+          {
+            id: "parap-5",
+            question: "Change to noun form: 'People consume more energy' → 'Energy ______ has increased.'",
+            answer: "'consumption' — verb 'consume' → noun 'consumption'.",
+          },
+        ],
+      },
+      {
+        id: "whole-sentences",
+        title: "Paraphrasing whole sentences",
+        flashcards: [
+          {
+            id: "whole-1",
+            question: "Paraphrase: 'The government should ban private cars in city centres.' (Keep meaning, use different structure.)",
+            answer: "'Private cars should be banned in city centres by the government.' — passive voice, same meaning.",
+          },
+          {
+            id: "whole-2",
+            question: "Change to passive: 'People use the internet for shopping more than ever before.'",
+            answer: "'The internet is used for shopping more than ever before (by people).'",
+          },
+          {
+            id: "whole-3",
+            question: "Is this paraphrase acceptable? Original: 'The chart shows the main energy sources in 2020.' New: 'The chart illustrates the primary sources of energy in 2020.'",
+            answer: "Yes. Same meaning: shows→illustrates, main→primary, energy sources→sources of energy. Good paraphrase.",
+          },
+          {
+            id: "whole-4",
+            question: "Paraphrase: 'Many people believe that technology improves education.'",
+            answer: "'Technology is believed by many to improve education.' (passive) or 'It is widely believed that technology improves education.'",
+          },
+          {
+            id: "whole-5",
+            question: "Rewrite with different structure: 'The number of cars increased between 2010 and 2020.'",
+            answer: "'Between 2010 and 2020, there was an increase in the number of cars.' — different word order and 'increase' as noun.",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 /** Get all flashcards for a topic */
