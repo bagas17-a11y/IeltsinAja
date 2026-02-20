@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { HumanPlusAILockScreen } from "@/components/HumanPlusAILockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -67,6 +69,9 @@ function saveFlashcardProgress(
 }
 
 export default function FlashcardsTopicPage() {
+  const { profile } = useAuth();
+  const isElite = profile?.subscription_tier === "elite";
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const topicId = searchParams.get("topic") ?? "";
@@ -122,6 +127,20 @@ export default function FlashcardsTopicPage() {
     progress.stillLearning.has(c.id)
   ).length;
   const knowCount = flashcards.filter((c) => progress.know.has(c.id)).length;
+
+  if (!isElite) {
+    return (
+      <HumanPlusAILockScreen
+        title="Flashcards"
+        description="Upgrade to the Human+AI package to access Flashcards."
+        features={[
+          "Grammar topics 1–13",
+          "Interactive flip cards",
+          "Progress tracking",
+        ]}
+      />
+    );
+  }
 
   if (!topic || !subtopic || flashcards.length === 0) {
     return (

@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { HumanPlusAILockScreen } from "@/components/HumanPlusAILockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -60,6 +62,9 @@ function saveCompletedTopics(set: Set<string>) {
 }
 
 export default function RevisionNotesPage() {
+  const { profile } = useAuth();
+  const isElite = profile?.subscription_tier === "elite";
+
   const [searchParams, setSearchParams] = useSearchParams();
   const topicParam = searchParams.get("topic") as RevisionNoteTopicId | null;
   const viewAll = searchParams.get("view") === "all";
@@ -165,6 +170,21 @@ export default function RevisionNotesPage() {
 
   const nextId = getNextTopicId(currentTopic);
   const prevId = getPrevTopicId(currentTopic);
+
+  if (!isElite) {
+    return (
+      <HumanPlusAILockScreen
+        title="Revision Notes"
+        description="Access grammar and vocabulary revision notes across topics. Upgrade to the Human+AI package to use this feature."
+        features={[
+          "Grammar topics (parts of speech, tenses, etc.)",
+          "Vocabulary and collocations",
+          "Interactive progress tracking",
+          "IELTS-focused examples",
+        ]}
+      />
+    );
+  }
 
   return (
     <DashboardLayout>
