@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
 
 interface IeltsQuestion {
   id: string;
@@ -100,7 +101,8 @@ export default function WritingModule() {
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isElite = profile?.subscription_tier === "elite";
   // isAdmin comes from useAuth hook
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts } = useFeatureGating();
@@ -713,70 +715,153 @@ export default function WritingModule() {
         {/* Library View */}
         {view === "library" && (
           <>
-            {/* Task Tabs */}
-            <Tabs value={activeTask} onValueChange={handleTaskChange} className="mb-6">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="Task 1" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
-                  Task 1 (Report)
-                </TabsTrigger>
-                <TabsTrigger value="Task 2" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
-                  Task 2 (Essay)
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            {isElite ? (
+              <Tabs defaultValue="practice" className="w-full">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="practice">Practice Questions</TabsTrigger>
+                  <TabsTrigger value="cheatsheet">Cheatsheet & Tips</TabsTrigger>
+                </TabsList>
+                <TabsContent value="practice" className="mt-0">
+                  {/* Task Tabs */}
+                  <Tabs value={activeTask} onValueChange={handleTaskChange} className="mb-6">
+                    <TabsList className="grid w-full max-w-md grid-cols-2">
+                      <TabsTrigger value="Task 1" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                        Task 1 (Report)
+                      </TabsTrigger>
+                      <TabsTrigger value="Task 2" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                        Task 2 (Essay)
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
 
-            {/* Question Library */}
-            <div className="space-y-4">
-              {loadingQuestions ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : filteredQuestions.length === 0 ? (
-                <Card className="border-dashed">
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <BookOpen className="w-12 h-12 text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground mb-2">No questions available for {activeTask}</p>
-                    <p className="text-sm text-muted-foreground">Check back later or contact your instructor.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                filteredQuestions.map((q) => (
-                  <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 pr-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className={`text-xs px-2 py-0.5 rounded ${
-                              q.task_type === "Task 2" 
-                                ? "bg-purple-500/20 text-purple-400"
-                                : q.task_type === "Task 1 General"
-                                ? "bg-teal-500/20 text-teal-400"
-                                : "bg-blue-500/20 text-blue-400"
-                            }`}>
-                              {q.task_type}
-                            </span>
-                            <span className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${getDifficultyColor(q.difficulty)}`}>
-                              <Zap className="w-3 h-3" />
-                              {q.difficulty}
-                            </span>
-                          </div>
-                          <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
-                            {q.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {q.question_prompt}
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm" className="flex-shrink-0 gap-2 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
-                          <Play className="w-4 h-4" />
-                          Start Practice
-                        </Button>
+                  {/* Question Library */}
+                  <div className="space-y-4">
+                    {loadingQuestions ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
+                    ) : filteredQuestions.length === 0 ? (
+                      <Card className="border-dashed">
+                        <CardContent className="flex flex-col items-center justify-center py-12">
+                          <BookOpen className="w-12 h-12 text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground mb-2">No questions available for {activeTask}</p>
+                          <p className="text-sm text-muted-foreground">Check back later or contact your instructor.</p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      filteredQuestions.map((q) => (
+                        <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 pr-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    q.task_type === "Task 2" 
+                                      ? "bg-purple-500/20 text-purple-400"
+                                      : q.task_type === "Task 1 General"
+                                      ? "bg-teal-500/20 text-teal-400"
+                                      : "bg-blue-500/20 text-blue-400"
+                                  }`}>
+                                    {q.task_type}
+                                  </span>
+                                  <span className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${getDifficultyColor(q.difficulty)}`}>
+                                    <Zap className="w-3 h-3" />
+                                    {q.difficulty}
+                                  </span>
+                                </div>
+                                <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
+                                  {q.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {q.question_prompt}
+                                </p>
+                              </div>
+                              <Button variant="outline" size="sm" className="flex-shrink-0 gap-2 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                                <Play className="w-4 h-4" />
+                                Start Practice
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </TabsContent>
+                <TabsContent value="cheatsheet" className="mt-0">
+                  <div className="glass-card p-6">
+                    <h2 className="text-lg font-semibold mb-4">Human+AI Cheatsheet & Hard Tips</h2>
+                    <WritingCheatsheet />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <>
+                {/* Task Tabs */}
+                <Tabs value={activeTask} onValueChange={handleTaskChange} className="mb-6">
+                  <TabsList className="grid w-full max-w-md grid-cols-2">
+                    <TabsTrigger value="Task 1" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                      Task 1 (Report)
+                    </TabsTrigger>
+                    <TabsTrigger value="Task 2" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                      Task 2 (Essay)
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                {/* Question Library */}
+                <div className="space-y-4">
+                  {loadingQuestions ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : filteredQuestions.length === 0 ? (
+                    <Card className="border-dashed">
+                      <CardContent className="flex flex-col items-center justify-center py-12">
+                        <BookOpen className="w-12 h-12 text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground mb-2">No questions available for {activeTask}</p>
+                        <p className="text-sm text-muted-foreground">Check back later or contact your instructor.</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    filteredQuestions.map((q) => (
+                      <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 pr-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                  q.task_type === "Task 2" 
+                                    ? "bg-purple-500/20 text-purple-400"
+                                    : q.task_type === "Task 1 General"
+                                    ? "bg-teal-500/20 text-teal-400"
+                                    : "bg-blue-500/20 text-blue-400"
+                                }`}>
+                                  {q.task_type}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${getDifficultyColor(q.difficulty)}`}>
+                                  <Zap className="w-3 h-3" />
+                                  {q.difficulty}
+                                </span>
+                              </div>
+                              <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
+                                {q.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {q.question_prompt}
+                              </p>
+                            </div>
+                            <Button variant="outline" size="sm" className="flex-shrink-0 gap-2 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                              <Play className="w-4 h-4" />
+                              Start Practice
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </>
         )}
 
