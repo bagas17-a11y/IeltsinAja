@@ -264,6 +264,7 @@ function MCQPractice({ questions, taskName, introImage, modelAnswerImage }: MCQP
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [showReferenceImage, setShowReferenceImage] = useState(true);
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + (showResult ? 1 : 0)) / questions.length) * 100;
@@ -294,6 +295,7 @@ function MCQPractice({ questions, taskName, introImage, modelAnswerImage }: MCQP
     setShowResult(false);
     setScore(0);
     setCompleted(false);
+    setShowReferenceImage(true);
   };
 
   if (!started) {
@@ -371,13 +373,42 @@ function MCQPractice({ questions, taskName, introImage, modelAnswerImage }: MCQP
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-muted-foreground">
-          Question {currentIndex + 1} of {questions.length}
-        </span>
-        <span className="text-sm text-muted-foreground">Score: {score}</span>
+      {introImage && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Reference: {taskName === "Task 1" ? "Bar Chart" : "Essay Question"}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowReferenceImage(!showReferenceImage)}
+              className="text-xs h-7"
+            >
+              {showReferenceImage ? "Hide" : "Show"}
+            </Button>
+          </div>
+          {showReferenceImage && (
+            <div className="rounded-lg overflow-hidden border border-border/30">
+              <img 
+                src={introImage} 
+                alt={`${taskName} reference material`}
+                className="w-full h-auto"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="border-t border-border/30 pt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">
+            Question {currentIndex + 1} of {questions.length}
+          </span>
+          <span className="text-sm text-muted-foreground">Score: {score}</span>
+        </div>
+        <Progress value={progress} className="h-2" />
       </div>
-      <Progress value={progress} className="h-2" />
 
       <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
         <p className="text-sm font-medium whitespace-pre-line">{currentQuestion.question}</p>
