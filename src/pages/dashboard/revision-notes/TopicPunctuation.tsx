@@ -22,19 +22,19 @@ export function TopicPunctuation() {
       </DefinitionCard>
 
       <SectionTitle number={2} title="Commas (,)" />
-      <SubSectionTitle title="a) Lists" />
+      <SubSectionTitle title="2.1 Lists" />
       <DefinitionCard>
         <p className="mb-3">Use commas to separate three or more items.</p>
         <WorkedExample>
           <>&quot;Students need <strong>time, motivation, and good resources</strong> to succeed.&quot;</>
         </WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="b) After linking words at the beginning" />
+      <SubSectionTitle title="2.2 After linking words at the beginning" />
       <DefinitionCard>
         <WorkedExample><>&quot;<strong>Firstly,</strong> governments should invest more in education.&quot;</></WorkedExample>
         <WorkedExample><>&quot;<strong>However,</strong> this solution may be too expensive.&quot;</></WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="c) Before “and / but / so / yet” when joining two sentences" />
+      <SubSectionTitle title="2.3 Before &quot;and / but / so / yet&quot; when joining two sentences" />
       <DefinitionCard>
         <WorkedExample>
           <>&quot;Public transport is cheap, <strong>but</strong> it is often crowded.&quot;</>
@@ -43,7 +43,7 @@ export function TopicPunctuation() {
           Avoid very long sentences with no commas or too many commas in random places.
         </p>
       </DefinitionCard>
-      <SubSectionTitle title="d) Common comma mistakes" />
+      <SubSectionTitle title="2.4 Common comma mistakes" />
       <DefinitionCard>
         <p className="mb-2 font-semibold text-slate-200">Comma splice</p>
         <p className="mb-2 text-sm">Using only a comma to join two complete sentences (wrong). Use a full stop, semicolon, or conjunction instead.</p>
@@ -54,7 +54,7 @@ export function TopicPunctuation() {
       </DefinitionCard>
 
       <SectionTitle number={3} title="Colons (:) and semicolons (;)" />
-      <SubSectionTitle title="Colons (:)" />
+      <SubSectionTitle title="3.1 Colons (:)" />
       <DefinitionCard>
         <p className="mb-3">A colon introduces lists, explanations, or quotations after an independent clause — like an equal sign connecting a main idea to what clarifies it.</p>
         <KeyList
@@ -64,7 +64,7 @@ export function TopicPunctuation() {
           ]}
         />
       </DefinitionCard>
-      <SubSectionTitle title="Semicolons (;)" />
+      <SubSectionTitle title="3.2 Semicolons (;)" />
       <DefinitionCard>
         <p className="mb-3">A semicolon joins two closely related independent clauses without a conjunction. Both sides must be complete sentences.</p>
         <WorkedExample>

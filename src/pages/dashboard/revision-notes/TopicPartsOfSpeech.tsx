@@ -50,7 +50,7 @@ export function TopicPartsOfSpeech() {
         <>&quot;It <strong>is widely accepted</strong> that education plays a vital role in economic growth.&quot;</>
       </WorkedExample>
       <ExaminerTip>
-        In Task 1, the subject is often a <strong>measurement word</strong> (percentage, number, amount, proportion), not the people themselves.
+        In IELTS Writing Task 1 (describing data), the subject is often a <strong>measurement word</strong> (percentage, number, amount, proportion), not the people themselves.
       </ExaminerTip>
       <p className="text-sm font-semibold text-slate-300 mt-4 mb-2">Common IELTS Mistakes &amp; Fixes</p>
       <KeyList
@@ -114,7 +114,7 @@ export function TopicPartsOfSpeech() {
       <SubSectionTitle title="4.2 Worked Examples" />
       <KeyList
         items={[
-          <><strong className="text-white">Personal</strong>: I, we, they, it (use &quot;I&quot; mainly in Speaking and sometimes in Task 2 when asked for your opinion).</>,
+          <><strong className="text-white">Personal</strong>: I, we, they, it (use &quot;I&quot; mainly in Speaking and sometimes in IELTS Writing Task 2 when asked for your opinion).</>,
           <><strong className="text-white">Demonstrative</strong>: this, that, these, those (refer clearly to the previous idea).</>,
           <><strong className="text-white">Relative</strong>: who, which, that, where (build complex sentences).</>,
         ]}
@@ -213,7 +213,7 @@ export function TopicPartsOfSpeech() {
           Imperatives give commands or directions (&quot;Consider the long‑term effects&quot;).
         </p>
         <p>
-          They are natural in Speaking (giving advice) and in instructions, but in <strong className="text-white">formal IELTS Writing Task 2</strong> we usually prefer a declarative sentence instead of a direct imperative.
+          They are natural in Speaking (giving advice) and in instructions, but in <strong className="text-white">formal IELTS Writing Task 2 (essay)</strong> we usually prefer a declarative sentence instead of a direct imperative.
         </p>
       </DefinitionCard>
       <SubSectionTitle title="7.2 Worked Examples" />

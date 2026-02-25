@@ -18,7 +18,7 @@ export function TopicVerbTenses() {
           Correct tense choice shows when something happens and how long it lasts.
         </p>
         <p>
-          Band 7+ candidates use tenses consistently in Task 1, Task 2, and Speaking, with only occasional errors.
+          Band 7+ candidates use tenses consistently in IELTS Writing Task 1 (visual report), Task 2 (essay), and Speaking, with only occasional errors.
         </p>
       </DefinitionCard>
       <SubSectionTitle title="V1/V2/V3 Legend" />
@@ -45,10 +45,10 @@ export function TopicVerbTenses() {
         <p className="mb-2"><strong>Use:</strong> Completed actions or changes in the past.</p>
       </DefinitionCard>
       <WorkedExample>
-        <>Task 1: &quot;Car ownership <strong>increased</strong> significantly between 1990 and 2000.&quot; — Why: the chart shows a past period that is finished.</>
+        <>IELTS Writing Task 1: &quot;Car ownership <strong>increased</strong> significantly between 1990 and 2000.&quot; — Why: the chart shows a past period that is finished.</>
       </WorkedExample>
       <WorkedExample>
-        <>Task 2: &quot;In the past, people <strong>relied</strong> more on local communities.&quot;</>
+        <>IELTS Writing Task 2: &quot;In the past, people <strong>relied</strong> more on local communities.&quot;</>
       </WorkedExample>
       <WorkedExample>
         <>Speaking: &quot;I <strong>studied</strong> English at school.&quot;</>
@@ -69,7 +69,7 @@ export function TopicVerbTenses() {
         <p className="mb-2"><strong>Use:</strong> Earlier past before another past point.</p>
       </DefinitionCard>
       <WorkedExample>
-        <>Task 1: &quot;By 2010, the population <strong>had doubled</strong>.&quot; — Why: &quot;doubling&quot; happened before 2010, which is another past reference point.</>
+        <>IELTS Writing Task 1: &quot;By 2010, the population <strong>had doubled</strong>.&quot; — Why: &quot;doubling&quot; happened before 2010, which is another past reference point.</>
       </WorkedExample>
 
       <SubSectionTitle title="2.4 Past perfect continuous" />
@@ -88,10 +88,10 @@ export function TopicVerbTenses() {
         <p className="mb-2"><strong>Use:</strong> Facts, general truths, descriptions of charts with no clear past/future, and opinions.</p>
       </DefinitionCard>
       <WorkedExample>
-        <>Task 1: &quot;The chart <strong>shows</strong> the proportion of energy sources.&quot; — Why: the chart exists now; description is factual.</>
+        <>IELTS Writing Task 1: &quot;The chart <strong>shows</strong> the proportion of energy sources.&quot; — Why: the chart exists now; description is factual.</>
       </WorkedExample>
       <WorkedExample>
-        <>Task 2: &quot;Education <strong>plays</strong> a vital role in economic development.&quot;</>
+        <>IELTS Writing Task 2: &quot;Education <strong>plays</strong> a vital role in economic development.&quot;</>
       </WorkedExample>
       <WorkedExample>
         <>Speaking: &quot;I <strong>live</strong> in Jakarta.&quot;</>
@@ -103,7 +103,7 @@ export function TopicVerbTenses() {
         <p className="mb-2"><strong>Use:</strong> Temporary actions and current trends.</p>
       </DefinitionCard>
       <WorkedExample>
-        <>&quot;Many cities <strong>are experiencing</strong> rapid urbanisation.&quot; — Why: emphasises change happening around now; useful in Task 2 and Speaking.</>
+        <>&quot;Many cities <strong>are experiencing</strong> rapid urbanisation.&quot; — Why: emphasises change happening around now; useful in IELTS Writing Task 2 and Speaking.</>
       </WorkedExample>
 
       <SubSectionTitle title="3.3 Present perfect" />
@@ -112,7 +112,7 @@ export function TopicVerbTenses() {
         <p className="mb-2"><strong>Use:</strong> Past action with result now / life experience / change up to now.</p>
       </DefinitionCard>
       <WorkedExample>
-        <>Task 2: &quot;Technology <strong>has transformed</strong> the way people communicate.&quot;</>
+        <>IELTS Writing Task 2: &quot;Technology <strong>has transformed</strong> the way people communicate.&quot;</>
       </WorkedExample>
       <WorkedExample>
         <>Speaking: &quot;I <strong>have lived</strong> here for ten years.&quot; — Why: action started in the past and continues to now.</>
@@ -134,7 +134,7 @@ export function TopicVerbTenses() {
         <p className="mb-2"><strong>Use:</strong> Predictions and future projections (especially when chart includes future data).</p>
       </DefinitionCard>
       <WorkedExample>
-        <>Task 1: &quot;The number of car users <strong>will continue</strong> to rise after 2020.&quot; — Why: describes prediction shown in the chart.</>
+        <>IELTS Writing Task 1: &quot;The number of car users <strong>will continue</strong> to rise after 2020.&quot; — Why: describes prediction shown in the chart.</>
       </WorkedExample>
 
       <SubSectionTitle title="4.2 Be going to + V1" />
@@ -154,7 +154,7 @@ export function TopicVerbTenses() {
         <>&quot;By 2030, emissions <strong>will have fallen</strong> by half.&quot; — Why: used when the graph shows a future point and an earlier future change.</>
       </WorkedExample>
 
-      <SectionTitle number={5} title="Which Tense for Task 1 vs Task 2 vs Speaking?" />
+      <SectionTitle number={5} title="Which Tense for IELTS Writing Task 1 vs Task 2 vs Speaking?" />
       <RevisionTable
         headers={["Situation", "Best tense(s)", "Example"]}
         rows={[

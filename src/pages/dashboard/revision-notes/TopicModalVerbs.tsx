@@ -52,7 +52,7 @@ export function TopicModalVerbs() {
         <WorkedExample><>&quot;You <strong>don&apos;t have to</strong> buy new books; you can use the library.&quot; (optional)</></WorkedExample>
       </DefinitionCard>
       <ExaminerTip>
-        In Task 2, use <strong>should</strong> for normal recommendations and <strong>must / have to</strong> for very strong arguments.
+        In IELTS Writing Task 2 (essay), use <strong>should</strong> for normal recommendations and <strong>must / have to</strong> for very strong arguments.
       </ExaminerTip>
 
       <SectionTitle number={4} title="Modals for advice and criticism" />

@@ -12,25 +12,34 @@ import { TopicModalVerbs } from "./TopicModalVerbs";
 import { TopicArticles } from "./TopicArticles";
 import { TopicReportingVerbs } from "./TopicReportingVerbs";
 import { TopicHedgingFormalStyle } from "./TopicHedgingFormalStyle";
+import { TopicWritingFormats } from "./TopicWritingFormats";
+import { TopicTextTypes } from "./TopicTextTypes";
+import { VocabularyPassageView } from "./VocabularyPassageView";
+import { TestFormatsView } from "./TestFormatsView";
 
 export const REVISION_TOPIC_COMPONENTS: Record<
   RevisionNoteTopicId,
   () => JSX.Element
 > = {
   "parts-of-speech": TopicPartsOfSpeech,
-  apostrophes: TopicApostrophes,
   "verb-tenses": TopicVerbTenses,
-  "subject-verb-agreement": TopicSubjectVerbAgreement,
-  punctuation: TopicPunctuation,
-  "sentence-structure": TopicSentenceStructure,
   "relative-clauses": TopicRelativeClauses,
-  "linking-words-coherence": TopicLinkingWordsCoherence,
-  "collocations-paraphrasing": TopicCollocationsParaphrasing,
-  "modal-verbs": TopicModalVerbs,
+  "sentence-structure": TopicSentenceStructure,
   articles: TopicArticles,
+  "subject-verb-agreement": TopicSubjectVerbAgreement,
+  "modal-verbs": TopicModalVerbs,
+  apostrophes: TopicApostrophes,
+  punctuation: TopicPunctuation,
+  "linking-words-coherence": TopicLinkingWordsCoherence,
+  "writing-formats": TopicWritingFormats,
+  "text-types": TopicTextTypes,
   "reporting-verbs": TopicReportingVerbs,
   "hedging-formal-style": TopicHedgingFormalStyle,
+  "collocations-paraphrasing": TopicCollocationsParaphrasing,
+  "vocabulary-passages": VocabularyPassageView,
 };
+
+export { TestFormatsView };
 
 export {
   TopicPartsOfSpeech,
@@ -46,4 +55,7 @@ export {
   TopicArticles,
   TopicReportingVerbs,
   TopicHedgingFormalStyle,
+  TopicWritingFormats,
+  TopicTextTypes,
+  VocabularyPassageView,
 };

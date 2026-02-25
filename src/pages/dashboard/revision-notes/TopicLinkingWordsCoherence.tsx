@@ -19,7 +19,7 @@ export function TopicLinkingWordsCoherence() {
       </DefinitionCard>
 
       <SectionTitle number={2} title="Linking words (categories and examples)" />
-      <SubSectionTitle title="Addition" />
+      <SubSectionTitle title="2.1 Addition" />
       <DefinitionCard>
         <p className="mb-2">Use these to add another idea: <strong className="text-white">and</strong>, <strong className="text-white">moreover</strong>, <strong className="text-white">in addition</strong>, <strong className="text-white">furthermore</strong>.</p>
         <p className="mb-2 text-sm text-slate-300">Placement: usually at the <strong>beginning</strong> of the second sentence. Use a comma after the linking word when it starts a sentence.</p>
@@ -27,7 +27,7 @@ export function TopicLinkingWordsCoherence() {
         <WorkedExample><>&quot;I enjoy studying English. <strong>In addition</strong>, I like watching films in English.&quot;</></WorkedExample>
         <p className="mt-2 text-sm text-slate-300">When you use &quot;and&quot; mid-sentence (e.g. &quot;X, and Y&quot;), use a comma before &quot;and&quot; only if both sides are complete sentences.</p>
       </DefinitionCard>
-      <SubSectionTitle title="Contrast" />
+      <SubSectionTitle title="2.2 Contrast" />
       <DefinitionCard>
         <p className="mb-2">Use these to show a different idea: <strong className="text-white">however</strong>, <strong className="text-white">on the other hand</strong>, <strong className="text-white">although</strong>, <strong className="text-white">whereas</strong>.</p>
         <p className="mb-2 text-sm text-slate-300">However and although have different punctuation rules:</p>
@@ -37,18 +37,18 @@ export function TopicLinkingWordsCoherence() {
         <p className="text-sm text-slate-300 mb-2">Use a comma after the <em>first clause</em> with &quot;Although&quot; — not after &quot;Although&quot; itself. The phrase before the comma is the concession; the phrase after is the main idea.</p>
         <p className="text-sm text-slate-300">You can also use &quot;however&quot; mid-sentence: &quot;Public transport is cheap; however, it is often crowded.&quot;</p>
       </DefinitionCard>
-      <SubSectionTitle title="Cause and result" />
+      <SubSectionTitle title="2.3 Cause and result" />
       <DefinitionCard>
         <p className="mb-2">Use these to show cause or result: <strong className="text-white">because</strong>, <strong className="text-white">since</strong>, <strong className="text-white">therefore</strong>, <strong className="text-white">as a result</strong>, <strong className="text-white">consequently</strong>.</p>
         <WorkedExample><>&quot;Many cities have traffic problems. <strong>Therefore</strong>, governments should invest in public transport.&quot;</></WorkedExample>
         <WorkedExample><>&quot;<strong>Because</strong> housing costs are high, many young people live with their parents.&quot;</></WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="Example" />
+      <SubSectionTitle title="2.4 Example" />
       <DefinitionCard>
         <p className="mb-2">Use these to give examples: <strong className="text-white">for example</strong>, <strong className="text-white">for instance</strong>.</p>
         <WorkedExample><>&quot;Many countries face environmental problems. <strong>For example</strong>, air pollution is a major issue in big cities.&quot;</></WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="Sequence" />
+      <SubSectionTitle title="2.5 Sequence" />
       <DefinitionCard>
         <p className="mb-2">Use these to show order: <strong className="text-white">firstly</strong>, <strong className="text-white">secondly</strong>, <strong className="text-white">finally</strong>.</p>
         <WorkedExample><>&quot;<strong>Firstly</strong>, I will discuss the benefits. <strong>Secondly</strong>, I will look at the disadvantages. <strong>Finally</strong>, I will give my opinion.&quot;</></WorkedExample>
@@ -85,7 +85,7 @@ export function TopicLinkingWordsCoherence() {
           ]}
         />
         <p className="mt-3 mb-3">Keep a formal style: no slang, no contractions (e.g. use &quot;do not&quot; not &quot;don&apos;t&quot;) in Academic Writing.</p>
-        <SubSectionTitle title="Model paragraph" />
+        <SubSectionTitle title="4.1 Model paragraph" />
         <blockquote className="border-l-4 border-[#3b82f6] pl-4 py-2 my-3 text-slate-200 italic">
           &quot;Many people believe that technology has improved education. <strong className="text-white not-italic">For example</strong>, students can now access online courses from anywhere. <strong className="text-white not-italic">Furthermore</strong>, teachers can use videos and interactive tools in the classroom. <strong className="text-white not-italic">However</strong>, some argue that too much screen time harms concentration. <strong className="text-white not-italic">This</strong> debate is likely to continue for many years.&quot;
         </blockquote>

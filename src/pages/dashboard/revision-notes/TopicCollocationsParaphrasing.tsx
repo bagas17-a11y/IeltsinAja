@@ -21,7 +21,7 @@ export function TopicCollocationsParaphrasing() {
       </DefinitionCard>
 
       <SectionTitle number={2} title="Useful collocation types for IELTS" />
-      <SubSectionTitle title="Verb + noun" />
+      <SubSectionTitle title="2.1 Verb + noun" />
       <DefinitionCard>
         <KeyList
           items={[
@@ -37,7 +37,7 @@ export function TopicCollocationsParaphrasing() {
         <WorkedExample><>&quot;Governments should <strong>raise awareness</strong> about climate change.&quot;</></WorkedExample>
         <WorkedExample><>&quot;The study <strong>reached the conclusion</strong> that exercise improves mental health.&quot;</></WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="Noun + noun" />
+      <SubSectionTitle title="2.2 Noun + noun" />
       <DefinitionCard>
         <KeyList
           items={[
@@ -48,7 +48,7 @@ export function TopicCollocationsParaphrasing() {
         />
         <WorkedExample><>&quot;<strong>Traffic congestion</strong> is a major problem in many cities.&quot;</></WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="Adjective + noun" />
+      <SubSectionTitle title="2.3 Adjective + noun" />
       <DefinitionCard>
         <KeyList
           items={[
@@ -61,14 +61,14 @@ export function TopicCollocationsParaphrasing() {
         <WorkedExample><>&quot;The chart shows a <strong>significant increase</strong> in online sales.&quot;</></WorkedExample>
         <WorkedExample><>&quot;There is <strong>growing concern</strong> about pollution.&quot;</></WorkedExample>
       </DefinitionCard>
-      <p className="text-sm text-slate-400">Use these in Task 1 (describing data) and Task 2 (essays) to sound more natural.</p>
+      <p className="text-sm text-slate-400">Use these in IELTS Writing Task 1 (describing data) and Task 2 (essays) to sound more natural.</p>
 
       <SectionTitle number={3} title="What is paraphrasing?" />
       <DefinitionCard>
         <p className="mb-3">Paraphrasing = expressing the same meaning with different words or structure. It is important for:</p>
         <KeyList
           items={[
-            "Your introduction in Task 2 (rephrase the question)",
+            "Your introduction in IELTS Writing Task 2 (rephrase the question)",
             "Avoiding repetition in your essay",
             "Reading questions that use synonyms of the passage",
           ]}
@@ -126,7 +126,7 @@ export function TopicCollocationsParaphrasing() {
             </ul>
             <p className="mt-3 mb-2">Correct the wrong collocation:</p>
             <p className="text-slate-300">&quot;The government must do a decision about traffic.&quot;</p>
-            <p className="mt-3 mb-2">Paraphrase this Task 2 sentence using one synonym and a change from active to passive:</p>
+            <p className="mt-3 mb-2">Paraphrase this IELTS Writing Task 2 sentence using one synonym and a change from active to passive:</p>
             <p className="text-slate-300">&quot;Many people believe that technology improves education.&quot;</p>
           </>
         }
