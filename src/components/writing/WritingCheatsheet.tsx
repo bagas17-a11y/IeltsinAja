@@ -1,7 +1,7 @@
 /**
  * Human+AI Cheatsheet & Hard Tips for IELTS Writing (Academic)
  * Two tracks: Task 1 (Visual Report) and Task 2 (Essay)
- * Flow: Tips slides → "Ready?" screen → Interactive practice (MCQs)
+ * Task 1: Single structured revision note (Bar Chart Band 9) + Mini MCQ quiz
  */
 
 import { useState } from "react";
@@ -15,6 +15,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lightbulb, ChevronRight, CheckCircle, XCircle, RotateCcw, Trophy, FileText, PenTool, ArrowRight } from "lucide-react";
+import {
+  SectionTitle,
+  SubSectionTitle,
+  KeyList,
+  DefinitionCard,
+  WorkedExample,
+  ExaminerTip,
+} from "@/pages/dashboard/revision-notes/RevisionNoteContent";
 
 interface MCQQuestion {
   id: string;
@@ -486,164 +494,156 @@ function MCQPractice({ questions, taskName, introImage, modelAnswerImage }: MCQP
   );
 }
 
-function Task1Tips() {
+/** Bar chart image for UK/France consumer goods 2010 (Band 9 model) */
+const TASK1_CHART_IMAGE = "/assets/Screenshot_2026-02-20_at_5.37.54_PM-65ae8c4b-53ac-4130-ac38-7dd99e743023.png";
+
+function Task1RevisionNotes({
+  task1IntroImage,
+  task1ModelImage,
+  onStartQuiz,
+  showQuizInline,
+  mcqPractice,
+}: {
+  task1IntroImage: string;
+  task1ModelImage: string;
+  onStartQuiz: () => void;
+  showQuizInline: boolean;
+  mcqPractice: React.ReactNode;
+}) {
   return (
-    <Accordion type="multiple" defaultValue={["slide1"]} className="w-full space-y-3">
-      <AccordionItem value="slide1" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 1 – What Task 1 Really Wants
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Task 1 is <strong>not</strong> about listing every number.</li>
-            <li>Main job: <strong>select</strong> key features, <strong>compare</strong>, and give a <strong>clear overview</strong> of the visual (graph, chart, table, map, process).</li>
-            <li>Minimum 150 words, about 20 minutes, formal and objective.</li>
-          </ul>
-          <div className="flex gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-            <Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
-            <p className="text-sm"><strong>Examiner Tip:</strong> Many Band 5–6 answers fail because they <strong>never write a real overview</strong>. For higher bands, the overview is non-negotiable.</p>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
+    <div className="space-y-8 text-slate-200">
+      {/* 1. Task Overview */}
+      <SectionTitle number={1} title='Task Overview – "What Task 1 Wants"' />
+      <p className="text-sm text-slate-300 leading-relaxed">
+        You must <strong className="text-white">summarise visual information</strong> (charts, graphs, tables, diagrams, maps/processes). For this lesson, the visual is a <strong className="text-white">bar chart</strong> comparing spending on consumer goods in France and the UK in 2010.
+      </p>
+      <KeyList
+        items={[
+          <>Select the <strong>main features</strong>.</>,
+          <>Make <strong>clear comparisons</strong>.</>,
+          <>Give a <strong>big-picture overview</strong>.</>,
+          <>Minimum <strong>150 words</strong> in about <strong>20 minutes</strong>.</>,
+          "Task 1 counts less than Task 2, but a weak Task 1 can drag your overall Writing band down.",
+        ]}
+      />
+      <DefinitionCard title="Key idea">
+        Task 1 is a <strong>short, factual report</strong> – not an opinion essay and not a list of every number.
+      </DefinitionCard>
 
-      <AccordionItem value="slide2" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 2 – The "Big 3" for Band 7+
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <p>To impress the examiner, your answer must show:</p>
-          <ol className="list-decimal pl-5 space-y-1">
-            <li><strong>Overview</strong> – you see the "story" of the data.</li>
-            <li><strong>Grouping</strong> – you organise information into 2 logical blocks.</li>
-            <li><strong>Comparisons</strong> – you show differences and similarities, not just descriptions.</li>
-          </ol>
-          <p>Small details and exact numbers matter <strong>after</strong> these three.</p>
-        </AccordionContent>
-      </AccordionItem>
+      {/* 2. The Question & Chart */}
+      <SectionTitle number={2} title="The Question & Chart" />
+      <SubSectionTitle title="The Question" />
+      <p className="text-sm text-slate-300">
+        The chart below shows the expenditure of two countries on consumer goods in 2010. (pounds sterling)
+      </p>
+      <p className="text-sm text-slate-400 mt-2">
+        Categories: <strong className="text-slate-300">Cars, Computers, Books, Perfume, Cameras</strong>. Each category has two bars: one for <strong className="text-slate-300">France</strong>, one for the <strong className="text-slate-300">UK</strong>.
+      </p>
+      <div className="rounded-lg overflow-hidden border border-[#334155] my-4">
+        <img src={task1IntroImage || TASK1_CHART_IMAGE} alt="Bar chart: UK and France spending on consumer goods 2010" className="w-full h-auto" />
+      </div>
+      <ExaminerTip>
+        Before reading the tips, look at the chart and note <strong>three things you notice first</strong> (e.g. who spends more overall, the highest/lowest category, any big gap).
+      </ExaminerTip>
 
-      <AccordionItem value="slide3" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 3 – Ideal 4-Paragraph Blueprint
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <p>Use the same layout every time:</p>
-          <ol className="list-decimal pl-5 space-y-1">
-            <li><strong>Introduction</strong> – 1 sentence, paraphrase the question.</li>
-            <li><strong>Overview</strong> – 1–2 sentences, biggest trends / contrasts / stages.</li>
-            <li><strong>Details 1</strong> – 2–4 sentences, Group A + key numbers + comparisons.</li>
-            <li><strong>Details 2</strong> – 2–4 sentences, Group B + key numbers + comparisons.</li>
-          </ol>
-          <div className="p-3 bg-secondary/30 rounded-lg border border-border/30 mt-2">
-            <p className="text-xs text-muted-foreground italic">Template intro: "The bar chart illustrates the amount of money spent on X in Y in 2010, measured in pounds sterling."</p>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
+      {/* 3. Tip 1 – Understand the Task & Structure */}
+      <SectionTitle number={3} title="Tip 1 – Understand the Task & Use a Safe Structure" />
+      <p className="text-sm text-slate-300 leading-relaxed">
+        Task 1’s <strong className="text-white">purpose</strong> is to describe and summarise; its <strong className="text-white">tone</strong> is academic and objective. The most exam-proof structure is:
+      </p>
+      <KeyList
+        items={[
+          "Introduction – 1 sentence: paraphrase what the visual shows.",
+          "Overview – 1–2 sentences: biggest trends / contrasts (no detailed numbers).",
+          "Body Paragraph 1 – key group of features + comparisons + selective numbers.",
+          "Body Paragraph 2 – remaining key group + comparisons + selective numbers.",
+        ]}
+      />
+      <SubSectionTitle title="Model answer example" />
+      <WorkedExample>
+        <p className="italic text-slate-200">&quot;The chart illustrates the amount of money spent on five consumer goods (cars, computers, books, perfume and cameras) in France and the UK in 2010. Units are measured in pounds sterling.&quot;</p>
+      </WorkedExample>
+      <p className="text-sm text-slate-300 mt-2">Why this works:</p>
+      <KeyList
+        items={[
+          <>It <strong>paraphrases</strong> the question (e.g. &quot;illustrates&quot; instead of &quot;shows&quot;).</>,
+          <>It includes <strong>what</strong> (amount spent), <strong>items</strong> (5 goods), <strong>where</strong> (France and UK), <strong>when</strong> (2010), and <strong>units</strong> (pounds sterling).</>,
+          "One clean sentence – perfect for the introduction.",
+        ]}
+      />
 
-      <AccordionItem value="slide4" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 4 – Planning Checklist (7 Quick Steps)
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <p>Before writing, spend about 3 minutes:</p>
-          <ol className="list-decimal pl-5 space-y-1">
-            <li><strong>Read the task (10–15s)</strong> – visual type, topic, time, units.</li>
-            <li><strong>Find big picture (30–45s)</strong> – 2–3 main messages (e.g., UK spends more overall; cameras highest, perfume lowest).</li>
-            <li><strong>Choose grouping (45–60s)</strong> – e.g., "higher-spending categories vs lower ones", or "risers vs fallers".</li>
-            <li><strong>Pick evidence (30–45s)</strong> – 4–6 numbers only (start/end, peaks, biggest gaps).</li>
-            <li><strong>Check comparisons (15–20s)</strong> – which items can you compare clearly inside each group?</li>
-            <li><strong>Write (12–15 mins)</strong> – follow the 4-paragraph blueprint.</li>
-            <li><strong>Quick edit (1–2 mins)</strong> – overview present? tenses? units? obvious grammar?</li>
-          </ol>
-          <div className="flex gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-            <Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
-            <p className="text-sm"><strong>Examiner Tip:</strong> Planning for 3 minutes often adds <strong>one band</strong> to Task Achievement because your overview and grouping become much clearer.</p>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
+      {/* 4. Tip 2 – Always Write an Overview */}
+      <SectionTitle number={4} title="Tip 2 – Always Write an Overview (Non-Negotiable)" />
+      <p className="text-sm text-slate-300 leading-relaxed">
+        The overview is the <strong className="text-white">&quot;big picture&quot; summary</strong>. It is a make-or-break rule for Band 7+: mid-bands often miss or weaken the overview. An overview should mention 2–3 of: who spends more overall; which categories are highest/lowest; any striking differences.
+      </p>
+      <SubSectionTitle title="Model answer example" />
+      <WorkedExample>
+        <p className="italic text-slate-200">&quot;Overall, the UK spent more money on consumer goods than France in the period given. Both the British and the French spent most of their money on cars whereas the least amount of money was spent on perfume in the UK compared to cameras in France. Furthermore, the most significant difference in expenditure between the two countries was on cameras.&quot;</p>
+      </WorkedExample>
+      <p className="text-sm text-slate-300 mt-2">This overview gives the main trends (UK higher overall, cars highest, perfume/UK and cameras/France lowest, biggest gap = cameras) without detailed figures.</p>
 
-      <AccordionItem value="slide5" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 5 – How Band 5/6/7 Look Different
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <ul className="space-y-2">
-            <li><strong className="text-red-400">Band 5:</strong> No real overview, describes every bar in order, too many numbers, weak or missing comparisons.</li>
-            <li><strong className="text-yellow-400">Band 6:</strong> Has overview and paragraphs, but overview may be vague; grouping and comparisons are sometimes mechanical or incomplete.</li>
-            <li><strong className="text-green-400">Band 7:</strong> Strong overview, smart grouping, selective data, comparisons drive each paragraph.</li>
-          </ul>
-          <p className="text-accent italic">Ask yourself: "Which description matches my last Task 1? 5 / 6 / 7?"</p>
-        </AccordionContent>
-      </AccordionItem>
+      {/* 5. Tip 3 – Group Data Instead of Listing */}
+      <SectionTitle number={5} title="Tip 3 – Group Data Instead of Listing" />
+      <p className="text-sm text-slate-300 leading-relaxed">
+        Do not describe each bar in order. Group by <strong className="text-white">pattern</strong>: e.g. categories where the UK spent more vs. categories where France spent similar or more.
+      </p>
+      <SubSectionTitle title="Model answer example" />
+      <WorkedExample>
+        <p className="text-slate-200 mb-2"><strong>Body 1</strong> (UK higher): &quot;In terms of cars, people in the UK spent about £450,000… Similarly, the British expenditure was higher on books… In the UK, expenditure on cameras (just over £350,000) was over double that of France…&quot;</p>
+        <p className="text-slate-200"><strong>Body 2</strong> (France higher/similar): &quot;On the other hand, the amount of money paid out on the remaining goods was higher in France. Above £350,000 was spent by the French on computers… Neither of the countries spent much on perfume…&quot;</p>
+      </WorkedExample>
+      <ExaminerTip>
+        Grouping by pattern (UK &gt; France vs France similar/higher) creates stronger comparisons than listing per country or per item.
+      </ExaminerTip>
 
-      <AccordionItem value="slide6" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 6 – Making an Overview Fast
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <p>For charts/graphs, overview should mention:</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Overall direction (up/down/stable).</li>
-            <li>Highest and lowest categories.</li>
-            <li>One major contrast or pattern.</li>
-          </ul>
-          <div className="p-3 bg-secondary/30 rounded-lg border border-border/30 space-y-2">
-            <p className="text-xs font-medium text-foreground">Templates:</p>
-            <p className="text-xs italic">"Overall, the UK spent more on most categories than France, and cameras received the highest expenditure, while perfume accounted for the least."</p>
-            <p className="text-xs italic">"Overall, A increased markedly, whereas B declined and C remained relatively stable."</p>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
+      {/* 6. Tip 4 – Use Comparisons & Selective Numbers */}
+      <SectionTitle number={6} title="Tip 4 – Use Comparisons & Selective Numbers" />
+      <p className="text-sm text-slate-300 leading-relaxed">
+        Use 4–6 key numbers only. Turn data into <strong className="text-white">comparative statements</strong> (e.g. &quot;more than double&quot;, &quot;the highest figure&quot;, &quot;the lowest at about…&quot;). Avoid dumping every figure in one paragraph.
+      </p>
+      <SubSectionTitle title="Model answer example" />
+      <WorkedExample>
+        <p className="text-slate-200">&quot;In the UK, expenditure on cameras (just over £350,000) was over double that of France, which was only £150,000.&quot; / &quot;Neither of the countries spent much on perfume which accounted for £200,000 of expenditure in France but under £150,000 in the UK.&quot;</p>
+      </WorkedExample>
 
-      <AccordionItem value="slide7" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 7 – Grouping & Comparisons
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <p className="text-red-400">Instead of: "Cars were 400k in France and 450k in the UK. Computers were 380k…"</p>
-          <p className="text-green-400">Use grouping:</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Group 1</strong> – categories with higher UK spending.</li>
-            <li><strong>Group 2</strong> – categories where France spends the same or more.</li>
-          </ul>
-          <div className="p-3 bg-secondary/30 rounded-lg border border-border/30 mt-2">
-            <p className="text-xs italic">Sample body sentence: "Turning to the categories where the UK spent more, expenditure on cars and books in the UK exceeded that in France by around £50,000 each."</p>
-          </div>
-          <p className="mt-2"><strong>Comparative language to use:</strong></p>
-          <p className="text-xs">higher/lower, more/less than, exceeded, was roughly equal to, accounted for, represented, peaked at, remained stable</p>
-        </AccordionContent>
-      </AccordionItem>
+      {/* 7. Tip 5 – Keep Report Style: Formal & Factual */}
+      <SectionTitle number={7} title="Tip 5 – Keep Report Style: Formal & Factual" />
+      <p className="text-sm text-slate-300 leading-relaxed">
+        No opinions, no causes unless shown in the visual. Use formal, objective language. Avoid &quot;people preferred&quot; or &quot;this proves that…&quot;. Stay with what the chart shows.
+      </p>
+      <SubSectionTitle title="Model answer example" />
+      <p className="text-sm text-slate-300">The Band 9 sample uses factual phrasing: &quot;people in the UK spent about…&quot;, &quot;the amount of money paid out&quot;, &quot;accounted for&quot;. It never guesses why or adds opinion.</p>
 
-      <AccordionItem value="slide8" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 8 – Style Rules for Task 1
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Be <strong>factual</strong>: no opinions, no causes ("because people…") unless shown in the graph.</li>
-            <li>Use safe trend vocabulary: <em>rose, fell, remained stable, fluctuated, peaked; slightly, steadily, sharply</em>.</li>
-            <li>Avoid "story-telling" phrases like "interestingly" or "people preferred".</li>
-            <li>Keep tense consistent (usually past simple if the year is in the past).</li>
-          </ul>
-        </AccordionContent>
-      </AccordionItem>
+      {/* 8. Tip 6 – Paragraphing & Cohesion */}
+      <SectionTitle number={8} title="Tip 6 – Paragraphing & Cohesion" />
+      <p className="text-sm text-slate-300 leading-relaxed">
+        Use clear linkers and topic sentences so the reader sees the structure: <strong className="text-white">In terms of…</strong>, <strong className="text-white">Similarly…</strong>, <strong className="text-white">On the other hand…</strong>. One main idea per paragraph.
+      </p>
+      <SubSectionTitle title="Model answer example" />
+      <WorkedExample>
+        <p className="text-slate-200">&quot;In terms of cars…&quot; opens the first body; &quot;Similarly&quot; adds the next comparison; &quot;On the other hand, the amount of money paid out on the remaining goods was higher in France&quot; introduces the contrast paragraph.</p>
+      </WorkedExample>
 
-      <AccordionItem value="slide9" className="border rounded-lg px-4">
-        <AccordionTrigger className="text-sm font-semibold hover:no-underline py-3">
-          Slide 9 – Mini Checklist Before You Submit
-        </AccordionTrigger>
-        <AccordionContent className="pb-4 text-sm text-muted-foreground space-y-3">
-          <p>Quick yes/no before submitting:</p>
-          <ol className="list-decimal pl-5 space-y-1">
-            <li>Do I have a separate <strong>Overview paragraph</strong>?</li>
-            <li>Did I group data into two clear body paragraphs?</li>
-            <li>Did I use <strong>comparisons</strong> in each body paragraph?</li>
-            <li>Did I avoid listing every single number?</li>
-            <li>Is my tone formal and factual?</li>
-          </ol>
-          <p className="text-accent font-medium">If any answer is "no", fix that first.</p>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+      {/* 9. Mini MCQ Quiz */}
+      <SectionTitle number={9} title="Mini MCQ Quiz – Quick Refresh" />
+      <p className="text-sm text-slate-300 mb-4">
+        Quick refresh using the same Band 9 bar chart model. Test your understanding with 10 MCQs.
+      </p>
+      {showQuizInline ? (
+        mcqPractice
+      ) : (
+        <div className="rounded-lg border border-[#334155] bg-[#1e293b]/60 p-6 text-center">
+          <Button
+            onClick={onStartQuiz}
+            className="bg-[rgba(59,130,246,0.25)] text-blue-200 border border-blue-500/30 hover:bg-[rgba(59,130,246,0.35)]"
+          >
+            Start Mini Quiz
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -834,50 +834,30 @@ export function WritingCheatsheet() {
         <TabsContent value="task1" className="mt-0">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Task 1: From Graph to Band 7+ Report</h3>
-              <div className="flex gap-2">
-                <Button
-                  variant={task1View === "tips" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTask1View("tips")}
-                >
-                  Tips Slides
+              <h3 className="text-lg font-semibold">Task 1: Bar Chart Band 9 Guided Notes</h3>
+              {task1View === "practice" && (
+                <Button variant="outline" size="sm" onClick={() => setTask1View("tips")}>
+                  Back to Notes
                 </Button>
-                <Button
-                  variant={task1View === "practice" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTask1View("practice")}
-                >
-                  Practice MCQs
-                </Button>
-              </div>
+              )}
             </div>
 
-            {task1View === "tips" ? (
-              <>
-                <Task1Tips />
-                <div className="text-center py-6 border-t border-border/30">
-                  <h4 className="text-lg font-semibold mb-2">Ready to Test Your Knowledge?</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Apply what you've learned with 10 interactive MCQs based on a Band 9 bar chart model answer.
-                  </p>
-                  <Button onClick={() => setTask1View("practice")}>
-                    Practise Task 1 Now
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
+            <Task1RevisionNotes
+              task1IntroImage={task1IntroImage}
+              task1ModelImage={task1ModelImage}
+              onStartQuiz={() => setTask1View("practice")}
+              showQuizInline={task1View === "practice"}
+              mcqPractice={
+                <div className="p-6 rounded-lg border border-[#334155] bg-[#1e293b]/40">
+                  <MCQPractice
+                    questions={task1MCQs}
+                    taskName="Task 1"
+                    introImage={task1IntroImage}
+                    modelAnswerImage={task1ModelImage}
+                  />
                 </div>
-              </>
-            ) : (
-              <div className="p-6 bg-secondary/20 rounded-lg border border-border/30">
-                <h4 className="text-base font-semibold mb-4">Task 1 Practice – MCQs Based on Band 9 Model Answer</h4>
-                <MCQPractice 
-                  questions={task1MCQs} 
-                  taskName="Task 1"
-                  introImage={task1IntroImage}
-                  modelAnswerImage={task1ModelImage}
-                />
-              </div>
-            )}
+              }
+            />
           </div>
         </TabsContent>
 
