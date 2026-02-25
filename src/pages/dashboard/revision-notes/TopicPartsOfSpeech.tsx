@@ -41,7 +41,7 @@ export function TopicPartsOfSpeech() {
       />
       <SubSectionTitle title="2.2 Worked Examples" />
       <WorkedExample>
-        <>&quot;The percentage of students using online platforms <strong>increased</strong> between 2010 and 2020.&quot;</>
+        <>&quot;<strong>The percentage</strong> of students using online platforms increased between 2010 and 2020.&quot;</>
         <p className="mt-2 text-slate-300 text-sm">
           The <strong className="text-white">subject</strong> is &quot;The percentage&quot;, not &quot;students&quot;. &quot;Of students&quot; and &quot;using online platforms&quot; are <strong className="text-white">modifiers</strong> of the noun &quot;percentage&quot;: <em>of students</em> (prepositional phrase), <em>using online platforms</em> (participial phrase).
         </p>

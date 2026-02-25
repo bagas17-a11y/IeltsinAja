@@ -22,14 +22,20 @@ export function TopicLinkingWordsCoherence() {
       <SubSectionTitle title="Addition" />
       <DefinitionCard>
         <p className="mb-2">Use these to add another idea: <strong className="text-white">and</strong>, <strong className="text-white">moreover</strong>, <strong className="text-white">in addition</strong>, <strong className="text-white">furthermore</strong>.</p>
+        <p className="mb-2 text-sm text-slate-300">Placement: usually at the <strong>beginning</strong> of the second sentence. Use a comma after the linking word when it starts a sentence.</p>
         <WorkedExample><>&quot;Education improves job prospects. <strong>Furthermore</strong>, it helps people make better decisions.&quot;</></WorkedExample>
         <WorkedExample><>&quot;I enjoy studying English. <strong>In addition</strong>, I like watching films in English.&quot;</></WorkedExample>
+        <p className="mt-2 text-sm text-slate-300">When you use &quot;and&quot; mid-sentence (e.g. &quot;X, and Y&quot;), use a comma before &quot;and&quot; only if both sides are complete sentences.</p>
       </DefinitionCard>
       <SubSectionTitle title="Contrast" />
       <DefinitionCard>
         <p className="mb-2">Use these to show a different idea: <strong className="text-white">however</strong>, <strong className="text-white">on the other hand</strong>, <strong className="text-white">although</strong>, <strong className="text-white">whereas</strong>.</p>
+        <p className="mb-2 text-sm text-slate-300">However and although have different punctuation rules:</p>
         <WorkedExample><>&quot;Online learning is convenient. <strong>However</strong>, some students miss face-to-face contact.&quot;</></WorkedExample>
+        <p className="text-sm text-slate-300 mb-2">Use a comma after <strong>However</strong> when it starts a sentence. The phrase before &quot;However&quot; is the first idea; the phrase after is the contrasting idea.</p>
         <WorkedExample><>&quot;<strong>Although</strong> public transport is cheap, it is often crowded.&quot;</></WorkedExample>
+        <p className="text-sm text-slate-300 mb-2">Use a comma after the <em>first clause</em> with &quot;Although&quot; — not after &quot;Although&quot; itself. The phrase before the comma is the concession; the phrase after is the main idea.</p>
+        <p className="text-sm text-slate-300">You can also use &quot;however&quot; mid-sentence: &quot;Public transport is cheap; however, it is often crowded.&quot;</p>
       </DefinitionCard>
       <SubSectionTitle title="Cause and result" />
       <DefinitionCard>

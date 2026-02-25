@@ -27,9 +27,15 @@ export function TopicRelativeClauses() {
 
       <SectionTitle number={2} title="Defining relative clauses" />
       <DefinitionCard>
-        <p className="mb-3">Defining clauses give <strong className="text-white">essential</strong> information. We need them to understand which person or thing we mean. Usually there are <strong className="text-white">no commas</strong>.</p>
-        <WorkedExample><>&quot;Students <strong>who study regularly</strong> often get higher scores.&quot;</></WorkedExample>
-        <WorkedExample><>&quot;The city <strong>that I live in</strong> has very heavy traffic.&quot;</></WorkedExample>
+        <p className="mb-3">Defining clauses give <strong className="text-white">essential</strong> information. Without them, the reader cannot tell which person or thing you mean. Usually there are <strong className="text-white">no commas</strong>.</p>
+        <p className="mb-2 text-sm text-slate-300">What counts as essential? Information that limits or identifies the noun — e.g. which specific students, which specific city.</p>
+        <KeyList
+          items={[
+            <>Essential: &quot;Students <strong>who study regularly</strong> often get higher scores.&quot; (identifies which students)</>,
+            <>Essential: &quot;The city <strong>that I live in</strong> has very heavy traffic.&quot; (identifies which city)</>,
+            <>Non‑essential for comparison: &quot;The students, who study regularly, often get higher scores.&quot; — here the clause adds extra info about all students; commas show it&apos;s removable.</>,
+          ]}
+        />
       </DefinitionCard>
       <SubSectionTitle title="Subject position" />
       <DefinitionCard>
@@ -44,9 +50,11 @@ export function TopicRelativeClauses() {
 
       <SectionTitle number={3} title="Non-defining relative clauses" />
       <DefinitionCard>
-        <p className="mb-3">Non-defining clauses add extra information only. We use <strong className="text-white">commas</strong> around them. We <strong className="text-white">cannot</strong> use &quot;that&quot; in non-defining clauses.</p>
+        <p className="mb-3">Non-defining clauses add extra information only — they don&apos;t identify which person or thing. We use <strong className="text-white">commas</strong> around them.</p>
+        <p className="mb-2 text-sm text-slate-300">What counts as non‑essential? Information that describes but doesn&apos;t narrow down which one — e.g. extra facts about someone or something already identified.</p>
         <WorkedExample><>&quot;My brother, <strong>who lives in Australia</strong>, is preparing for IELTS.&quot;</></WorkedExample>
         <WorkedExample><>&quot;Public transport, <strong>which is often crowded</strong>, is still cheaper than driving.&quot;</></WorkedExample>
+        <p className="mt-3 text-sm text-slate-300"><strong className="text-white">We cannot use &quot;that&quot; in non-defining clauses.</strong> Use <em>who</em>, <em>which</em>, <em>whose</em>, <em>where</em>, or <em>when</em> instead.</p>
       </DefinitionCard>
       <ExaminerTip>
         Do not over-use long, non-defining clauses. One or two per essay is enough. Too many can make your writing hard to follow.
@@ -66,16 +74,27 @@ export function TopicRelativeClauses() {
         ]}
       />
       <DefinitionCard>
-        <p className="mb-2">Examples:</p>
+        <p className="mb-2 font-semibold text-slate-200">Who vs whom vs whose:</p>
         <KeyList
           items={[
-            <>who — &quot;The student <strong>who</strong> spoke first got the highest mark.&quot;</>,
-            <>whom — &quot;The person <strong>whom</strong> I met yesterday is a teacher.&quot;</>,
-            <>which — &quot;The book <strong>which</strong> I bought is very useful.&quot;</>,
-            <>that — &quot;The city <strong>that</strong> I visited is beautiful.&quot;</>,
-            <>whose — &quot;The student <strong>whose</strong> essay won the prize is from Indonesia.&quot;</>,
-            <>where — &quot;The university <strong>where</strong> I study has a large library.&quot;</>,
-            <>when — &quot;The day <strong>when</strong> the exam results came out was stressful.&quot;</>,
+            <>who — subject of the clause: &quot;The student <strong>who</strong> spoke first got the highest mark.&quot;</>,
+            <>whom — object (formal): &quot;The person <strong>whom</strong> I met yesterday is a teacher.&quot; (I met whom)</>,
+            <>whose — possession: &quot;The student <strong>whose</strong> essay won the prize is from Indonesia.&quot;</>,
+          ]}
+        />
+        <p className="mb-2 mt-4 font-semibold text-slate-200">That — people or things (defining only):</p>
+        <KeyList
+          items={[
+            <>People: &quot;The man <strong>that</strong> I saw yesterday left.&quot;</>,
+            <>Things: &quot;The city <strong>that</strong> I visited is beautiful.&quot;</>,
+          ]}
+        />
+        <p className="mb-2 mt-4 font-semibold text-slate-200">Where, when, why — places, times, reasons:</p>
+        <KeyList
+          items={[
+            <>where — places: &quot;The university <strong>where</strong> I study has a large library.&quot;</>,
+            <>when — times: &quot;The day <strong>when</strong> the exam results came out was stressful.&quot;</>,
+            <>why — reasons (formal): &quot;The reason <strong>why</strong> I applied was the scholarship.&quot;</>,
           ]}
         />
       </DefinitionCard>
