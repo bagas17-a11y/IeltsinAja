@@ -789,7 +789,7 @@ export default function WritingModule() {
                 </TabsContent>
                 <TabsContent value="cheatsheet" className="mt-0">
                   <div className="glass-card p-6">
-                    <h2 className="text-lg font-semibold mb-4">Elite Cheatsheet & Hard Tips</h2>
+                    <h2 className="text-lg font-semibold mb-4">Everything You Need for Writing Module (with an example)</h2>
                     <WritingCheatsheet />
                   </div>
                 </TabsContent>

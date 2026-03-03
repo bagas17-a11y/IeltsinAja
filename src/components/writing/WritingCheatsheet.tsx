@@ -530,8 +530,8 @@ function Task1RevisionNotes({
         Task 1 is a <strong>short, factual report</strong> – not an opinion essay and not a list of every number.
       </DefinitionCard>
 
-      {/* 2. The Question & Chart */}
-      <SectionTitle number={2} title="The Question & Chart" />
+      {/* 2. The Question & Chart (example) */}
+      <SectionTitle number={2} title="The Question & Chart (example)" />
       <SubSectionTitle title="The Question" />
       <p className="text-sm text-slate-300">
         The chart below shows the expenditure of two countries on consumer goods in 2010. (pounds sterling)
@@ -546,8 +546,8 @@ function Task1RevisionNotes({
         Before reading the tips, look at the chart and note <strong>three things you notice first</strong> (e.g. who spends more overall, the highest/lowest category, any big gap).
       </ExaminerTip>
 
-      {/* 3. Tip 1 – Understand the Task & Structure */}
-      <SectionTitle number={3} title="Tip 1 – Understand the Task & Use a Safe Structure" />
+      {/* 3. The Best Structure for Task 1 */}
+      <SectionTitle number={3} title="The Best Structure for Task 1" />
       <p className="text-sm text-slate-300 leading-relaxed">
         Task 1’s <strong className="text-white">purpose</strong> is to describe and summarise; its <strong className="text-white">tone</strong> is academic and objective. The most exam-proof structure is:
       </p>
@@ -559,7 +559,12 @@ function Task1RevisionNotes({
           "Body Paragraph 2 – remaining key group + comparisons + selective numbers.",
         ]}
       />
-      <SubSectionTitle title="Model answer example" />
+
+      {/* 4. Introduction Paragraph */}
+      <SectionTitle number={4} title="Introduction Paragraph" />
+      <SubSectionTitle title="Original bar chart label" />
+      <p className="text-sm text-slate-400 italic">&quot;The chart below shows the expenditure of two countries on consumer goods in 2010. (pounds sterling)&quot;</p>
+      <SubSectionTitle title="Model answer example (Introduction Paragraph in Task 1)" />
       <WorkedExample>
         <p className="italic text-slate-200">&quot;The chart illustrates the amount of money spent on five consumer goods (cars, computers, books, perfume and cameras) in France and the UK in 2010. Units are measured in pounds sterling.&quot;</p>
       </WorkedExample>
@@ -572,19 +577,30 @@ function Task1RevisionNotes({
         ]}
       />
 
-      {/* 4. Tip 2 – Always Write an Overview */}
-      <SectionTitle number={4} title="Tip 2 – Always Write an Overview (Non-Negotiable)" />
+      {/* 5. Overview Paragraph */}
+      <SectionTitle number={5} title="Overview Paragraph" />
       <p className="text-sm text-slate-300 leading-relaxed">
-        The overview is the <strong className="text-white">&quot;big picture&quot; summary</strong>. It is a make-or-break rule for Band 7+: mid-bands often miss or weaken the overview. An overview should mention 2–3 of: who spends more overall; which categories are highest/lowest; any striking differences.
+        The overview is the <strong className="text-white">&quot;big picture&quot; summary</strong>. It is a make-or-break rule for Band 7+: mid-bands often miss or weaken the overview.
       </p>
+      <p className="text-sm text-slate-300 mt-2 font-medium">What to include in an overview paragraph:</p>
+      <KeyList
+        items={[
+          <>Who spends more overall (or the main trend)</>,
+          <>Highest and lowest categories</>,
+          <>One striking difference or contrast</>,
+          <>No detailed numbers – keep it broad</>,
+        ]}
+      />
       <SubSectionTitle title="Model answer example" />
       <WorkedExample>
         <p className="italic text-slate-200">&quot;Overall, the UK spent more money on consumer goods than France in the period given. Both the British and the French spent most of their money on cars whereas the least amount of money was spent on perfume in the UK compared to cameras in France. Furthermore, the most significant difference in expenditure between the two countries was on cameras.&quot;</p>
       </WorkedExample>
       <p className="text-sm text-slate-300 mt-2">This overview gives the main trends (UK higher overall, cars highest, perfume/UK and cameras/France lowest, biggest gap = cameras) without detailed figures.</p>
 
-      {/* 5. Tip 3 – Group Data Instead of Listing */}
-      <SectionTitle number={5} title="Tip 3 – Group Data Instead of Listing" />
+      {/* 6. The Body Paragraph (Most Important) */}
+      <SectionTitle number={6} title="The Body Paragraph (Most Important)" />
+
+      <SubSectionTitle title="Group data instead of listing" />
       <p className="text-sm text-slate-300 leading-relaxed">
         Do not describe each bar in order. Group by <strong className="text-white">pattern</strong>: e.g. categories where the UK spent more vs. categories where France spent similar or more.
       </p>
@@ -597,8 +613,7 @@ function Task1RevisionNotes({
         Grouping by pattern (UK &gt; France vs France similar/higher) creates stronger comparisons than listing per country or per item.
       </ExaminerTip>
 
-      {/* 6. Tip 4 – Use Comparisons & Selective Numbers */}
-      <SectionTitle number={6} title="Tip 4 – Use Comparisons & Selective Numbers" />
+      <SubSectionTitle title="Use comparisons & selective numbers" />
       <p className="text-sm text-slate-300 leading-relaxed">
         Use 4–6 key numbers only. Turn data into <strong className="text-white">comparative statements</strong> (e.g. &quot;more than double&quot;, &quot;the highest figure&quot;, &quot;the lowest at about…&quot;). Avoid dumping every figure in one paragraph.
       </p>
@@ -607,16 +622,14 @@ function Task1RevisionNotes({
         <p className="text-slate-200">&quot;In the UK, expenditure on cameras (just over £350,000) was over double that of France, which was only £150,000.&quot; / &quot;Neither of the countries spent much on perfume which accounted for £200,000 of expenditure in France but under £150,000 in the UK.&quot;</p>
       </WorkedExample>
 
-      {/* 7. Tip 5 – Keep Report Style: Formal & Factual */}
-      <SectionTitle number={7} title="Tip 5 – Keep Report Style: Formal & Factual" />
+      <SubSectionTitle title="Keep report style: formal & factual" />
       <p className="text-sm text-slate-300 leading-relaxed">
         No opinions, no causes unless shown in the visual. Use formal, objective language. Avoid &quot;people preferred&quot; or &quot;this proves that…&quot;. Stay with what the chart shows.
       </p>
       <SubSectionTitle title="Model answer example" />
       <p className="text-sm text-slate-300">The Band 9 sample uses factual phrasing: &quot;people in the UK spent about…&quot;, &quot;the amount of money paid out&quot;, &quot;accounted for&quot;. It never guesses why or adds opinion.</p>
 
-      {/* 8. Tip 6 – Paragraphing & Cohesion */}
-      <SectionTitle number={8} title="Tip 6 – Paragraphing & Cohesion" />
+      <SubSectionTitle title="Paragraphing & cohesion" />
       <p className="text-sm text-slate-300 leading-relaxed">
         Use clear linkers and topic sentences so the reader sees the structure: <strong className="text-white">In terms of…</strong>, <strong className="text-white">Similarly…</strong>, <strong className="text-white">On the other hand…</strong>. One main idea per paragraph.
       </p>
@@ -625,8 +638,8 @@ function Task1RevisionNotes({
         <p className="text-slate-200">&quot;In terms of cars…&quot; opens the first body; &quot;Similarly&quot; adds the next comparison; &quot;On the other hand, the amount of money paid out on the remaining goods was higher in France&quot; introduces the contrast paragraph.</p>
       </WorkedExample>
 
-      {/* 9. Mini MCQ Quiz */}
-      <SectionTitle number={9} title="Mini MCQ Quiz – Quick Refresh" />
+      {/* 7. Mini MCQ Quiz */}
+      <SectionTitle number={7} title="Mini MCQ Quiz – Quick Refresh" />
       <p className="text-sm text-slate-300 mb-4">
         Quick refresh using the same Band 9 bar chart model. Test your understanding with 10 MCQs.
       </p>
