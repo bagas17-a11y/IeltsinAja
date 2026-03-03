@@ -719,7 +719,7 @@ export default function WritingModule() {
               <Tabs defaultValue="practice" className="w-full">
                 <TabsList className="mb-6">
                   <TabsTrigger value="practice">Practice Questions</TabsTrigger>
-                  <TabsTrigger value="cheatsheet">Cheatsheet & Tips</TabsTrigger>
+                  <TabsTrigger value="cheatsheet">MudahInAja</TabsTrigger>
                 </TabsList>
                 <TabsContent value="practice" className="mt-0">
                   {/* Task Tabs */}
@@ -789,7 +789,7 @@ export default function WritingModule() {
                 </TabsContent>
                 <TabsContent value="cheatsheet" className="mt-0">
                   <div className="glass-card p-6">
-                    <h2 className="text-lg font-semibold mb-4">Human+AI Cheatsheet & Hard Tips</h2>
+                    <h2 className="text-lg font-semibold mb-4">Elite Cheatsheet & Hard Tips</h2>
                     <WritingCheatsheet />
                   </div>
                 </TabsContent>

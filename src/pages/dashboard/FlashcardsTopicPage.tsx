@@ -132,7 +132,7 @@ export default function FlashcardsTopicPage() {
     return (
       <HumanPlusAILockScreen
         title="Flashcards"
-        description="Upgrade to the Human+AI package to access Flashcards."
+        description="Upgrade to the Elite package to access Flashcards."
         features={[
           "Grammar topics 1–13",
           "Interactive flip cards",

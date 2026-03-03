@@ -207,11 +207,11 @@ export default function MaterialsPage() {
             <Lock className="w-10 h-10 text-elite-gold" />
           </div>
           <h1 className="text-3xl font-light mb-4">
-            Unlock <span className="text-elite-gold">Human+AI Materials</span>
+            Unlock <span className="text-elite-gold">Elite Materials</span>
           </h1>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
             Access the full curriculum and detailed lesson content for Listening, Reading, Writing,
-            and Speaking. Upgrade to the Human+AI package to use this feature.
+            and Speaking. Upgrade to the Elite package to use this feature.
           </p>
           <div className="glass-card p-6 mb-8">
             <h3 className="text-lg font-light mb-4">What you get:</h3>
@@ -246,7 +246,7 @@ export default function MaterialsPage() {
         <div>
           <h1 className="text-2xl font-light flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-elite-gold" />
-            Human+AI Materials
+            Elite Materials
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Curriculum and detailed lessons for all four IELTS modules.

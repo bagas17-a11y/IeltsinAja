@@ -111,7 +111,7 @@ export default function EliteHubPage() {
             Unlock <span className="text-elite-gold">Elite Hub</span>
           </h1>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            Access the full Human + AI experience: study resources, mock exams, and 1-on-1
+            Access the full Elite experience: study resources, mock exams, and 1-on-1
             consultation. Upgrade to the Road to 8.0+ plan to access this exclusive feature.
           </p>
           <div className="glass-card p-6 mb-8">
@@ -171,7 +171,7 @@ export default function EliteHubPage() {
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-3xl font-bold text-foreground tracking-tight md:text-4xl">
-              Human + AI IELTS Preparation
+              Elite IELTS Preparation
             </h1>
             <Button
               variant="outline"

@@ -167,7 +167,7 @@ export default function FlashcardsPage() {
     return (
       <HumanPlusAILockScreen
         title="Flashcards"
-        description="Access interactive flip cards for grammar and vocabulary. Upgrade to the Human+AI package to use this feature."
+        description="Access interactive flip cards for grammar and vocabulary. Upgrade to the Elite package to use this feature."
         features={[
           "Grammar topics 1–13",
           "Interactive flip cards",

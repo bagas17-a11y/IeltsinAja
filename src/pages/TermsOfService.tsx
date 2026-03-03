@@ -55,7 +55,7 @@ export default function TermsOfService() {
             <ul className="list-disc list-inside text-foreground/80 space-y-2 ml-4">
               <li><strong>Free Plan:</strong> Limited to 1 practice per module for trial purposes.</li>
               <li><strong>Pro Plan:</strong> Full access to all AI-powered features for 2 months.</li>
-              <li><strong>Human+AI Plan:</strong> Pro features plus 5 hours of 1-on-1 consultation with senior consultants.</li>
+              <li><strong>Elite Plan:</strong> Pro features plus 5 hours of 1-on-1 consultation with senior consultants.</li>
             </ul>
             <p className="text-foreground/80 leading-relaxed mt-4">
               Payments are processed via bank transfer. Account upgrades occur within 24 hours of payment verification.

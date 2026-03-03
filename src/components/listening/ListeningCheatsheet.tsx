@@ -234,7 +234,7 @@ export function ListeningCheatsheet() {
         {/* 6. Quick Human+AI Routine */}
         <AccordionItem value="routine" className="border rounded-lg px-4 mb-4">
           <AccordionTrigger className="text-base font-semibold hover:no-underline">
-            6. Quick Human+AI Routine (Daily 20–30 mins)
+            6. Quick Elite Routine (Daily 20–30 mins)
           </AccordionTrigger>
           <AccordionContent className="pb-4 space-y-4">
             <ol className="list-decimal pl-5 space-y-3 text-sm">

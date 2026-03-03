@@ -816,7 +816,7 @@ export function WritingCheatsheet() {
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground leading-relaxed">
-        Master IELTS Academic Writing with our Human+AI system. Two tracks: <strong>Task 1 (Visual Report)</strong> and <strong>Task 2 (Essay)</strong>.
+        Master IELTS Academic Writing with our Elite system. Two tracks: <strong>Task 1 (Visual Report)</strong> and <strong>Task 2 (Essay)</strong>.
       </p>
 
       <Tabs defaultValue="task1" className="w-full">

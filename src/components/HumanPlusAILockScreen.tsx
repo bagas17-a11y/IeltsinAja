@@ -12,7 +12,7 @@ interface HumanPlusAILockScreenProps {
 
 export function HumanPlusAILockScreen({
   title,
-  description = "Upgrade to the Human+AI package to use this feature.",
+  description = "Upgrade to the Elite package to use this feature.",
   features,
 }: HumanPlusAILockScreenProps) {
   return (
@@ -22,7 +22,7 @@ export function HumanPlusAILockScreen({
           <Lock className="w-10 h-10 text-elite-gold" />
         </div>
         <h1 className="text-3xl font-light mb-4">
-          Unlock <span className="text-elite-gold">Human+AI {title}</span>
+          Unlock <span className="text-elite-gold">Elite {title}</span>
         </h1>
         <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
           {description}

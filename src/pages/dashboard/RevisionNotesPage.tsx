@@ -192,7 +192,7 @@ export default function RevisionNotesPage() {
     return (
       <HumanPlusAILockScreen
         title="Revision Notes"
-        description="Access grammar and vocabulary revision notes across topics. Upgrade to the Human+AI package to use this feature."
+        description="Access grammar and vocabulary revision notes across topics. Upgrade to the Elite package to use this feature."
         features={[
           "Grammar topics (parts of speech, tenses, etc.)",
           "Vocabulary and collocations",
