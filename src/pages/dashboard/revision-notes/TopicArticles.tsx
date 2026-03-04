@@ -21,24 +21,24 @@ export function TopicArticles() {
       <SectionTitle number={2} title="A / An – indefinite articles" />
       <DefinitionCard>
         <p className="mb-3">Use <strong className="text-white">a / an</strong> when the noun is singular, countable, and not specific (any one of many).</p>
-        <p className="mb-3"><strong>a</strong> before consonant sounds; <strong>an</strong> before vowel sounds. Focus on <em>sound</em>, not spelling.</p>
+        <p className="mb-2 font-semibold text-slate-200">Use <strong>a</strong> before consonant sounds.</p>
         <WorkedExample><>&quot;Many students dream of studying at <strong>a</strong> university abroad.&quot; (sound: /juː/ = consonant)</></WorkedExample>
+        <WorkedExample><>&quot;There was <strong>a</strong> useful book in the library.&quot;</></WorkedExample>
+        <p className="mb-2 mt-4 font-semibold text-slate-200">Use <strong>an</strong> before vowel sounds.</p>
         <WorkedExample><>&quot;Living in <strong>an</strong> urban area can be very expensive.&quot;</></WorkedExample>
+        <WorkedExample><>&quot;It took <strong>an</strong> hour to complete.&quot;</></WorkedExample>
       </DefinitionCard>
 
       <SectionTitle number={3} title="The – definite article" />
       <DefinitionCard>
         <p className="mb-3">Use <strong className="text-white">the</strong> when both writer and reader know which specific person or thing you mean.</p>
-        <p className="mb-2">Often used with:</p>
-        <KeyList
-          items={[
-            "First mention vs second mention — &quot;a problem&quot; → &quot;the problem&quot;",
-            "Superlatives — &quot;the most important reason&quot;",
-            "Unique things — &quot;the government&quot;, &quot;the internet&quot;",
-          ]}
-        />
+        <p className="mb-2 font-semibold text-slate-200">First mention vs second mention — &quot;a&quot; → &quot;the&quot;</p>
         <WorkedExample><>&quot;There is <strong>a</strong> problem with traffic in cities. <strong>The</strong> problem is getting worse.&quot;</></WorkedExample>
+        <p className="mb-2 mt-4 font-semibold text-slate-200">Superlatives</p>
+        <WorkedExample><>&quot;<strong>The</strong> most important reason is cost.&quot;</></WorkedExample>
+        <p className="mb-2 mt-4 font-semibold text-slate-200">Unique things</p>
         <WorkedExample><>&quot;<strong>The</strong> government should focus on improving public transport.&quot;</></WorkedExample>
+        <WorkedExample><>&quot;<strong>The</strong> internet has changed how we communicate.&quot;</></WorkedExample>
       </DefinitionCard>
       <ExaminerTip>
         Do not use &quot;the&quot; before a noun that has not been introduced yet.
@@ -65,8 +65,7 @@ export function TopicArticles() {
         <p className="text-sm text-slate-400 mb-2">— &quot;Pollution&quot; as a general idea does not need &quot;the&quot;.</p>
         <MistakeRow wrong="Government should invest in education." correct="The government should invest in education." />
         <p className="text-sm text-slate-400 mb-2">— Singular countable noun needs an article. Use &quot;the&quot; for the government in general.</p>
-        <MistakeRow wrong="I believe that education should be free." correct="I believe that education should be free." />
-        <p className="text-sm text-slate-400">— &quot;Education&quot; (uncountable, general) = no article. This is correct.</p>
+        <p className="text-sm text-slate-400">— Correct: &quot;I believe that education should be free.&quot; — &quot;Education&quot; (uncountable, general) takes no article.</p>
       </DefinitionCard>
 
       <SectionTitle number={6} title="Mini practice (articles)" />

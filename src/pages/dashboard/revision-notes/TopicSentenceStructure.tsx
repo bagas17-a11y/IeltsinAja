@@ -20,7 +20,7 @@ export function TopicSentenceStructure() {
         <p className="mb-2">The subject <strong className="text-white">receives</strong> the action.</p>
         <WorkedExample><>&quot;Taxes <strong>were increased</strong> by the government.&quot;</></WorkedExample>
         <p className="mt-3 text-slate-300">
-          Passive voice is useful in Task 1 when the action is more important than the person or thing that does it, for example in process diagrams or reports.
+          Passive voice is useful in IELTS Writing Task 1 (visual report) when the action is more important than the person or thing that does it, for example in process diagrams or reports.
         </p>
       </DefinitionCard>
 
@@ -29,16 +29,16 @@ export function TopicSentenceStructure() {
         <p className="mb-4">
           Using only simple sentences makes your writing clear but basic. For Band 7 and above, you should show a mix of simple, compound, and complex sentences.
         </p>
-        <SubSectionTitle title="a) Simple sentences" />
+        <SubSectionTitle title="2.1 Simple sentences" />
         <p className="mb-2">One independent clause (one complete idea).</p>
         <WorkedExample><>&quot;Many students study abroad.&quot;</></WorkedExample>
 
-        <SubSectionTitle title="b) Compound sentences" />
+        <SubSectionTitle title="2.2 Compound sentences" />
         <p className="mb-2">Two independent clauses joined with <strong className="text-white">and, but, so, or, yet, for</strong>.</p>
         <WorkedExample><>&quot;Many students study abroad, <strong>but</strong> studying overseas can be expensive.&quot;</></WorkedExample>
         <p className="text-sm text-slate-400 mt-2">Pattern: Clause 1 + , + coordinating conjunction + Clause 2</p>
 
-        <SubSectionTitle title="c) Basic complex sentences" />
+        <SubSectionTitle title="2.3 Basic complex sentences" />
         <p className="mb-2">One main clause + one dependent clause introduced by <strong className="text-white">because, although, while, if, when, since</strong>, etc.</p>
         <WorkedExample><>&quot;<strong>Although</strong> studying abroad is expensive, many students believe it is worth the cost.&quot;</></WorkedExample>
         <WorkedExample><>&quot;People are healthier <strong>because</strong> they have better access to medical care.&quot;</></WorkedExample>

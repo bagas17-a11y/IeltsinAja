@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { HumanPlusAILockScreen } from "@/components/HumanPlusAILockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,9 @@ function getTopicTitle(id: string, topics: ReturnType<typeof getAllFlashcardTopi
 }
 
 export default function FlashcardsPage() {
+  const { profile } = useAuth();
+  const isElite = profile?.subscription_tier === "elite";
+
   const [searchParams, setSearchParams] = useSearchParams();
   const topicParam = searchParams.get("topic");
   const subtopicParam = searchParams.get("subtopic");
@@ -157,6 +162,20 @@ export default function FlashcardsPage() {
       sum + topic.subtopics.reduce((s, st) => s + st.flashcards.length, 0),
     0
   );
+
+  if (!isElite) {
+    return (
+      <HumanPlusAILockScreen
+        title="Flashcards"
+        description="Access interactive flip cards for grammar and vocabulary. Upgrade to the Elite package to use this feature."
+        features={[
+          "Grammar topics 1–13",
+          "Interactive flip cards",
+          "Progress tracking",
+        ]}
+      />
+    );
+  }
 
   return (
     <DashboardLayout>

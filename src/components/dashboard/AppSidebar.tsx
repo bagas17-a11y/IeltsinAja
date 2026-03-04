@@ -115,9 +115,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Human + AI */}
+        {/* Elite */}
         <SidebarGroup>
-          <SidebarGroupLabel>Human + AI</SidebarGroupLabel>
+          <SidebarGroupLabel>Elite</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {supportItems.map(item => <SidebarMenuItem key={item.path}>

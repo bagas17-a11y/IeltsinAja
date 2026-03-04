@@ -34,7 +34,7 @@ Plan Differences:
    - AI-powered feedback and grading
    - Progress tracking and statistics
    
-3. **Human+AI Plan (Rp 1,500,000)**:
+3. **Elite Plan (Rp 1,500,000)**:
    - Everything in Pro
    - VIP AI feedback with more detailed analysis
    - Personalized coaching sessions
@@ -66,7 +66,7 @@ Perbedaan Paket:
    - Feedback dan penilaian berbasis AI
    - Tracking progress dan statistik
    
-3. **Paket Human+AI (Rp 1.500.000)**:
+3. **Paket Elite (Rp 1.500.000)**:
    - Semua yang ada di Pro
    - Feedback AI VIP dengan analisis lebih detail
    - Sesi coaching personal

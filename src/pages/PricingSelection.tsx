@@ -49,7 +49,7 @@ const getPlans = (hasPromoCode: boolean) => [
     planKey: "pro",
   },
   {
-    name: "Human+AI",
+    name: "Elite",
     price: "IDR 2.5M",
     originalPrice: null,
     period: "one-time",

@@ -77,14 +77,14 @@ export function TopicSubjectVerbAgreement() {
       </DefinitionCard>
 
       <SectionTitle number={4} title="Special patterns" />
-      <SubSectionTitle title="a) Subjects joined by “and”" />
+      <SubSectionTitle title="4.1 Subjects joined by &quot;and&quot;" />
       <DefinitionCard>
         <p className="mb-2">Usually <strong className="text-white">plural</strong> → use plural verb.</p>
         <WorkedExample>
           <>&quot;The internet <strong>and</strong> mobile phones <em>have</em> changed communication.&quot;</>
         </WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="b) Subjects joined by “or / nor”" />
+      <SubSectionTitle title="4.2 Subjects joined by &quot;or / nor&quot;" />
       <DefinitionCard>
         <p className="mb-2">Verb agrees with the <strong className="text-white">closest</strong> subject.</p>
         <WorkedExample>
@@ -94,7 +94,7 @@ export function TopicSubjectVerbAgreement() {
           <>&quot;Either the <strong>students</strong> or the <strong>teacher</strong> <em>is</em> responsible.&quot;</>
         </WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="c) There is / There are" />
+      <SubSectionTitle title="4.3 There is / There are" />
       <DefinitionCard>
         <p className="mb-2">Singular noun → &quot;There <strong>is</strong> one main reason for this problem.&quot;</p>
         <p>Plural noun → &quot;There <strong>are</strong> several reasons for this problem.&quot;</p>
@@ -103,7 +103,7 @@ export function TopicSubjectVerbAgreement() {
       <SectionTitle number={5} title="Overview of conditionals" />
       <DefinitionCard>
         <p className="mb-4">
-          Conditionals are &quot;if&quot; sentences. They are very common in Task 2 and Speaking when you talk about causes, results, and imaginary situations.
+          Conditionals are &quot;if&quot; sentences. They are very common in IELTS Writing Task 2 (essay) and Speaking when you talk about causes, results, and imaginary situations.
         </p>
         <div className="space-y-4">
           <div>
@@ -140,13 +140,13 @@ export function TopicSubjectVerbAgreement() {
       <SectionTitle number={6} title="Word order: sentences and questions" />
       <DefinitionCard>
         <p className="mb-4">English word order is more fixed than many other languages.</p>
-        <SubSectionTitle title="a) Statements" />
+        <SubSectionTitle title="6.1 Statements" />
         <p className="mb-2">Basic pattern: <strong className="text-white">Subject + Verb + Object + (Place) + (Time)</strong></p>
         <WorkedExample><>&quot;I <strong>went</strong> to campus yesterday.&quot;</></WorkedExample>
         <WorkedExample><>&quot;She <strong>studies</strong> English at night.&quot;</></WorkedExample>
         <p className="mt-3 text-sm text-slate-400">Avoid changing the order, for example:</p>
         <MistakeRow wrong="Went I yesterday to campus." correct="I went to campus yesterday." />
-        <SubSectionTitle title="b) Yes/No questions" />
+        <SubSectionTitle title="6.2 Yes/No questions" />
         <p className="mb-2">Pattern: <strong className="text-white">Auxiliary + Subject + Verb…?</strong></p>
         <WorkedExample><>&quot;Do you <strong>live</strong> in Jakarta?&quot;</></WorkedExample>
         <WorkedExample><>&quot;Have you <strong>finished</strong> your homework?&quot;</></WorkedExample>

@@ -24,6 +24,8 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ListeningCheatsheet } from "@/components/listening/ListeningCheatsheet";
 
 interface Question {
   id: number;
@@ -63,7 +65,8 @@ interface CachedListeningState {
 const LISTENING_CACHE_KEY = "ielts-listening-cache";
 
 export default function ListeningModule() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isElite = profile?.subscription_tier === "elite";
   const [tests, setTests] = useState<ListeningTest[]>([]);
   const [currentTest, setCurrentTest] = useState<ListeningTest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -499,6 +502,46 @@ export default function ListeningModule() {
   }
 
   if (!currentTest) {
+    const practiceContent = tests.length === 0 ? (
+      <div className="glass-card p-12 text-center">
+        <Headphones className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+        <h2 className="text-xl font-light mb-2">No Tests Available</h2>
+        <p className="text-muted-foreground">
+          Your administrator hasn&apos;t uploaded any listening tests yet.
+        </p>
+      </div>
+    ) : (
+      <div className="grid gap-4">
+        {tests.map((test) => (
+          <button
+            key={test.id}
+            onClick={() => startTest(test)}
+            className="glass-card p-6 text-left hover:scale-[1.01] transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-light mb-1">{test.title}</h3>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {test.duration_minutes} mins
+                  </span>
+                  <Badge variant={
+                    test.difficulty === "hard" ? "destructive" :
+                    test.difficulty === "easy" ? "secondary" : "default"
+                  }>
+                    {test.difficulty}
+                  </Badge>
+                  <span>{test.questions.length} questions</span>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
+            </div>
+          </button>
+        ))}
+      </div>
+    );
+
     return (
       <DashboardLayout>
         <div className="max-w-4xl">
@@ -508,48 +551,30 @@ export default function ListeningModule() {
             </div>
             <div>
               <h1 className="text-2xl font-light">Listening Practice</h1>
-              <p className="text-sm text-muted-foreground">Select a test to begin</p>
+              <p className="text-sm text-muted-foreground">
+                {isElite ? "Select a test or explore MudahInAja" : "Select a test"}
+              </p>
             </div>
           </div>
 
-          {tests.length === 0 ? (
-            <div className="glass-card p-12 text-center">
-              <Headphones className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="text-xl font-light mb-2">No Tests Available</h2>
-              <p className="text-muted-foreground">
-                Your administrator hasn't uploaded any listening tests yet.
-              </p>
-            </div>
+          {isElite ? (
+            <Tabs defaultValue="practice" className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="practice">Practice Tests</TabsTrigger>
+                <TabsTrigger value="cheatsheet">MudahInAja</TabsTrigger>
+              </TabsList>
+              <TabsContent value="practice" className="mt-0">
+                {practiceContent}
+              </TabsContent>
+              <TabsContent value="cheatsheet" className="mt-0">
+                <div className="glass-card p-6">
+                  <h2 className="text-lg font-semibold mb-4">Elite Cheatsheet & Hard Tips</h2>
+                  <ListeningCheatsheet />
+                </div>
+              </TabsContent>
+            </Tabs>
           ) : (
-            <div className="grid gap-4">
-              {tests.map((test) => (
-                <button
-                  key={test.id}
-                  onClick={() => startTest(test)}
-                  className="glass-card p-6 text-left hover:scale-[1.01] transition-all group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-light mb-1">{test.title}</h3>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {test.duration_minutes} mins
-                        </span>
-                        <Badge variant={
-                          test.difficulty === "hard" ? "destructive" : 
-                          test.difficulty === "easy" ? "secondary" : "default"
-                        }>
-                          {test.difficulty}
-                        </Badge>
-                        <span>{test.questions.length} questions</span>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
-                  </div>
-                </button>
-              ))}
-            </div>
+            practiceContent
           )}
         </div>
       </DashboardLayout>

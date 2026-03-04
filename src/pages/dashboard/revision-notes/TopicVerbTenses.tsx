@@ -6,189 +6,234 @@ import {
   KeyList,
   MiniPractice,
   WorkedExample,
+  RevisionTable,
 } from "./RevisionNoteContent";
 
 export function TopicVerbTenses() {
   return (
     <div className="space-y-6">
-      <SectionTitle number={1} title="Why tenses matter" />
+      <SectionTitle number={1} title="Tense Overview & V1/V2/V3" />
       <DefinitionCard>
         <p className="mb-3">
           Correct tense choice shows when something happens and how long it lasts.
         </p>
         <p>
-          Band 7+ candidates use tenses consistently in Task 1, Task 2, and Speaking, with only occasional errors.
+          Band 7+ candidates use tenses consistently in IELTS Writing Task 1 (visual report), Task 2 (essay), and Speaking, with only occasional errors.
         </p>
       </DefinitionCard>
+      <SubSectionTitle title="V1/V2/V3 Legend" />
+      <KeyList
+        items={[
+          <><strong className="text-white">V1</strong> = base form (work, go, increase)</>,
+          <><strong className="text-white">V2</strong> = past simple (worked, went, increased)</>,
+          <><strong className="text-white">V3</strong> = past participle (worked, gone, increased)</>,
+        ]}
+      />
+      <RevisionTable
+        headers={["Tense", "Form (using V1/V2/V3)", "Basic use"]}
+        rows={[
+          ["Past simple", "V2", "Finished actions at a specific past time"],
+          ["Present simple", "V1 / V1+s", "Facts, habits, general truths"],
+          ["Future with will", "will + V1", "Predictions, decisions at moment of speaking"],
+        ]}
+      />
 
-      <SectionTitle number={2} title="Past Tenses (Task 1 focus)" />
+      <SectionTitle number={2} title="Past Tenses" />
       <SubSectionTitle title="2.1 Past simple" />
       <DefinitionCard>
-        <p className="mb-2">Use for completed actions at a specific time in the past.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: subject + V2</p>
-        <WorkedExample>
-          <>&quot;Car ownership <strong>increased</strong> significantly between 1990 and 2000.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> V2 (increased, fell, rose, was/were)</p>
+        <p className="mb-2"><strong>Use:</strong> Completed actions or changes in the past.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>IELTS Writing Task 1: &quot;Car ownership <strong>increased</strong> significantly between 1990 and 2000.&quot; — Why: the chart shows a past period that is finished.</>
+      </WorkedExample>
+      <WorkedExample>
+        <>IELTS Writing Task 2: &quot;In the past, people <strong>relied</strong> more on local communities.&quot;</>
+      </WorkedExample>
+      <WorkedExample>
+        <>Speaking: &quot;I <strong>studied</strong> English at school.&quot;</>
+      </WorkedExample>
+
       <SubSectionTitle title="2.2 Past continuous" />
       <DefinitionCard>
-        <p className="mb-2">Use for actions in progress at a particular moment in the past.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: was / were + V‑ing</p>
-        <WorkedExample>
-          <>&quot;While internet use <strong>was rising</strong>, newspaper readership <strong>was falling</strong>.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> was/were + V‑ing</p>
+        <p className="mb-2"><strong>Use:</strong> Action in progress at a specific time in the past.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>&quot;While internet use <strong>was rising</strong>, newspaper readership <strong>was falling</strong>.&quot; — Why: describes two actions happening at the same time in a past period.</>
+      </WorkedExample>
+
       <SubSectionTitle title="2.3 Past perfect" />
       <DefinitionCard>
-        <p className="mb-2">Use to show an earlier past before another past point.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: had + V3</p>
-        <WorkedExample>
-          <>&quot;By 2010, the population <strong>had doubled</strong>.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> had + V3</p>
+        <p className="mb-2"><strong>Use:</strong> Earlier past before another past point.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>IELTS Writing Task 1: &quot;By 2010, the population <strong>had doubled</strong>.&quot; — Why: &quot;doubling&quot; happened before 2010, which is another past reference point.</>
+      </WorkedExample>
+
       <SubSectionTitle title="2.4 Past perfect continuous" />
       <DefinitionCard>
-        <p className="mb-2">Less common but useful to emphasise duration before a past point.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: had been + V‑ing</p>
-        <WorkedExample>
-          <>&quot;The unemployment rate <strong>had been increasing</strong> steadily before the reforms were introduced.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> had been + V‑ing</p>
+        <p className="mb-2"><strong>Use:</strong> To stress <strong>duration</strong> before another past event.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>&quot;Unemployment <strong>had been increasing</strong> steadily before the reforms were introduced.&quot;</>
+      </WorkedExample>
 
-      <SectionTitle number={3} title="Present Tenses (Task 1 + Task 2 + Speaking)" />
+      <SectionTitle number={3} title="Present Tenses" />
       <SubSectionTitle title="3.1 Present simple" />
       <DefinitionCard>
-        <p className="mb-2">Use for facts, general truths, charts with no clear time reference, and opinions.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: V1 / V1+s</p>
-        <WorkedExample>
-          <>&quot;The chart <strong>shows</strong> the proportion of energy sources.&quot; (Task 1)</>
-        </WorkedExample>
-        <WorkedExample>
-          <>&quot;Education <strong>plays</strong> a vital role in economic development.&quot; (Task 2)</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> V1 / V1+s</p>
+        <p className="mb-2"><strong>Use:</strong> Facts, general truths, descriptions of charts with no clear past/future, and opinions.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>IELTS Writing Task 1: &quot;The chart <strong>shows</strong> the proportion of energy sources.&quot; — Why: the chart exists now; description is factual.</>
+      </WorkedExample>
+      <WorkedExample>
+        <>IELTS Writing Task 2: &quot;Education <strong>plays</strong> a vital role in economic development.&quot;</>
+      </WorkedExample>
+      <WorkedExample>
+        <>Speaking: &quot;I <strong>live</strong> in Jakarta.&quot;</>
+      </WorkedExample>
+
       <SubSectionTitle title="3.2 Present continuous" />
       <DefinitionCard>
-        <p className="mb-2">Use for temporary actions or changing situations.</p>
-        <WorkedExample>
-          <>&quot;Many countries <strong>are experiencing</strong> rapid urbanisation.&quot; (Task 2)</>
-        </WorkedExample>
-        <WorkedExample>
-          <>&quot;I <strong>am currently studying</strong> at university.&quot; (Speaking)</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> am/is/are + V‑ing</p>
+        <p className="mb-2"><strong>Use:</strong> Temporary actions and current trends.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>&quot;Many cities <strong>are experiencing</strong> rapid urbanisation.&quot; — Why: emphasises change happening around now; useful in IELTS Writing Task 2 and Speaking.</>
+      </WorkedExample>
+
       <SubSectionTitle title="3.3 Present perfect" />
       <DefinitionCard>
-        <p className="mb-2">Use for past actions with present result or experience up to now.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: have / has + V3</p>
-        <WorkedExample>
-          <>&quot;Technology <strong>has transformed</strong> the way people communicate.&quot; (Writing)</>
-        </WorkedExample>
-        <WorkedExample>
-          <>&quot;I <strong>have lived</strong> in this city for ten years.&quot; (Speaking)</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> have/has + V3</p>
+        <p className="mb-2"><strong>Use:</strong> Past action with result now / life experience / change up to now.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>IELTS Writing Task 2: &quot;Technology <strong>has transformed</strong> the way people communicate.&quot;</>
+      </WorkedExample>
+      <WorkedExample>
+        <>Speaking: &quot;I <strong>have lived</strong> here for ten years.&quot; — Why: action started in the past and continues to now.</>
+      </WorkedExample>
+
       <SubSectionTitle title="3.4 Present perfect continuous" />
       <DefinitionCard>
-        <p className="mb-2">Use for actions that started in the past and continue now, emphasising duration.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: have / has been + V‑ing</p>
-        <WorkedExample>
-          <>&quot;Governments <strong>have been investing</strong> heavily in renewable energy.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> have/has been + V‑ing</p>
+        <p className="mb-2"><strong>Use:</strong> Emphasise ongoing activity from past until now.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>&quot;Governments <strong>have been investing</strong> heavily in renewable energy.&quot;</>
+      </WorkedExample>
 
-      <SectionTitle number={4} title="Future Tenses (projections and predictions)" />
-      <SubSectionTitle title="4.1 Future simple (will)" />
+      <SectionTitle number={4} title="Future Forms" />
+      <SubSectionTitle title="4.1 Will + V1" />
       <DefinitionCard>
-        <p className="mb-2">Use for predictions and projections in Task 1 and for opinions about the future in Task 2.</p>
-        <WorkedExample>
-          <>&quot;The number of cars <strong>will continue</strong> to rise.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> will + V1</p>
+        <p className="mb-2"><strong>Use:</strong> Predictions and future projections (especially when chart includes future data).</p>
       </DefinitionCard>
-      <SubSectionTitle title="4.2 Be going to" />
+      <WorkedExample>
+        <>IELTS Writing Task 1: &quot;The number of car users <strong>will continue</strong> to rise after 2020.&quot; — Why: describes prediction shown in the chart.</>
+      </WorkedExample>
+
+      <SubSectionTitle title="4.2 Be going to + V1" />
       <DefinitionCard>
-        <p className="mb-2">Use for plans or predictions based on present evidence.</p>
-        <WorkedExample>
-          <>&quot;The population <strong>is going to reach</strong> a peak before 2050.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Use:</strong> Plans/intentions or predictions with strong present evidence.</p>
       </DefinitionCard>
+      <WorkedExample>
+        <>&quot;The population <strong>is going to reach</strong> a peak before 2050.&quot;</>
+      </WorkedExample>
+
       <SubSectionTitle title="4.3 Future perfect" />
       <DefinitionCard>
-        <p className="mb-2">Use to describe an action completed before a future time.</p>
-        <p className="text-sm text-slate-400 mb-2">Form: will have + V3</p>
-        <WorkedExample>
-          <>&quot;By 2030, emissions <strong>will have fallen</strong> by half.&quot;</>
-        </WorkedExample>
+        <p className="mb-2"><strong>Form:</strong> will have + V3</p>
+        <p className="mb-2"><strong>Use:</strong> Action completed before a specific future time.</p>
       </DefinitionCard>
-      <SubSectionTitle title="4.4 Future continuous / future perfect continuous" />
-      <DefinitionCard>
-        <p className="mb-2">Less common but useful to show advanced range.</p>
-        <WorkedExample>
-          <>&quot;In 2030, many people <strong>will be working</strong> remotely.&quot;</>
-        </WorkedExample>
-        <WorkedExample>
-          <>&quot;By next year, I <strong>will have been preparing</strong> for the exam for over twelve months.&quot;</>
-        </WorkedExample>
-      </DefinitionCard>
+      <WorkedExample>
+        <>&quot;By 2030, emissions <strong>will have fallen</strong> by half.&quot; — Why: used when the graph shows a future point and an earlier future change.</>
+      </WorkedExample>
 
-      <SectionTitle number={5} title="Tense use by IELTS task" />
-      <SubSectionTitle title="5.1 Task 1 (Academic)" />
-      <KeyList
-        items={[
-          <>Past data only → mainly past simple, sometimes past perfect.</>,
-          <>Present data → present simple.</>,
-          <>Predictions → future forms (will, be likely to, is expected to).</>,
-        ]}
-      />
-      <SubSectionTitle title="5.2 Task 2" />
-      <KeyList
-        items={[
-          <>General truths and arguments → present simple.</>,
-          <>Examples of past events → past simple.</>,
-          <>Future consequences → future forms (&quot;will&quot;, &quot;may&quot;, &quot;is likely to&quot;).</>,
-        ]}
-      />
-      <SubSectionTitle title="5.3 Speaking" />
-      <KeyList
-        items={[
-          <>Part 1 → mostly present simple + present continuous.</>,
-          <>Part 2 → mixture of past simple, past continuous, and present perfect to tell stories.</>,
-          <>Part 3 → present simple for opinions, future forms for predictions.</>,
+      <SectionTitle number={5} title="Which Tense for IELTS Writing Task 1 vs Task 2 vs Speaking?" />
+      <RevisionTable
+        headers={["Situation", "Best tense(s)", "Example"]}
+        rows={[
+          ["Task 1: past‑only chart", "Past simple (+ occasional past perfect)", "Sales fell steadily between 2000 and 2010."],
+          ["Task 1: present‑only / no time", "Present simple", "The chart shows three types of energy use."],
+          ["Task 1: includes future projections", "Present simple + future forms", "The chart predicts that sales will rise after 2025."],
+          ["Task 2: general statements", "Present simple", "People depend on cars nowadays."],
+          ["Task 2: giving examples from the past", "Past simple", "In many cities, authorities introduced congestion charges."],
+          ["Speaking: life experience", "Present perfect", "I have taken the IELTS once."],
+          ["Speaking: past story", "Past simple / past continuous", "I was travelling when I lost my passport."],
         ]}
       />
       <ExaminerTip>
-        High‑band candidates keep tense <strong>consistent</strong> within a paragraph. Random switching between past and present for the same data is a common Band 6 issue.
+        Mixing past and present for the same chart (&quot;was increased&quot; / &quot;is decreasing&quot;) is a common Band 5–6 error. Stick to one logical tense based on the time in the question.
       </ExaminerTip>
 
-      <SectionTitle number={6} title="Mini Practice (Tenses)" />
-      <MiniPractice
-        title="Mini Practice"
-        prompt={
-          <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-300">
-            <li>
-              <strong className="text-slate-200">Task 1 sentence (past chart)</strong>
-              <br />
-              Original: &quot;The number of tourists is increasing between 2000 and 2010.&quot;
-            </li>
-            <li>
-              <strong className="text-slate-200">Task 2 sentence (general truth)</strong>
-              <br />
-              Original: &quot;People were depending on cars nowadays.&quot;
-            </li>
-            <li>
-              <strong className="text-slate-200">Speaking Part 2 sentence (experience)</strong>
-              <br />
-              Original: &quot;I live here for ten years.&quot;
-            </li>
-          </ol>
-        }
-        modelLabel="Better"
-        modelItems={[
-          <>&quot;The number of tourists <strong>increased</strong> between 2000 and 2010.&quot;</>,
-          <>&quot;People <strong>depend</strong> on cars nowadays.&quot;</>,
-          <>&quot;I <strong>have lived</strong> here for ten years.&quot;</>,
-        ]}
-      />
+      <SectionTitle number={6} title="Mini Practice with Answer Explanations" />
+      <div className="space-y-6">
+        <MiniPractice
+          title="Q1 – Task 1 (past chart)"
+          prompt={
+            <>
+              <p className="mb-2">Original: &quot;From 2000 to 2010, the number of tourists <strong className="text-red-400">is increasing</strong> steadily.&quot;</p>
+              <p className="text-sm text-slate-400 mb-2">Correct answer: &quot;From 2000 to 2010, the number of tourists <strong className="text-emerald-400">increased</strong> steadily.&quot;</p>
+              <p className="text-xs text-slate-400">
+                <strong>Wrong:</strong> uses present continuous (is increasing) for a period that finished in the past. <strong>Correct:</strong> past simple (increased) matches a completed time period.
+              </p>
+            </>
+          }
+        />
+        <MiniPractice
+          title="Q2 – Task 1 (future projection)"
+          prompt={
+            <>
+              <p className="mb-2">Original: &quot;By 2030, the population <strong className="text-red-400">increases</strong> to ten million.&quot;</p>
+              <p className="text-sm text-slate-400 mb-2">Correct answer: &quot;By 2030, the population <strong className="text-emerald-400">will have increased</strong> to ten million.&quot;</p>
+              <p className="text-xs text-slate-400">
+                <strong>Wrong:</strong> present simple does not show that the change will be complete before 2030. <strong>Correct:</strong> future perfect (will have increased) clearly shows completion before that future time.
+              </p>
+            </>
+          }
+        />
+        <MiniPractice
+          title="Q3 – Task 2 (general truth)"
+          prompt={
+            <>
+              <p className="mb-2">Original: &quot;People <strong className="text-red-400">are depending</strong> on cars nowadays.&quot;</p>
+              <p className="text-sm text-slate-400 mb-2">Correct answer: &quot;People <strong className="text-emerald-400">depend</strong> on cars nowadays.&quot;</p>
+              <p className="text-xs text-slate-400">
+                <strong>Wrong:</strong> present continuous suggests a temporary action; here we talk about a general situation. <strong>Correct:</strong> present simple (depend) is used for general truths and habits, typical for Task 2 topic sentences.
+              </p>
+            </>
+          }
+        />
+        <MiniPractice
+          title="Q4 – Speaking (life experience)"
+          prompt={
+            <>
+              <p className="mb-2">Original: &quot;I <strong className="text-red-400">live</strong> here for ten years.&quot;</p>
+              <p className="text-sm text-slate-400 mb-2">Correct answer: &quot;I <strong className="text-emerald-400">have lived</strong> here for ten years.&quot;</p>
+              <p className="text-xs text-slate-400">
+                <strong>Wrong:</strong> present simple with &quot;for ten years&quot; does not show a period from past until now. <strong>Correct:</strong> present perfect (have lived) expresses an action that began in the past and continues to now, which is what the time phrase shows.
+              </p>
+            </>
+          }
+        />
+        <MiniPractice
+          title="Q5 – Task 1 (mixed tenses)"
+          prompt={
+            <>
+              <p className="mb-2">Original: &quot;The chart shows that car use <strong className="text-red-400">was increasing</strong> between 1990 and 2000 and <strong className="text-red-400">increase</strong> again after 2010.&quot;</p>
+              <p className="text-sm text-slate-400 mb-2">Correct answer: &quot;The chart shows that car use <strong className="text-emerald-400">increased</strong> between 1990 and 2000 and <strong className="text-emerald-400">increased</strong> again after 2010.&quot;</p>
+              <p className="text-xs text-slate-400">
+                <strong>Wrong:</strong> switches between was increasing and increase with no reason and uses wrong form (increase instead of increased). <strong>Correct:</strong> uses past simple consistently (increased … increased), matching two completed past periods.
+              </p>
+            </>
+          }
+        />
+      </div>
     </div>
   );
 }

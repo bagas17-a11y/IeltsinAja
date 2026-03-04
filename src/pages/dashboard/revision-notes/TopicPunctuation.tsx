@@ -5,6 +5,7 @@ import {
   KeyList,
   WorkedExample,
   MiniPractice,
+  MistakeRow,
 } from "./RevisionNoteContent";
 
 export function TopicPunctuation() {
@@ -21,19 +22,19 @@ export function TopicPunctuation() {
       </DefinitionCard>
 
       <SectionTitle number={2} title="Commas (,)" />
-      <SubSectionTitle title="a) Lists" />
+      <SubSectionTitle title="2.1 Lists" />
       <DefinitionCard>
         <p className="mb-3">Use commas to separate three or more items.</p>
         <WorkedExample>
           <>&quot;Students need <strong>time, motivation, and good resources</strong> to succeed.&quot;</>
         </WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="b) After linking words at the beginning" />
+      <SubSectionTitle title="2.2 After linking words at the beginning" />
       <DefinitionCard>
         <WorkedExample><>&quot;<strong>Firstly,</strong> governments should invest more in education.&quot;</></WorkedExample>
         <WorkedExample><>&quot;<strong>However,</strong> this solution may be too expensive.&quot;</></WorkedExample>
       </DefinitionCard>
-      <SubSectionTitle title="c) Before “and / but / so / yet” when joining two sentences" />
+      <SubSectionTitle title="2.3 Before &quot;and / but / so / yet&quot; when joining two sentences" />
       <DefinitionCard>
         <WorkedExample>
           <>&quot;Public transport is cheap, <strong>but</strong> it is often crowded.&quot;</>
@@ -42,18 +43,30 @@ export function TopicPunctuation() {
           Avoid very long sentences with no commas or too many commas in random places.
         </p>
       </DefinitionCard>
+      <SubSectionTitle title="2.4 Common comma mistakes" />
+      <DefinitionCard>
+        <p className="mb-2 font-semibold text-slate-200">Comma splice</p>
+        <p className="mb-2 text-sm">Using only a comma to join two complete sentences (wrong). Use a full stop, semicolon, or conjunction instead.</p>
+        <MistakeRow wrong="Many people drive to work, it causes traffic." correct="Many people drive to work. It causes traffic." />
+        <p className="mb-2 mt-4 font-semibold text-slate-200">Subject/verb separation</p>
+        <p className="mb-2 text-sm">Do not put a comma between the subject and verb.</p>
+        <MistakeRow wrong="The number of students, using online platforms increased." correct="The number of students using online platforms increased." />
+      </DefinitionCard>
 
       <SectionTitle number={3} title="Colons (:) and semicolons (;)" />
-      <SubSectionTitle title="Colons (:)" />
+      <SubSectionTitle title="3.1 Colons (:)" />
       <DefinitionCard>
-        <p className="mb-3">Use a colon before an explanation or list.</p>
-        <WorkedExample>
-          <>&quot;The government should prioritise three areas: <strong>education, healthcare, and public transport</strong>.&quot;</>
-        </WorkedExample>
+        <p className="mb-3">A colon introduces lists, explanations, or quotations after an independent clause — like an equal sign connecting a main idea to what clarifies it.</p>
+        <KeyList
+          items={[
+            <>List: &quot;The government should prioritise three areas: education, healthcare, and public transport.&quot;</>,
+            <>Explanation: &quot;There is one main reason: cost.&quot;</>,
+          ]}
+        />
       </DefinitionCard>
-      <SubSectionTitle title="Semicolons (;)" />
+      <SubSectionTitle title="3.2 Semicolons (;)" />
       <DefinitionCard>
-        <p className="mb-3">Use a semicolon to join two closely related sentences when they are both complete.</p>
+        <p className="mb-3">A semicolon joins two closely related independent clauses without a conjunction. Both sides must be complete sentences.</p>
         <WorkedExample>
           <>&quot;Traffic is a serious problem; many people spend hours commuting every day.&quot;</>
         </WorkedExample>
@@ -62,13 +75,21 @@ export function TopicPunctuation() {
         </p>
       </DefinitionCard>
 
-      <SectionTitle number={4} title="Quotation marks (“ ”)" />
+      <SectionTitle number={4} title="Quotation marks" />
       <DefinitionCard>
         <p className="mb-3">Use quotation marks when:</p>
         <KeyList
           items={[
-            <>You give someone&apos;s exact words: &quot;Some experts argue that &apos;education is the key to success&apos;.&quot;</>,
-            <>You mention a special term: &quot;The so‑called &quot;sharing economy&quot; has changed tourism.&quot;</>,
+            <>You give someone&apos;s exact words — use double quotes for the main quote, single quotes for nested quotes inside.</>,
+            <>You mention a special term — e.g. the so‑called &quot;sharing economy&quot; has changed tourism.</>,
+          ]}
+        />
+        <p className="mt-3 mb-2 font-semibold text-slate-200">Difference between single (&apos;...&apos;) and double (&quot;...&quot;)</p>
+        <KeyList
+          items={[
+            <><strong className="text-white">Double quotes</strong> — standard for direct speech and quoted terms in British English.</>,
+            <><strong className="text-white">Single quotes</strong> — used for quotes inside quotes (nested), or in some styles for emphasis.</>,
+            <>In IELTS, either style is fine as long as you are consistent.</>,
           ]}
         />
         <p className="mt-3 text-sm text-slate-400">
