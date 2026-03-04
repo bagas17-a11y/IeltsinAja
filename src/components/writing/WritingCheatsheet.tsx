@@ -600,46 +600,88 @@ function Task1RevisionNotes({
       {/* 6. The Body Paragraph (Most Important) */}
       <SectionTitle number={6} title="The Body Paragraph (Most Important)" />
 
-      <SubSectionTitle title="Group data instead of listing" />
+      <SubSectionTitle title="a) Group data instead of listing" />
       <p className="text-sm text-slate-300 leading-relaxed">
         Do not describe each bar in order. Group by <strong className="text-white">pattern</strong>: e.g. categories where the UK spent more vs. categories where France spent similar or more.
       </p>
       <SubSectionTitle title="Model answer example" />
       <WorkedExample>
-        <p className="text-slate-200 mb-2"><strong>Body 1</strong> (UK higher): &quot;In terms of cars, people in the UK spent about £450,000… Similarly, the British expenditure was higher on books… In the UK, expenditure on cameras (just over £350,000) was over double that of France…&quot;</p>
-        <p className="text-slate-200"><strong>Body 2</strong> (France higher/similar): &quot;On the other hand, the amount of money paid out on the remaining goods was higher in France. Above £350,000 was spent by the French on computers… Neither of the countries spent much on perfume…&quot;</p>
+        <p className="text-slate-200 mb-2"><strong className="text-blue-200">Body 1</strong> (UK higher): &quot;<strong className="text-blue-200">In terms of cars</strong>, people in the UK spent about £450,000… <strong className="text-blue-200">Similarly</strong>, the British expenditure was higher on books… In the UK, expenditure on cameras (just over £350,000) was <strong className="text-blue-200">over double that of France</strong>…&quot;</p>
+        <p className="text-slate-200"><strong className="text-blue-200">Body 2</strong> (France higher/similar): &quot;<strong className="text-blue-200">On the other hand</strong>, the amount of money paid out on the remaining goods was higher in France. Above £350,000 was spent by the French on computers… Neither of the countries spent much on perfume…&quot;</p>
       </WorkedExample>
       <ExaminerTip>
         Grouping by pattern (UK &gt; France vs France similar/higher) creates stronger comparisons than listing per country or per item.
       </ExaminerTip>
 
-      <SubSectionTitle title="Use comparisons & selective numbers" />
+      <SubSectionTitle title="b) Use comparisons & selective numbers" />
       <p className="text-sm text-slate-300 leading-relaxed">
         Use 4–6 key numbers only. Turn data into <strong className="text-white">comparative statements</strong> (e.g. &quot;more than double&quot;, &quot;the highest figure&quot;, &quot;the lowest at about…&quot;). Avoid dumping every figure in one paragraph.
       </p>
       <SubSectionTitle title="Model answer example" />
       <WorkedExample>
-        <p className="text-slate-200">&quot;In the UK, expenditure on cameras (just over £350,000) was over double that of France, which was only £150,000.&quot; / &quot;Neither of the countries spent much on perfume which accounted for £200,000 of expenditure in France but under £150,000 in the UK.&quot;</p>
+        <p className="text-slate-200">
+          &quot;In the UK, expenditure on cameras (<strong className="text-blue-200">just over £350,000</strong>) was <strong className="text-blue-200">over double that of France</strong>, which was only £150,000.&quot; / &quot;Neither of the countries spent much on perfume which <strong className="text-blue-200">accounted for</strong> £200,000 of expenditure in France but under £150,000 in the UK.&quot;
+        </p>
       </WorkedExample>
 
-      <SubSectionTitle title="Keep report style: formal & factual" />
+      <SubSectionTitle title="c) Keep report style: formal & factual" />
       <p className="text-sm text-slate-300 leading-relaxed">
         No opinions, no causes unless shown in the visual. Use formal, objective language. Avoid &quot;people preferred&quot; or &quot;this proves that…&quot;. Stay with what the chart shows.
       </p>
       <SubSectionTitle title="Model answer example" />
-      <p className="text-sm text-slate-300">The Band 9 sample uses factual phrasing: &quot;people in the UK spent about…&quot;, &quot;the amount of money paid out&quot;, &quot;accounted for&quot;. It never guesses why or adds opinion.</p>
+      <WorkedExample>
+        <p className="text-slate-200">
+          The Band 9 sample uses <strong className="text-blue-200">factual phrasing</strong>: &quot;<strong className="text-blue-200">people in the UK spent about…</strong>&quot;, &quot;<strong className="text-blue-200">the amount of money paid out</strong>&quot;, &quot;<strong className="text-blue-200">accounted for</strong>&quot;. It never guesses why or adds opinion.
+        </p>
+      </WorkedExample>
 
-      <SubSectionTitle title="Paragraphing & cohesion" />
+      <SubSectionTitle title="d) Paragraphing & cohesion" />
       <p className="text-sm text-slate-300 leading-relaxed">
         Use clear linkers and topic sentences so the reader sees the structure: <strong className="text-white">In terms of…</strong>, <strong className="text-white">Similarly…</strong>, <strong className="text-white">On the other hand…</strong>. One main idea per paragraph.
       </p>
       <SubSectionTitle title="Model answer example" />
       <WorkedExample>
-        <p className="text-slate-200">&quot;In terms of cars…&quot; opens the first body; &quot;Similarly&quot; adds the next comparison; &quot;On the other hand, the amount of money paid out on the remaining goods was higher in France&quot; introduces the contrast paragraph.</p>
+        <p className="text-slate-200">
+          &quot;<strong className="text-blue-200">In terms of cars</strong>…&quot; opens the first body; &quot;<strong className="text-blue-200">Similarly</strong>&quot; adds the next comparison; &quot;<strong className="text-blue-200">On the other hand</strong>, the amount of money paid out on the remaining goods was higher in France&quot; introduces the contrast paragraph.
+        </p>
       </WorkedExample>
 
-      {/* 7. Mini MCQ Quiz */}
-      <SectionTitle number={7} title="Mini MCQ Quiz – Quick Refresh" />
+      {/* 7. Complete Band 9 Model Answer */}
+      <SectionTitle number={7} title="Complete Band 9 Model Answer – Full Task 1 Response" />
+      <p className="text-sm text-slate-300 leading-relaxed mb-4">
+        Read the full model answer below to see how all the tips (Introduction, Overview, Grouping, Comparisons, Formal style, Cohesion) work together in a complete response.
+      </p>
+      <WorkedExample>
+        <div className="space-y-4 text-slate-200 text-sm">
+          <div>
+            <p className="font-semibold text-blue-200 mb-1">Introduction</p>
+            <p className="italic">
+              The chart illustrates the amount of money spent on five consumer goods (cars, computers, books, perfume and cameras) in France and the UK in 2010. Units are measured in pounds sterling.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-blue-200 mb-1">Overview</p>
+            <p className="italic">
+              Overall, the UK spent more money on consumer goods than France in the period given. Both the British and the French spent most of their money on cars whereas the least amount of money was spent on perfume in the UK compared to cameras in France. Furthermore, the most significant difference in expenditure between the two countries was on cameras.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-blue-200 mb-1">Body Paragraph 1</p>
+            <p className="italic">
+              In terms of cars, people in the UK spent about £450,000 on this as opposed to the French at £400,000. Similarly, the British expenditure was higher on books than the French (around £400,000 and £300,000 respectively). In the UK, expenditure on cameras (just over £350,000) was over double that of France, which was only £150,000.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-blue-200 mb-1">Body Paragraph 2</p>
+            <p className="italic">
+              On the other hand, the amount of money paid out on the remaining goods was higher in France. Above £350,000 was spent by the French on computers which was slightly more than the British who spent exactly £350,000. Neither of the countries spent much on perfume which accounted for £200,000 of expenditure in France but under £150,000 in the UK.
+            </p>
+          </div>
+        </div>
+      </WorkedExample>
+
+      {/* 8. Mini MCQ Quiz */}
+      <SectionTitle number={8} title="Mini MCQ Quiz – Quick Refresh" />
       <p className="text-sm text-slate-300 mb-4">
         Quick refresh using the same Band 9 bar chart model. Test your understanding with 10 MCQs.
       </p>
