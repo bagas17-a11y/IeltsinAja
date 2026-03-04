@@ -713,8 +713,41 @@ function Task1RevisionNotes({
         </div>
       </WorkedExample>
 
-      {/* 8. Mini MCQ Quiz */}
-      <SectionTitle number={8} title="Mini MCQ Quiz – Quick Refresh" />
+      {/* 8. Extra Resources */}
+      <SectionTitle number={8} title="Extra Resources" />
+      <div className="p-4 rounded-lg border border-[#334155] bg-[#1e293b]/60 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-slate-200 mb-1">Step By Step Task 1 (PDF)</p>
+          <p className="text-xs text-slate-400">A step-by-step guide to writing your Task 1 report.</p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="border-blue-500/40 text-blue-200 hover:bg-blue-500/10"
+          >
+            <a href="/assets/Step-By-Step-Task-1.pdf" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Open PDF
+            </a>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="border-blue-500/40 text-blue-200 hover:bg-blue-500/10"
+          >
+            <a href="/assets/Step-By-Step-Task-1.pdf" download="Step-By-Step-Task-1.pdf">
+              <FileDown className="w-4 h-4 mr-2" />
+              Download
+            </a>
+          </Button>
+        </div>
+      </div>
+
+      {/* 9. Mini MCQ Quiz */}
+      <SectionTitle number={9} title="Mini MCQ Quiz – Quick Refresh" />
       <p className="text-sm text-slate-300 mb-4">
         Quick refresh using the same Band 9 bar chart model. Test your understanding with 10 MCQs.
       </p>
