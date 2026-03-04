@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Lightbulb, ChevronRight, CheckCircle, XCircle, RotateCcw, Trophy, FileText, PenTool, ArrowRight } from "lucide-react";
+import { Lightbulb, ChevronRight, CheckCircle, XCircle, RotateCcw, Trophy, FileText, PenTool, ArrowRight, FileDown, ExternalLink } from "lucide-react";
 import {
   SectionTitle,
   SubSectionTitle,
@@ -635,16 +635,49 @@ function Task1RevisionNotes({
         </p>
       </WorkedExample>
 
-      <SubSectionTitle title="d) Paragraphing & cohesion" />
+      <SubSectionTitle title="d) IMPORTANT WORDS to ACE TASK 1" />
       <p className="text-sm text-slate-300 leading-relaxed">
-        Use clear linkers and topic sentences so the reader sees the structure: <strong className="text-white">In terms of…</strong>, <strong className="text-white">Similarly…</strong>, <strong className="text-white">On the other hand…</strong>. One main idea per paragraph.
+        Task 1 rewards precise vocabulary: words to <strong className="text-white">paraphrase</strong> the question, <strong className="text-white">describe trends</strong> (up, down, stable, fluctuation), <strong className="text-white">compare</strong> data clearly, and <strong className="text-white">link</strong> ideas smoothly. Using the right phrases boosts your Lexical Resource score.
       </p>
-      <SubSectionTitle title="Model answer example" />
-      <WorkedExample>
-        <p className="text-slate-200">
-          &quot;<strong className="text-blue-200">In terms of cars</strong>…&quot; opens the first body; &quot;<strong className="text-blue-200">Similarly</strong>&quot; adds the next comparison; &quot;<strong className="text-blue-200">On the other hand</strong>, the amount of money paid out on the remaining goods was higher in France&quot; introduces the contrast paragraph.
-        </p>
-      </WorkedExample>
+      <KeyList
+        items={[
+          <>Introduction verbs: <em>illustrates</em>, <em>shows</em>, <em>compares</em>, <em>presents</em>, <em>depicts</em> – paraphrase the question in one sentence.</>,
+          <>Trend verbs: <em>increased</em>, <em>soared</em>, <em>declined</em>, <em>plummeted</em>, <em>remained stable</em>, <em>fluctuated</em> – add adverbs like <em>dramatically</em>, <em>steadily</em>, <em>slightly</em>.</>,
+          <>Comparison phrases: <em>higher than</em>, <em>more than double</em>, <em>whereas</em>, <em>on the other hand</em>, <em>similar to</em>, <em>roughly equal</em>.</>,
+          <>Linking &amp; transition: <em>In terms of…</em>, <em>Similarly</em>, <em>On the other hand</em>, <em>Overall</em> – connect paragraphs without overusing &quot;Firstly/Secondly&quot;.</>,
+          <>Approximation: <em>approximately</em>, <em>just over</em>, <em>around</em>, <em>nearly</em> – report data naturally without forcing every exact digit.</>,
+        ]}
+      />
+      <div className="mt-4 p-4 rounded-lg border border-[#334155] bg-[#1e293b]/60 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-slate-200 mb-1">Full Task 1 Word List (PDF)</p>
+          <p className="text-xs text-slate-400">Your complete vocabulary guide for describing charts, graphs, tables, and processes.</p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="border-blue-500/40 text-blue-200 hover:bg-blue-500/10"
+          >
+            <a href="/assets/Task-1-Word-List.pdf" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Open PDF
+            </a>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="border-blue-500/40 text-blue-200 hover:bg-blue-500/10"
+          >
+            <a href="/assets/Task-1-Word-List.pdf" download="Task-1-Word-List.pdf">
+              <FileDown className="w-4 h-4 mr-2" />
+              Download
+            </a>
+          </Button>
+        </div>
+      </div>
 
       {/* 7. Complete Band 9 Model Answer */}
       <SectionTitle number={7} title="Complete Band 9 Model Answer – Full Task 1 Response" />
