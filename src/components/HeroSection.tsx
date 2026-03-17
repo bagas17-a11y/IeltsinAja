@@ -27,7 +27,7 @@ export const HeroSection = () => {
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 animate-entrance delay-200">IELTS-trained AI & 1 on 1 Consultation with 8.5+ Scorers </p>
+          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12 animate-entrance delay-200">IELTS-trained AI & 1 on 1 Consultation with 8.5+ Scorers</p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 animate-entrance delay-300">

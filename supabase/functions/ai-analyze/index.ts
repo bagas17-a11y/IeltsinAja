@@ -201,63 +201,50 @@ Be encouraging and constructive. Help students improve. Acknowledge improvements
   return basePrompt;
 };
 
-const SPEAKING_EXAMINER_PROMPT = `You are a Senior IELTS Speaking Examiner with 15+ years of experience.
+const SPEAKING_EXAMINER_PROMPT = `You are a Senior IELTS Speaking Examiner with 15+ years of experience. Grade the transcript against the 4 official IELTS criteria.
 
-=== CRITICAL: PAUSE MARKER ANALYSIS ===
-The transcript uses [pause] markers to indicate silences longer than 1.5 seconds.
-- If you see multiple [pause] markers within a single sentence, or if sentences are very short and fragmented, this indicates HESITATION
-- Multiple pauses in a short response = Lower Fluency score (cap at 5.5-6.0)
-- Explain to the student that their 'flow' was interrupted by frequent hesitations
+=== PART-SPECIFIC EXPECTATIONS ===
+Part 1 — Natural Extension: Student should answer directly then add 1-2 sentences of detail. Look for fluency on familiar topics (home, work, hobbies). Ideal answer = 2-4 sentences.
+Part 2 — Long Turn (1.5-2 min): Student must sustain a narrative using Intro → Story/Body → Reflection. Look for chronological markers ("At first…", "After that…"), concrete details, and coherent arc. Penalise if they stop before 90 seconds.
+Part 3 — Analytical Discussion: Student must move from descriptive to analytical. Expect Opinion → Reason → Example pattern. Look for hedging ("could potentially", "tends to"), contrast connectors ("On the other hand…"), and societal-level generalisation rather than personal anecdote only.
 
-=== FILLER WORD DETECTION ===
-Count ALL filler words: um, uh, like, you know, basically, actually, I mean, so, well, kind of, sort of, right, okay, yeah
-- If filler words occur more than once every 10 seconds of estimated speech, cap Fluency at 5.5
-- Calculate estimated speech duration: ~150 words per minute average
+=== PAUSE & FILLER ANALYSIS ===
+[pause] markers = silence >1.5 seconds. Count them. Multiple pauses per sentence = hesitation → cap Fluency at 5.5-6.0.
+Filler words (um, uh, like, you know, basically, sort of, right, okay): if >1 per 10 seconds of estimated speech (~150 wpm), cap Fluency at 5.5.
 
 === FLUENCY & COHERENCE (25%) ===
-Band 9: Speaks fluently with only rare repetition or self-correction. Speech is coherent with fully appropriate cohesive features.
-Band 7: Speaks at length without noticeable effort. May demonstrate language-related hesitation at times.
-Band 5: Usually maintains flow of speech but uses repetition, self-correction and/or slow speech to keep going. May over-use certain connectors.
+Band 9: Fluent, rare self-correction, excellent cohesion. Part 3: develops abstract ideas coherently.
+Band 7: Speaks at length without effort; hesitation is idea-related not word-searching. Flexible connectives.
+Band 5: Maintains flow but uses repetition/slow speech. Over-uses simple connectors ("and", "so", "then").
 
 === LEXICAL RESOURCE (25%) ===
-Look for:
-- Idiomatic expressions (e.g., "at the end of the day", "once in a blue moon")
-- Topic-specific vocabulary
-- Paraphrasing ability (not repeating the same words)
-- Collocations (natural word combinations)
-
-Band 9: Uses vocabulary with full flexibility and precision. Uses idiomatic language naturally and accurately.
-Band 7: Uses vocabulary resource flexibly. Uses some less common and idiomatic vocabulary.
-Band 5: Manages to talk about familiar and unfamiliar topics but uses vocabulary with limited flexibility.
+Reward: collocations ("heavy workload", "tight-knit community"), topic-specific vocab, natural paraphrasing, idiomatic expressions used accurately.
+Penalise: overusing "good/bad/nice", forcing rare words incorrectly, stopping because of a missing word.
 
 === GRAMMATICAL RANGE & ACCURACY (25%) ===
-Look for complex structures:
-- Conditionals (If I had known..., Were I to...)
-- Perfect tenses (I have been living..., By then I had finished...)
-- Relative clauses (which, who, that)
-- Passive voice
-- Reported speech
-
-Band 9: Uses a full range of structures naturally and appropriately. Produces consistently accurate structures.
-Band 7: Uses a range of complex structures with some flexibility. Frequently produces error-free sentences.
-Band 5: Produces basic sentence forms with reasonable accuracy. Uses a limited range of more complex structures.
+Reward: conditionals (Part 3: "If this trend continues…"), perfect tenses ("I have been living…"), relative clauses, passive voice, cause-effect clauses.
+Penalise: errors that change meaning, only short choppy sentences, over-reaching with uncontrolled complex grammar.
 
 === PRONUNCIATION (25%) ===
-Infer from transcription quality:
-- Words that appear misspelled might indicate pronunciation issues
-- Note: This is an estimate since we only have text
+Infer from transcription: misspelled words may indicate pronunciation errors. Look for evidence of stress/intonation (punctuation patterns, emotional words). Part 1: clarity and natural pace. Part 3: downward intonation to sound authoritative.
 
 === GRADING PHILOSOPHY ===
-Be encouraging but honest. Help students understand exactly what they need to improve.
-Count pauses and filler words explicitly. Provide actionable feedback.`;
+Be encouraging but honest. Count pauses and fillers explicitly. For each criterion give: score, specific evidence from the transcript, and one concrete action to improve.`;
 
-const READING_TUTOR_PROMPT = `You are an IELTS Reading specialist. When a student answers incorrectly:
+const READING_TUTOR_PROMPT = `You are an IELTS Reading specialist. A student answered incorrectly. Diagnose the mistake and teach the fix.
 
-1. Explain the EXACT logic to find the correct answer
-2. Identify KEY SIGNAL WORDS they missed
-3. Teach the systematic technique for this question type
-4. Explain why their wrong answer was tempting (common trap)
-5. Provide a strategy for similar questions`;
+=== QUESTION-TYPE RULES (apply the correct one) ===
+TRUE/FALSE/NOT GIVEN: "True" = passage clearly confirms. "False" = passage clearly contradicts. "Not Given" = info is absent or incomplete — if you find yourself guessing based on logic rather than text, it's NOT GIVEN. Never infer beyond what is written.
+MATCHING HEADINGS: Ignore small details. Read each paragraph for its MAIN IDEA. Look for topic sentences (start/end of paragraph). Match the idea, not individual words.
+COMPLETION (Sentence/Summary/Table): The answer must fit grammatically. Predict the word type (noun/verb/adjective) before scanning. Answer comes verbatim from the passage — 1-3 words unless stated otherwise.
+MULTIPLE CHOICE: Underline differences between options. Eliminate distractors (options that mention a keyword from the passage but distort the meaning). Distinguish a mention of a keyword from the actual answer.
+
+=== YOUR RESPONSE STEPS ===
+1. Identify which question type this is and state the one key rule that applies
+2. Show the EXACT logic path from question → passage → correct answer
+3. Name the KEY SIGNAL WORDS or paraphrase the student missed
+4. Explain the trap: why the wrong answer was tempting (distractor, partial match, inference error)
+5. Give a 1-sentence strategy to apply on similar questions`;
 
 const GENERATE_MODEL_PROMPT = `You are a Band 9 IELTS expert. Generate a perfect Band 9 model answer for the given question.
 
@@ -550,8 +537,8 @@ Write only the model answer, formatted as a proper IELTS response.`;
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-5-20250929",
-          max_tokens: 4096,
+          model: "claude-sonnet-4-6",
+          max_tokens: 1500,
           temperature: 0.7,
           messages: [
             { role: "user", content: `${systemPrompt}\n\n${userPrompt}` },
@@ -739,11 +726,15 @@ Provide your response in this EXACT JSON format:
       }
     } else if (type === "speaking") {
       systemPrompt = SPEAKING_EXAMINER_PROMPT;
-      
-      userPrompt = `Analyze this IELTS Speaking transcription. 
 
-SPEAKING PART: ${speakingPart || 'part2'}
-QUESTION CONTEXT: ${question || 'General speaking practice'}
+      const partLabel = speakingPart === 'part1' ? 'Part 1 (Introduction & Interview — familiar topics, 4-5 min)'
+        : speakingPart === 'part3' ? 'Part 3 (Discussion — abstract/analytical, 4-5 min)'
+        : 'Part 2 (Long Turn — cue card, 1-2 min monologue)';
+
+      userPrompt = `Analyze this IELTS Speaking transcription.
+
+SPEAKING PART: ${partLabel}
+QUESTION/CUE CARD: ${question || 'General speaking practice'}
 
 TRANSCRIPTION (with [pause] markers for silences > 1.5 seconds):
 ${content}
@@ -811,7 +802,11 @@ Provide your response in this JSON format:
 }`;
     }
 
-    console.log("Calling Claude API with type:", type, "taskType:", taskType, "isRevision:", isRevision);
+    // Writing needs Sonnet for rubric-heavy analysis; Speaking & Reading use Haiku for speed
+    const analysisModel = type === "writing" ? "claude-sonnet-4-6" : "claude-haiku-4-5-20251001";
+    const maxTokens = type === "writing" ? 3000 : type === "speaking" ? 1500 : 800;
+
+    console.log("Calling Claude API with type:", type, "model:", analysisModel, "taskType:", taskType, "isRevision:", isRevision);
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -821,8 +816,8 @@ Provide your response in this JSON format:
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 4096,
+        model: analysisModel,
+        max_tokens: maxTokens,
         temperature: 0.3,
         messages: [
           { role: "user", content: `${systemPrompt}\n\n${userPrompt}` },

@@ -70,7 +70,7 @@ export async function callAIWithRetry(
     return { success: false, error: 'ANTHROPIC_API_KEY not configured' };
   }
 
-  const model = requestOptions.model || 'claude-3-5-sonnet-20241022';
+  const model = requestOptions.model || 'claude-sonnet-4-6';
   const url = 'https://api.anthropic.com/v1/messages';
 
   for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
