@@ -34,6 +34,16 @@ export default function Auth() {
     // Check for existing session on mount
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
+        // Admins always bypass the waiting room
+        const { data: isAdminRole } = await supabase.rpc('has_role', {
+          _user_id: session.user.id,
+          _role: 'admin'
+        });
+        if (isAdminRole) {
+          navigate("/dashboard");
+          return;
+        }
+
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("is_verified")
@@ -68,7 +78,17 @@ export default function Auth() {
           return;
         }
 
-        // Check is_verified status for login
+        // Admins always go straight to dashboard, no waiting room
+        const { data: isAdminRole } = await supabase.rpc('has_role', {
+          _user_id: session.user.id,
+          _role: 'admin'
+        });
+        if (isAdminRole) {
+          navigate("/dashboard");
+          return;
+        }
+
+        // Check is_verified status for regular users
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("is_verified")

@@ -26,7 +26,7 @@ export default function WaitingRoom() {
     if (profile?.is_verified) {
       navigate("/dashboard");
     }
-  }, [user, profile, isLoading, navigate]);
+  }, [user, profile, isLoading, navigate, isAdmin]);
 
   // Poll for verification status every 30 seconds
   useEffect(() => {
