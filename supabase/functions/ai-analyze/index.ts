@@ -537,8 +537,9 @@ Write only the model answer, formatted as a proper IELTS response.`;
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1500,
+          // Haiku is sufficient for structured essay generation (Task 1 ~250 tok, Task 2 ~430 tok)
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 800,
           temperature: 0.7,
           messages: [
             { role: "user", content: `${systemPrompt}\n\n${userPrompt}` },

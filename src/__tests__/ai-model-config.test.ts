@@ -27,8 +27,9 @@ const CHATBOT_MODEL = "claude-haiku-4-5-20251001";
 const CHATBOT_MAX_TOKENS = 512;
 
 // Replicate model-answer generation
-const MODEL_ANSWER_MAX_TOKENS = 1500;
-const MODEL_ANSWER_MODEL = "claude-sonnet-4-6";
+// Haiku is sufficient: Task 1 ~250 tokens, Task 2 ~430 tokens — well within 800
+const MODEL_ANSWER_MAX_TOKENS = 800;
+const MODEL_ANSWER_MODEL = "claude-haiku-4-5-20251001";
 
 describe("AI module model selection", () => {
   describe("ai-analyze: model per type", () => {
@@ -80,12 +81,12 @@ describe("AI module model selection", () => {
   });
 
   describe("model-answer generation", () => {
-    it("uses Sonnet for model answers (quality-critical)", () => {
-      expect(MODEL_ANSWER_MODEL).toBe("claude-sonnet-4-6");
+    it("uses Haiku for model answers (cost-optimised — short essay output)", () => {
+      expect(MODEL_ANSWER_MODEL).toBe("claude-haiku-4-5-20251001");
     });
 
-    it("limits model answers to 1500 tokens", () => {
-      expect(MODEL_ANSWER_MAX_TOKENS).toBe(1500);
+    it("caps model answers at 800 tokens (Task 1 ~250 tok, Task 2 ~430 tok)", () => {
+      expect(MODEL_ANSWER_MAX_TOKENS).toBe(800);
     });
   });
 });
