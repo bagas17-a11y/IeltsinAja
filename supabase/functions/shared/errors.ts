@@ -267,18 +267,45 @@ export function databaseError(
 // CORS Headers
 // ==============================================================================
 
+const _PRODUCTION_ORIGINS = ['https://ieltsinja.com', 'https://www.ieltsinja.com'];
+const _DEV_ORIGINS = [
+  'http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000',
+  'http://127.0.0.1:8080', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000',
+];
+
+function _resolveOrigin(requestOrigin: string): string {
+  const isProd = Deno.env.get('ENVIRONMENT') === 'production';
+  const allowed = isProd ? _PRODUCTION_ORIGINS : [..._PRODUCTION_ORIGINS, ..._DEV_ORIGINS];
+  return allowed.includes(requestOrigin) ? requestOrigin : _PRODUCTION_ORIGINS[0];
+}
+
+/**
+ * CORS headers — restricted to known origins in production.
+ * Set ENVIRONMENT=production via `supabase secrets set ENVIRONMENT=production`
+ * to enforce the restriction on deployed functions.
+ */
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ENVIRONMENT') === 'production'
+    ? _PRODUCTION_ORIGINS[0]
+    : '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
 
 /**
- * Handle CORS preflight requests
+ * Handle CORS preflight requests.
+ * Pass `req` to return an origin-specific Allow-Origin header (more secure).
  */
-export function handleCorsPreflightRequest(): Response {
+export function handleCorsPreflightRequest(req?: Request): Response {
+  const origin = req?.headers.get('Origin') ?? '';
+  const allowOrigin = req ? _resolveOrigin(origin) : corsHeaders['Access-Control-Allow-Origin'];
   return new Response(null, {
     status: 204,
-    headers: corsHeaders
+    headers: {
+      'Access-Control-Allow-Origin': allowOrigin,
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+      'Access-Control-Max-Age': '86400',
+    }
   });
 }

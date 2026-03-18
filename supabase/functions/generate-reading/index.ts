@@ -112,7 +112,7 @@ For EVERY question, provide:
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return handleCorsPreflightRequest();
+    return handleCorsPreflightRequest(req);
   }
 
   try {

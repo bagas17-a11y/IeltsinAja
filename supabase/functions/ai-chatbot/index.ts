@@ -78,7 +78,7 @@ Jadilah ramah, membantu, dan ringkas dalam respons Anda. Jika Anda tidak tahu se
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return handleCorsPreflightRequest();
+    return handleCorsPreflightRequest(req);
   }
 
   try {
