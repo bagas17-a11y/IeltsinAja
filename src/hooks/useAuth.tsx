@@ -23,6 +23,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  /** True until BOTH the session check AND profile fetch have resolved. */
   isLoading: boolean;
   isAdmin: boolean;
   isCheckingAdmin: boolean;
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
@@ -57,19 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAdminRole = async (userId: string) => {
     setIsCheckingAdmin(true);
     try {
-      const { data, error } = await supabase.rpc('has_role', {
+      const { data, error } = await supabase.rpc("has_role", {
         _user_id: userId,
-        _role: 'admin'
+        _role: "admin",
       });
-
-      if (error) {
-        console.error('Error checking admin role:', error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(data || false);
-      }
-    } catch (error) {
-      console.error('Error checking admin role:', error);
+      setIsAdmin(!error && (data || false));
+    } catch {
       setIsAdmin(false);
     } finally {
       setIsCheckingAdmin(false);
@@ -84,35 +78,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id).then(setProfile);
-            checkAdminRole(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setIsAdmin(false);
-          setIsCheckingAdmin(false);
-        }
-        setIsLoading(false);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // ── Initial session check ─────────────────────────────────────────────────
+    // Await the profile fetch so isLoading=false only when profile is known.
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
-        checkAdminRole(session.user.id);
+        const [profileData] = await Promise.all([
+          fetchProfile(session.user.id),
+          checkAdminRole(session.user.id),
+        ]);
+        setProfile(profileData);
       }
+
       setIsLoading(false);
     });
+
+    // ── Subsequent auth state changes (login / logout / token refresh) ────────
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          // Fetch profile asynchronously — don't block the event handler
+          fetchProfile(session.user.id).then(setProfile);
+          checkAdminRole(session.user.id);
+        } else {
+          setProfile(null);
+          setIsAdmin(false);
+          setIsCheckingAdmin(false);
+          setIsLoading(false);
+        }
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
@@ -126,7 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, isAdmin, isCheckingAdmin, signOut, refreshProfile }}>
+    <AuthContext.Provider
+      value={{ user, session, profile, isLoading, isAdmin, isCheckingAdmin, signOut, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );
