@@ -10,21 +10,30 @@ export default function WaitingRoom() {
   const { user, profile, signOut, isLoading, refreshProfile, isAdmin } = useAuth();
 
   useEffect(() => {
-    // Redirect if not logged in
+    // Not logged in → back to auth
     if (!isLoading && !user) {
       navigate("/auth");
       return;
     }
 
-    // Super admin bypasses waiting room
-    if (isAdmin) {
+    // Admin bypasses waiting room
+    if (!isLoading && isAdmin) {
       navigate("/dashboard");
       return;
     }
 
-    // Redirect to dashboard if verified
-    if (profile?.is_verified) {
-      navigate("/dashboard");
+    if (!isLoading && user) {
+      // Profile loaded and verified → go to dashboard
+      if (profile?.is_verified) {
+        navigate("/dashboard");
+        return;
+      }
+
+      // Auth user exists but profile is null (trigger failure) → back to auth
+      // useAuth will have profile=null while loading, so only act once loading is done
+      if (profile === null) {
+        navigate("/auth");
+      }
     }
   }, [user, profile, isLoading, navigate, isAdmin]);
 

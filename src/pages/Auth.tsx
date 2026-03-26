@@ -30,82 +30,82 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Shared helper: resolve where a signed-in user should go
+  const resolveDestination = async (userId: string, userEmail: string): Promise<string | null> => {
+    // Admins always go straight to dashboard
+    const { data: isAdminRole } = await supabase.rpc('has_role', {
+      _user_id: userId,
+      _role: 'admin'
+    });
+    if (isAdminRole) return "/dashboard";
+
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("is_verified")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching profile:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Could not load your account. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    // No profile record — the database trigger may have failed.
+    // Try to create one so the user isn't stuck.
+    if (!profile) {
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert({ user_id: userId, email: userEmail, is_verified: false });
+
+      if (insertError) {
+        console.error("Profile creation failed:", insertError);
+        toast({
+          title: "Account not found",
+          description: "Your profile does not exist in our system. Please sign up or contact support.",
+          variant: "destructive",
+        });
+        await supabase.auth.signOut();
+        return null;
+      }
+
+      // Profile created — send to waiting room pending admin verification
+      return "/waiting-room";
+    }
+
+    return profile.is_verified ? "/dashboard" : "/waiting-room";
+  };
+
   useEffect(() => {
     // Check for existing session on mount
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        // Admins always bypass the waiting room
-        const { data: isAdminRole } = await supabase.rpc('has_role', {
-          _user_id: session.user.id,
-          _role: 'admin'
-        });
-        if (isAdminRole) {
-          navigate("/dashboard");
-          return;
-        }
-
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("is_verified")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-          return;
-        }
-
-        if (profile?.is_verified) {
-          navigate("/dashboard");
-        } else {
-          navigate("/waiting-room");
-        }
+        const dest = await resolveDestination(session.user.id, session.user.email ?? "");
+        if (dest) navigate(dest);
       }
     });
 
     // Listen for auth state changes (login/logout events)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Only handle auth events, not initial session
       if (event === 'SIGNED_OUT') {
         navigate("/auth");
         return;
       }
 
       if (event === 'SIGNED_IN' && session?.user) {
-        // If this was a new signup, redirect to pricing selection
+        // New signup → go to pricing selection
         if (isNewSignupRef.current) {
           isNewSignupRef.current = false;
           navigate("/pricing-selection");
           return;
         }
 
-        // Admins always go straight to dashboard, no waiting room
-        const { data: isAdminRole } = await supabase.rpc('has_role', {
-          _user_id: session.user.id,
-          _role: 'admin'
-        });
-        if (isAdminRole) {
-          navigate("/dashboard");
-          return;
-        }
-
-        // Check is_verified status for regular users
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("is_verified")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-          return;
-        }
-
-        if (profile?.is_verified) {
-          navigate("/dashboard");
-        } else {
-          navigate("/waiting-room");
-        }
+        const dest = await resolveDestination(session.user.id, session.user.email ?? "");
+        if (dest) navigate(dest);
       }
     });
 
