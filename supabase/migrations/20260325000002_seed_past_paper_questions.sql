@@ -74,7 +74,7 @@ VALUES
   "question_count": 4,
   "sample_items": [
     {"sentence": "Studying with the Open University demanded a great deal of _____.", "answer": "self-discipline"},
-    {"sentence": "Studying and working at the same time improved Rachel's _____ skills.", "answer": "time-management"},
+    {"sentence": "Studying and working at the same time improved Rachel''s _____ skills.", "answer": "time-management"},
     {"sentence": "It was helpful that the course was structured in _____.", "answer": "modules"},
     {"sentence": "She enjoyed meeting other students at _____.", "answer": "summer schools"}
   ],
@@ -211,14 +211,14 @@ VALUES
     "lexical_resource": "Wide range; precise word choice; rare errors",
     "grammatical_range": "Wide range of structures; rare errors"
   },
-  "generation_hints": "Generate an opinion essay prompt ('To what extent do you agree or disagree?'). Topics: education, society, technology, environment, health, globalisation. Avoid yes/no answers — require nuanced position."
+  "generation_hints": "Generate an opinion essay prompt (''To what extent do you agree or disagree?''). Topics: education, society, technology, environment, health, globalisation. Avoid yes/no answers — require nuanced position."
 }'::jsonb, 'hard'),
 
 ('aaaaaaaa-0003-0003-0003-000000000003', 'writing', 'task2_discussion_essay', 'Task 2', '{
   "description": "Task 2 — Discussion Essay: International Tourism advantages vs disadvantages",
   "instruction": "Write about the following topic: International tourism has brought enormous benefit to many places. At the same time, there is concern about its impact on local inhabitants and the environment. Do the disadvantages of international tourism outweigh the advantages? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
   "essay_type": "discussion",
-  "generation_hints": "Generate a discussion essay prompt ('Do the disadvantages outweigh the advantages?' or 'Discuss both views and give your own opinion'). Topics: urbanisation, social media, remote work, AI in education, processed food, space exploration."
+  "generation_hints": "Generate a discussion essay prompt (''Do the disadvantages outweigh the advantages?'' or ''Discuss both views and give your own opinion''). Topics: urbanisation, social media, remote work, AI in education, processed food, space exploration."
 }'::jsonb, 'hard');
 
 -- ============================================================
@@ -254,7 +254,7 @@ VALUES
   },
   "rounding_off_questions": ["Is it valuable in terms of money?", "Would it be easy to replace?"],
   "cue_card_categories": ["possession", "person", "place", "event", "activity", "achievement", "book/film/song", "experience", "change", "time period"],
-  "generation_hints": "Generate a Part 2 cue card. Structure: 'Describe a [noun phrase].' Then 3 bullet points starting with 'where/when/who/what/why/how'. Final instruction: 'and explain [why/how/what impact]'. Add 1-2 rounding-off questions."
+  "generation_hints": "Generate a Part 2 cue card. Structure: ''Describe a [noun phrase].'' Then 3 bullet points starting with ''where/when/who/what/why/how''. Final instruction: ''and explain [why/how/what impact]''. Add 1-2 rounding-off questions."
 }'::jsonb, 'medium'),
 
 ('aaaaaaaa-0004-0004-0004-000000000004', 'speaking', 'part3_discussion', 'Part 3', '{

@@ -44,7 +44,7 @@ const moduleCards = [
 ];
 
 export default function Dashboard() {
-  const { profile, user, isLoading, refreshProfile } = useAuth();
+  const { profile, user, isLoading, isAdmin, isCheckingAdmin, refreshProfile } = useAuth();
   const { isExpired, tier } = useSubscriptionStatus();
   const navigate = useNavigate();
   const [isEditingTarget, setIsEditingTarget] = useState(false);
@@ -66,15 +66,17 @@ export default function Dashboard() {
     }
   };
 
-  // Redirect to waiting room if not verified
+  // Redirect to waiting room if not verified (admins bypass this check)
   useEffect(() => {
-    if (!isLoading && user && profile && !profile.is_verified) {
+    if (isLoading || isCheckingAdmin) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    if (profile && !profile.is_verified && !isAdmin) {
       navigate("/waiting-room");
     }
-    if (!isLoading && !user) {
-      navigate("/auth");
-    }
-  }, [isLoading, user, profile, navigate]);
+  }, [isLoading, isCheckingAdmin, user, profile, isAdmin, navigate]);
 
   const scores = [
     { label: "Reading", score: profile?.current_reading_score },
