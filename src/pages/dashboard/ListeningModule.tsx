@@ -189,13 +189,8 @@ export default function ListeningModule() {
   const generateTest = async () => {
     setIsGenerating(true);
     try {
-      const { data: { session: refreshed } } = await supabase.auth.refreshSession();
-      const session = refreshed ?? (await supabase.auth.getSession()).data.session;
-      if (!session) throw new Error("Please sign in to generate a test.");
-
       const { data, error } = await supabase.functions.invoke("generate-listening", {
         body: { difficulty: generateDifficulty, part: generatePart },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (error) throw error;
 

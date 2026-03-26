@@ -3,6 +3,15 @@ project_id = "jryjpjkutwrieneuaoxv"
 [functions.ai-analyze]
 verify_jwt = false
 
+[functions.generate-listening]
+verify_jwt = false
+
+[functions.generate-writing]
+verify_jwt = false
+
+[functions.generate-speaking]
+verify_jwt = false
+
 [functions.generate-model]
 verify_jwt = false
 

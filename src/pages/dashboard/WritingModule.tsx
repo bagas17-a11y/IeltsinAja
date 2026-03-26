@@ -137,13 +137,8 @@ export default function WritingModule() {
   const generateQuestion = async () => {
     setIsGenerating(true);
     try {
-      const { data: { session: refreshed } } = await supabase.auth.refreshSession();
-      const session = refreshed ?? (await supabase.auth.getSession()).data.session;
-      if (!session) throw new Error("Please sign in to generate a question.");
-
       const { data, error } = await supabase.functions.invoke("generate-writing", {
         body: { task_type: activeTask, difficulty: generateDifficulty },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (error) throw error;
 
