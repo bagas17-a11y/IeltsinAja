@@ -75,6 +75,7 @@ const App = () => (
             <Route path="/dashboard/revision-notes" element={<RevisionNotesPage />} />
             <Route path="/dashboard/flashcards" element={<FlashcardsPage />} />
             <Route path="/dashboard/flashcards/topic" element={<FlashcardsTopicPage />} />
+            <Route path="/diagnostic-test" element={<DiagnosticTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -37,6 +37,47 @@ export const GenerateReadingSchema = z.object({
 export type GenerateReadingInput = z.infer<typeof GenerateReadingSchema>;
 
 // ==============================================================================
+// Generate Listening Schema
+// ==============================================================================
+
+export const GenerateListeningSchema = z.object({
+  difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
+  part: z.enum(['Part 1', 'Part 2', 'Part 3', 'Part 4']).default('Part 1'),
+});
+
+export type GenerateListeningInput = z.infer<typeof GenerateListeningSchema>;
+
+// ==============================================================================
+// Generate Speaking Schema
+// ==============================================================================
+
+export const GenerateSpeakingSchema = z.object({
+  difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
+  theme: z.string().min(1).max(200).optional(),
+});
+
+export type GenerateSpeakingInput = z.infer<typeof GenerateSpeakingSchema>;
+
+// ==============================================================================
+// Generate Writing Schema
+// ==============================================================================
+
+export const GenerateWritingSchema = z.object({
+  task_type: z.enum(['Task 1', 'Task 2']).default('Task 2'),
+  difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
+  visual_type: z.enum([
+    'bar_chart', 'line_graph', 'pie_chart', 'table',
+    'process_diagram', 'map', 'bar_line_combo'
+  ]).optional(),
+  essay_type: z.enum([
+    'opinion', 'discussion', 'advantages_disadvantages',
+    'problem_solution', 'direct_question'
+  ]).optional(),
+});
+
+export type GenerateWritingInput = z.infer<typeof GenerateWritingSchema>;
+
+// ==============================================================================
 // Chatbot Schema
 // ==============================================================================
 

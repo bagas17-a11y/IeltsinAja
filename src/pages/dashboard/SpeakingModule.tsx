@@ -10,8 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 
-// IELTS Speaking Questions organized by Parts
-const SPEAKING_QUESTIONS = {
+// Fallback IELTS Speaking Questions (used when AI generation is unavailable)
+const FALLBACK_SPEAKING_QUESTIONS = {
   part1: [
     { topic: "Hometown", question: "Where do you come from? Can you describe your hometown?" },
     { topic: "Work/Studies", question: "Do you work or are you a student? What do you like most about your job/studies?" },
@@ -83,14 +83,66 @@ const SPEAKING_QUESTIONS = {
   ]
 };
 
+// Types for AI-generated speaking questions (matches generate-speaking edge function output)
+interface AISpeakingTest {
+  id: string;
+  topic: string;
+  difficulty: string;
+  part1: {
+    topics: Array<{ theme: string; questions: string[] }>;
+  };
+  part2: {
+    cue_card: string;
+    bullet_points: string[];
+    final_instruction: string;
+    prep_time: string;
+    speak_time: string;
+    rounding_off_questions: string[];
+  };
+  part3: {
+    theme: string;
+    questions: string[];
+  };
+}
+
+// Map AI response to the legacy question format used by the component
+function mapAIToLegacy(ai: AISpeakingTest) {
+  const p1topics = ai.part1?.topics ?? [];
+  const part1Questions = p1topics.flatMap(t =>
+    (t.questions ?? []).map(q => ({ topic: t.theme, question: q }))
+  );
+
+  const p2 = ai.part2;
+  const cueCardText = p2
+    ? `${p2.cue_card}\n\nYou should say:\n${(p2.bullet_points ?? []).map(b => `• ${b}`).join('\n')}\n\n${p2.final_instruction}`
+    : "";
+
+  const part2Questions = p2 ? [{
+    topic: ai.topic ?? "AI Generated",
+    cueCard: cueCardText,
+    prepTime: p2.prep_time ?? "1 minute",
+    speakTime: p2.speak_time ?? "1–2 minutes",
+  }] : [];
+
+  const p3 = ai.part3;
+  const part3Questions = p3 ? [{
+    topic: p3.theme ?? ai.topic ?? "Discussion",
+    questions: p3.questions ?? [],
+  }] : [];
+
+  return { part1: part1Questions, part2: part2Questions, part3: part3Questions };
+}
+
 type SpeakingPart = 'part1' | 'part2' | 'part3';
 
 export default function SpeakingModule() {
   const [currentPart, setCurrentPart] = useState<SpeakingPart>('part1');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [activeQuestions, setActiveQuestions] = useState(FALLBACK_SPEAKING_QUESTIONS);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { user } = useAuth();
@@ -111,19 +163,39 @@ export default function SpeakingModule() {
   const getCurrentQuestion = () => {
     switch (currentPart) {
       case 'part1':
-        return SPEAKING_QUESTIONS.part1[currentQuestionIndex % SPEAKING_QUESTIONS.part1.length];
+        return activeQuestions.part1[currentQuestionIndex % activeQuestions.part1.length];
       case 'part2':
-        return SPEAKING_QUESTIONS.part2[currentQuestionIndex % SPEAKING_QUESTIONS.part2.length];
+        return activeQuestions.part2[currentQuestionIndex % activeQuestions.part2.length];
       case 'part3':
-        return SPEAKING_QUESTIONS.part3[currentQuestionIndex % SPEAKING_QUESTIONS.part3.length];
+        return activeQuestions.part3[currentQuestionIndex % activeQuestions.part3.length];
     }
   };
 
-  const generateNewQuestion = () => {
-    const maxIndex = SPEAKING_QUESTIONS[currentPart].length;
-    setCurrentQuestionIndex((prev) => (prev + 1) % maxIndex);
+  const generateNewQuestion = async () => {
     resetTranscript();
     setFeedback(null);
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-speaking", {
+        body: { difficulty: "medium" },
+      });
+      if (error) throw error;
+      const aiData: AISpeakingTest = data?.success ? data.data : data;
+      if (aiData?.part1 && aiData?.part2 && aiData?.part3) {
+        const mapped = mapAIToLegacy(aiData);
+        setActiveQuestions(mapped as typeof FALLBACK_SPEAKING_QUESTIONS);
+        setCurrentQuestionIndex(0);
+      } else {
+        throw new Error("Incomplete AI response");
+      }
+    } catch (err) {
+      console.error("Failed to generate AI speaking questions, using fallback:", err);
+      // Cycle through fallback questions instead
+      const maxIndex = FALLBACK_SPEAKING_QUESTIONS[currentPart].length;
+      setCurrentQuestionIndex((prev) => (prev + 1) % maxIndex);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleRestartPractice = () => {
@@ -134,6 +206,7 @@ export default function SpeakingModule() {
   const handlePartChange = (part: SpeakingPart) => {
     setCurrentPart(part);
     setCurrentQuestionIndex(0);
+    setActiveQuestions(FALLBACK_SPEAKING_QUESTIONS);
     resetTranscript();
     setFeedback(null);
   };
@@ -293,9 +366,11 @@ export default function SpeakingModule() {
                 </span>
               )}
             </div>
-            <Button variant="ghost" size="sm" onClick={generateNewQuestion}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              New Question
+            <Button variant="ghost" size="sm" onClick={generateNewQuestion} disabled={isGenerating}>
+              {isGenerating
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
+                : <><RefreshCw className="w-4 h-4 mr-2" />New Question</>
+              }
             </Button>
           </div>
           

@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -142,6 +142,7 @@ function LessonContent({ material }: { material: LessonMaterial }) {
 
 export default function MaterialsPage() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const moduleId = (searchParams.get("module") as CurriculumModule["id"]) || "writing";
   const topicId = searchParams.get("topic") || null;
@@ -230,7 +231,7 @@ export default function MaterialsPage() {
             </ul>
           </div>
           <Button
-            onClick={() => window.location.assign("/pricing-selection")}
+            onClick={() => navigate("/pricing-selection")}
             className="bg-elite-gold/20 text-elite-gold border border-elite-gold/30 hover:bg-elite-gold/30"
           >
             View plans

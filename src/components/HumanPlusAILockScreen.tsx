@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Lock, Crown } from "lucide-react";
@@ -15,6 +16,7 @@ export function HumanPlusAILockScreen({
   description = "Upgrade to the Elite package to use this feature.",
   features,
 }: HumanPlusAILockScreenProps) {
+  const navigate = useNavigate();
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto text-center py-16">
@@ -39,7 +41,7 @@ export function HumanPlusAILockScreen({
           </ul>
         </div>
         <Button
-          onClick={() => window.location.assign("/pricing-selection")}
+          onClick={() => navigate("/pricing-selection")}
           className="bg-elite-gold/20 text-elite-gold border border-elite-gold/30 hover:bg-elite-gold/30"
         >
           View plans

@@ -12,78 +12,74 @@ import {
 } from "../shared/errors.ts";
 import { getMockReadingTest } from "./mock-data.ts";
 
-const READING_GENERATOR_PROMPT = `You are an IELTS Academic Reading test designer with 20+ years of experience creating official Cambridge IELTS materials.
+const READING_GENERATOR_PROMPT = `You are an IELTS Academic Reading test designer with 20+ years of experience creating official Cambridge IELTS materials. You are familiar with ALL official question types from the IDP/British Council/Cambridge past papers.
 
 === YOUR TASK ===
-Generate a complete IELTS Academic Reading passage with questions that precisely mirrors the real exam format.
+Generate a complete IELTS Academic Reading passage with questions that precisely mirrors the real exam format, incorporating the full range of official question types.
 
 === PASSAGE REQUIREMENTS ===
 - Length: 700-900 words
-- Style: Academic, formal, third-person
-- Topics: Rotate between Archaeology, Climate Science, Urban Planning, Psychology, Marine Biology, Technology History, Anthropology, Economics
+- Style: Academic, formal, third-person, structured with clear paragraphs (labelled A, B, C…)
+- Topics: Rotate between Archaeology, Climate Science, Urban Planning, Psychology, Marine Biology, Technology History, Anthropology, Economics, Environmental Science, Cognitive Science
 - Difficulty levels:
-  - Easy: Straightforward vocabulary, clear topic sentences
-  - Medium: Some technical terms, implicit information
-  - Hard: Dense academic prose, abstract concepts, nuanced arguments
+  - Easy: Straightforward vocabulary, explicit answers, clear topic sentences
+  - Medium: Some technical terms, mild paraphrasing required, some implicit information
+  - Hard: Dense academic prose, heavy paraphrasing, abstract concepts, nuanced arguments
 
 === QUESTION MIX (EXACTLY 13 QUESTIONS) ===
-Generate a balanced mix with these EXACT types:
+Generate questions using a RANDOM selection from these official IELTS question types.
+Each generation should vary the mix. Choose 3 types from the list below:
 
-Type A (Questions 1-5): True/False/Not Given OR Yes/No/Not Given
-- 5 statements to classify
-- Must include at least 1 "Not Given" answer (information not in passage)
-- Statements should test understanding, not just word matching
+OPTION SET A (always generate):
+- Type "tfng": True/False/Not Given (5 questions) — statements the candidate classifies as TRUE, FALSE, or NOT GIVEN. At least 1 must be NOT GIVEN.
 
-Type B (Questions 6-9): Multiple Choice (4 options each)
-- 4 questions with options A, B, C, D
-- Mix of detail questions and inference questions
-- One question should ask about the writer's purpose or main idea
+OPTION SET B (choose ONE per generation):
+- Type "matching_headings": Matching Headings (4 questions) — match a heading from a pool of 6 to paragraphs B–E. Pool has 2 distractors.
+- Type "multiple_choice": Multiple Choice A/B/C/D (4 questions) — one should test the writer's purpose or overall meaning.
+- Type "matching_features": Matching Features (4 questions) — match statements to categories/sources listed in a box (pool of 5, 1 distractor; options can repeat).
 
-Type C (Questions 10-13): Sentence/Summary Completion
-- 4 fill-in-the-blank questions
-- Answers should be 1-3 words from the passage
-- Provide a word limit instruction (e.g., "NO MORE THAN TWO WORDS")
+OPTION SET C (choose ONE per generation):
+- Type "sentence_completion": Sentence Completion (4 questions) — fill blanks with words from passage, max TWO WORDS each.
+- Type "summary_completion": Summary Completion with Word Bank (4 questions) — fill gaps from a box of 7 words (3 distractors).
+- Type "matching_sentence_endings": Matching Sentence Endings (4 questions) — complete sentence starters by choosing from a pool of 6 endings (2 distractors).
 
 === ANSWER KEY REQUIREMENTS ===
 For EVERY question, provide:
-1. The correct answer
-2. The EXACT sentence(s) from the passage that proves/supports the answer
+1. The exact correct answer
+2. The verbatim sentence(s) from the passage that prove the answer
 3. A brief explanation of the logic
 
-=== OUTPUT FORMAT (STRICT JSON) ===
+=== STRICT JSON OUTPUT FORMAT ===
 {
   "passage": {
     "title": "Academic title",
-    "content": "Full 700-900 word passage with clear paragraph breaks",
+    "content": "Full 700-900 word passage. Paragraphs labelled A, B, C, D, E, F...",
     "topic": "e.g., Climate Science",
     "wordCount": 850
   },
   "difficulty": "easy/medium/hard",
   "questions": {
     "typeA": {
+      "type": "tfng",
       "instruction": "Do the following statements agree with the information in the passage? Write TRUE if the statement agrees with the information, FALSE if the statement contradicts the information, NOT GIVEN if there is no information on this.",
       "items": [
         {
           "number": 1,
           "statement": "Statement text here",
-          "answer": "TRUE/FALSE/NOT GIVEN",
+          "answer": "TRUE",
           "evidence": "Exact quote from passage",
           "explanation": "Why this is the answer"
         }
       ]
     },
     "typeB": {
+      "type": "multiple_choice",
       "instruction": "Choose the correct letter, A, B, C or D.",
       "items": [
         {
           "number": 6,
           "question": "Question text here?",
-          "options": {
-            "A": "Option A text",
-            "B": "Option B text",
-            "C": "Option C text",
-            "D": "Option D text"
-          },
+          "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
           "answer": "B",
           "evidence": "Exact quote from passage",
           "explanation": "Why B is correct"
@@ -91,6 +87,7 @@ For EVERY question, provide:
       ]
     },
     "typeC": {
+      "type": "sentence_completion",
       "instruction": "Complete the sentences below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
       "items": [
         {
@@ -105,8 +102,43 @@ For EVERY question, provide:
   },
   "metadata": {
     "estimatedTime": "20 minutes",
+    "questionTypes": ["tfng", "multiple_choice", "sentence_completion"],
     "skillsFocus": ["Skimming", "Scanning", "Inference"]
   }
+}
+
+IMPORTANT: For "matching_headings" typeB, use this structure:
+"typeB": {
+  "type": "matching_headings",
+  "instruction": "The Reading Passage has several paragraphs A–E. Choose the correct heading for each paragraph from the list of headings below.",
+  "headings_pool": ["i. ...", "ii. ...", "iii. ...", "iv. ...", "v. ...", "vi. ..."],
+  "items": [{"number": 6, "paragraph": "B", "answer": "iii", "evidence": "...", "explanation": "..."}]
+}
+
+For "matching_features" typeB:
+"typeB": {
+  "type": "matching_features",
+  "instruction": "Look at the following statements and the list of sources/categories. Match each statement to the correct source/category.",
+  "options_pool": {"A": "Category A", "B": "Category B", "C": "Category C", "D": "Category D", "E": "Category E"},
+  "note": "NB You may use any letter more than once.",
+  "items": [{"number": 6, "statement": "...", "answer": "B", "evidence": "...", "explanation": "..."}]
+}
+
+For "summary_completion" typeC:
+"typeC": {
+  "type": "summary_completion",
+  "instruction": "Complete the summary below. Choose NO MORE THAN ONE WORD from the box for each answer.",
+  "word_bank": ["word1", "word2", "word3", "word4", "word5", "word6", "word7"],
+  "summary": "The passage explains that ___10___ played a critical role in...",
+  "items": [{"number": 10, "answer": "word3", "evidence": "...", "explanation": "..."}]
+}
+
+For "matching_sentence_endings" typeC:
+"typeC": {
+  "type": "matching_sentence_endings",
+  "instruction": "Complete each sentence with the correct ending A–F from the box below.",
+  "endings_pool": {"A": "...", "B": "...", "C": "...", "D": "...", "E": "...", "F": "..."},
+  "items": [{"number": 10, "sentence_start": "The early researchers...", "answer": "C", "evidence": "...", "explanation": "..."}]
 }`;
 
 serve(async (req) => {
@@ -154,33 +186,50 @@ serve(async (req) => {
     // Randomly select a topic
     const topics = [
       "Archaeology",
-      "Climate Science", 
+      "Climate Science",
       "Urban Planning",
       "Marine Biology",
       "Psychology",
       "Technology History",
       "Anthropology",
-      "Economics"
+      "Economics",
+      "Environmental Science",
+      "Cognitive Science",
+      "Linguistics",
+      "Astronomy",
+      "Medical Research",
+      "Biodiversity",
+      "Ancient Civilisations",
     ];
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+
+    // Randomly choose Type B and Type C question types for variety
+    const typeBOptions = ["multiple_choice", "matching_headings", "matching_features"];
+    const typeCOptions = ["sentence_completion", "summary_completion", "matching_sentence_endings"];
+    const selectedTypeB = typeBOptions[Math.floor(Math.random() * typeBOptions.length)];
+    const selectedTypeC = typeCOptions[Math.floor(Math.random() * typeCOptions.length)];
 
     const userPrompt = `Generate a complete IELTS Academic Reading passage and question set.
 
 REQUIREMENTS:
 - Topic: ${randomTopic}
 - Difficulty: ${difficulty}
-- EXACTLY 13 questions in the specified format
-- Type A: 5 True/False/Not Given questions (ensure at least 1 is "NOT GIVEN")
-- Type B: 4 Multiple Choice questions (A, B, C, D)
-- Type C: 4 Sentence Completion questions
+- EXACTLY 13 questions total
+- Type A (Questions 1-5): "tfng" — True/False/Not Given (at least 1 must be NOT GIVEN)
+- Type B (Questions 6-9): "${selectedTypeB}" — follow the exact schema for this type
+- Type C (Questions 10-13): "${selectedTypeC}" — follow the exact schema for this type
 
-CRITICAL: 
-- The passage MUST be 700-900 words
-- ALL answers must be verifiable from the passage text
-- Include the EXACT evidence sentence for each answer
-- Make the passage academically rigorous but readable
+CRITICAL RULES:
+- Passage MUST be 700-900 words with paragraphs labelled A, B, C, D, E, F
+- ALL answers must be directly verifiable from the passage
+- Include the verbatim evidence sentence for EVERY question
+- Passage must be academically rigorous but readable
+- For matching_headings: create a pool of 6 headings (2 are distractors)
+- For matching_features: create a pool of 5 category options (1 is a distractor); options CAN repeat
+- For summary_completion: provide a 7-word bank (3 distractors); summary should paraphrase passage
+- For matching_sentence_endings: provide 6 endings in the pool (2 distractors)
 
-Return ONLY valid JSON in the specified format.`;
+Return ONLY valid JSON in the specified schema format. No markdown, no commentary.`;
 
     console.log("Generating reading passage with topic:", randomTopic, "difficulty:", difficulty);
 

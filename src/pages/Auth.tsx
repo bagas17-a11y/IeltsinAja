@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; phone?: string }>({});
-  const [isNewSignup, setIsNewSignup] = useState(false);
+  const isNewSignupRef = useRef(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -73,7 +73,8 @@ export default function Auth() {
 
       if (event === 'SIGNED_IN' && session?.user) {
         // If this was a new signup, redirect to pricing selection
-        if (isNewSignup) {
+        if (isNewSignupRef.current) {
+          isNewSignupRef.current = false;
           navigate("/pricing-selection");
           return;
         }
@@ -109,7 +110,7 @@ export default function Auth() {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, isNewSignup]);
+  }, [navigate]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; phone?: string } = {};
@@ -152,6 +153,7 @@ export default function Auth() {
         toast({ title: "Welcome back!", description: "Successfully logged in." });
       } else {
         // Sign up with OTP verification
+        isNewSignupRef.current = true;
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -183,6 +185,7 @@ export default function Auth() {
         }
       }
     } catch (error: any) {
+      isNewSignupRef.current = false;
       let message = error.message;
       if (error.message.includes("already registered")) {
         message = "This email is already registered. Please login instead.";
