@@ -3,37 +3,45 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { Clock, Mail, LogOut } from "lucide-react";
 
 export default function WaitingRoom() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { user, profile, signOut, isLoading, refreshProfile, isAdmin } = useAuth();
 
   useEffect(() => {
+    if (isLoading) return;
+
     // Not logged in → back to auth
-    if (!isLoading && !user) {
+    if (!user) {
       navigate("/auth");
       return;
     }
 
     // Admin bypasses waiting room
-    if (!isLoading && isAdmin) {
+    if (isAdmin) {
       navigate("/dashboard");
       return;
     }
 
-    if (!isLoading && user) {
-      // Profile loaded and verified → go to dashboard
-      if (profile?.is_verified) {
-        navigate("/dashboard");
-        return;
-      }
+    // Verified → go to dashboard
+    if (profile?.is_verified) {
+      navigate("/dashboard");
+      return;
+    }
 
-      // Auth user exists but profile is null (trigger failure) → back to auth
-      // useAuth will have profile=null while loading, so only act once loading is done
-      if (profile === null) {
+    // Auth session exists but no profile row — sign them out with a clear message
+    if (profile === null) {
+      signOut().then(() => {
+        toast({
+          title: "No account found",
+          description: "This email isn't registered. Please sign up first.",
+          variant: "destructive",
+        });
         navigate("/auth");
-      }
+      });
     }
   }, [user, profile, isLoading, navigate, isAdmin]);
 

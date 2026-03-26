@@ -30,8 +30,8 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Shared helper: resolve where a signed-in user should go
-  const resolveDestination = async (userId: string, userEmail: string): Promise<string | null> => {
+  // Shared helper: check profile and route — or show an error and stay on /auth
+  const resolveDestination = async (userId: string): Promise<string | null> => {
     // Admins always go straight to dashboard
     const { data: isAdminRole } = await supabase.rpc('has_role', {
       _user_id: userId,
@@ -52,29 +52,20 @@ export default function Auth() {
         description: "Could not load your account. Please try again.",
         variant: "destructive",
       });
+      await supabase.auth.signOut();
       return null;
     }
 
-    // No profile record — the database trigger may have failed.
-    // Try to create one so the user isn't stuck.
+    // No profile — this email isn't registered in our system.
+    // Sign them out and show a clear message; do NOT auto-create or redirect.
     if (!profile) {
-      const { error: insertError } = await supabase
-        .from("profiles")
-        .insert({ user_id: userId, email: userEmail, is_verified: false });
-
-      if (insertError) {
-        console.error("Profile creation failed:", insertError);
-        toast({
-          title: "Account not found",
-          description: "Your profile does not exist in our system. Please sign up or contact support.",
-          variant: "destructive",
-        });
-        await supabase.auth.signOut();
-        return null;
-      }
-
-      // Profile created — send to waiting room pending admin verification
-      return "/waiting-room";
+      await supabase.auth.signOut();
+      toast({
+        title: "No account found",
+        description: "This email isn't registered. Please sign up first.",
+        variant: "destructive",
+      });
+      return null; // stay on /auth
     }
 
     return profile.is_verified ? "/dashboard" : "/waiting-room";
@@ -84,17 +75,14 @@ export default function Auth() {
     // Check for existing session on mount
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const dest = await resolveDestination(session.user.id, session.user.email ?? "");
+        const dest = await resolveDestination(session.user.id);
         if (dest) navigate(dest);
       }
     });
 
-    // Listen for auth state changes (login/logout events)
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT') {
-        navigate("/auth");
-        return;
-      }
+      if (event === 'SIGNED_OUT') return;
 
       if (event === 'SIGNED_IN' && session?.user) {
         // New signup → go to pricing selection
@@ -104,7 +92,7 @@ export default function Auth() {
           return;
         }
 
-        const dest = await resolveDestination(session.user.id, session.user.email ?? "");
+        const dest = await resolveDestination(session.user.id);
         if (dest) navigate(dest);
       }
     });
