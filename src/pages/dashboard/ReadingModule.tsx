@@ -81,7 +81,7 @@ export default function ReadingModule() {
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { user } = useAuth();
-  const { canAccess, refreshCounts } = useFeatureGating();
+  const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
 
@@ -115,6 +115,8 @@ export default function ReadingModule() {
   };
 
   const generateNewTest = async () => {
+    // Wait for feature gating to load before checking — prevents race condition
+    if (isGatingLoading) return;
     // Check feature gating for free users
     if (!canAccess("reading")) {
       setShowUpgradeModal(true);
@@ -506,7 +508,7 @@ export default function ReadingModule() {
             {/* Generate Button */}
             <Button
               onClick={generateNewTest}
-              disabled={isGenerating}
+              disabled={isGenerating || isGatingLoading}
               variant="neumorphicPrimary"
               size="sm"
             >

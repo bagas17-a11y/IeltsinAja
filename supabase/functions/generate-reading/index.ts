@@ -10,6 +10,8 @@ import {
   aiServiceError,
   internalError
 } from "../shared/errors.ts";
+import { verifyUser } from "../shared/auth.ts";
+import { checkRateLimit } from "../shared/rate-limit.ts";
 import { getMockReadingTest } from "./mock-data.ts";
 
 const READING_GENERATOR_PROMPT = `You are an IELTS Academic Reading test designer with 20+ years of experience creating official Cambridge IELTS materials. You are familiar with ALL official question types from the IDP/British Council/Cambridge past papers.
@@ -167,8 +169,22 @@ serve(async (req) => {
     }
 
     const { difficulty } = validation.data;
+
+    // Verify user authentication before making any API call
+    const auth = await verifyUser(req);
+    if (!auth.success) {
+      return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
+    }
+
+    // Check per-user rate limit (10 requests per hour)
+    const rateLimit = await checkRateLimit(auth.userId!, "generate-reading");
+    if (!rateLimit.allowed) {
+      return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
+    }
+
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_READING_DATA") === "true";
+    // USE_MOCK_DATA is the global kill switch; USE_MOCK_READING_DATA is the legacy per-function flag
+    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true" || Deno.env.get("USE_MOCK_READING_DATA") === "true";
 
     // Use mock data if enabled or if API key is missing
     if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {

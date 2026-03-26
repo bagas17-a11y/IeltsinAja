@@ -10,6 +10,9 @@ import {
   aiServiceError,
   internalError,
 } from "../shared/errors.ts";
+import { verifyUser } from "../shared/auth.ts";
+import { checkRateLimit } from "../shared/rate-limit.ts";
+import { getMockWritingPrompt } from "./mock-data.ts";
 
 // ============================================================
 // IELTS Writing Prompt Generator — System Prompt
@@ -211,10 +214,33 @@ serve(async (req) => {
     }
 
     const { task_type, difficulty, visual_type: requestedVisual, essay_type: requestedEssayType } = validation.data;
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
-    if (!ANTHROPIC_API_KEY) {
-      return aiServiceError("AI service not configured", undefined, corsHeaders);
+    // Verify user authentication before making any API call
+    const auth = await verifyUser(req);
+    if (!auth.success) {
+      return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
+    }
+
+    // Check per-user rate limit (5 requests per hour)
+    const rateLimit = await checkRateLimit(auth.userId!, "generate-writing");
+    if (!rateLimit.allowed) {
+      return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
+    }
+
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
+
+    // Global mock mode or missing API key — serve mock without hitting Claude
+    if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {
+      console.log("Mock mode active, skipping Claude API call");
+      const mockPrompt = getMockWritingPrompt(task_type, difficulty);
+      return successResponse({
+        ...mockPrompt,
+        generatedAt: new Date().toISOString(),
+        id: crypto.randomUUID(),
+        difficulty,
+        isMock: true,
+      }, 200, corsHeaders);
     }
 
     // Pick visual type and topic
@@ -284,6 +310,21 @@ Return ONLY valid JSON matching the Task 2 schema. No markdown.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
+
+      // Fall back to mock data on credit/billing/model errors
+      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
+        console.log("Claude API unavailable (credits/billing issue), falling back to mock data");
+        const mockPrompt = getMockWritingPrompt(task_type, difficulty);
+        return successResponse({
+          ...mockPrompt,
+          generatedAt: new Date().toISOString(),
+          id: crypto.randomUUID(),
+          difficulty,
+          isMock: true,
+          note: "Generated using mock data (Claude API credits exhausted)",
+        }, 200, corsHeaders);
+      }
+
       if (response.status === 429) return rateLimitError(undefined, 60, corsHeaders);
       if (response.status === 401) return unauthorizedError("Invalid API key", corsHeaders);
       return aiServiceError("Failed to generate writing prompt", { status: response.status }, corsHeaders);

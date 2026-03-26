@@ -10,6 +10,9 @@ import {
   aiServiceError,
   internalError,
 } from "../shared/errors.ts";
+import { verifyUser } from "../shared/auth.ts";
+import { checkRateLimit } from "../shared/rate-limit.ts";
+import { getMockListeningTest } from "./mock-data.ts";
 
 // ============================================================
 // IELTS Listening Generator — System Prompt
@@ -165,10 +168,32 @@ serve(async (req) => {
     }
 
     const { difficulty, part } = validation.data;
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
-    if (!ANTHROPIC_API_KEY) {
-      return aiServiceError("AI service not configured", undefined, corsHeaders);
+    // Verify user authentication before making any API call
+    const auth = await verifyUser(req);
+    if (!auth.success) {
+      return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
+    }
+
+    // Check per-user rate limit (5 requests per hour)
+    const rateLimit = await checkRateLimit(auth.userId!, "generate-listening");
+    if (!rateLimit.allowed) {
+      return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
+    }
+
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
+
+    // Global mock mode or missing API key — serve mock without hitting Claude
+    if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {
+      console.log("Mock mode active, skipping Claude API call");
+      const mockTest = getMockListeningTest(part, difficulty);
+      return successResponse({
+        ...mockTest,
+        generatedAt: new Date().toISOString(),
+        id: crypto.randomUUID(),
+        isMock: true,
+      }, 200, corsHeaders);
     }
 
     // Pick a random topic for the requested part
@@ -219,6 +244,20 @@ Return ONLY valid JSON matching the specified schema. No markdown, no commentary
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
+
+      // Fall back to mock data on credit/billing/model errors
+      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
+        console.log("Claude API unavailable (credits/billing issue), falling back to mock data");
+        const mockTest = getMockListeningTest(part, difficulty);
+        return successResponse({
+          ...mockTest,
+          generatedAt: new Date().toISOString(),
+          id: crypto.randomUUID(),
+          isMock: true,
+          note: "Generated using mock data (Claude API credits exhausted)",
+        }, 200, corsHeaders);
+      }
+
       if (response.status === 429) return rateLimitError(undefined, 60, corsHeaders);
       if (response.status === 401) return unauthorizedError("Invalid API key", corsHeaders);
       return aiServiceError("Failed to generate listening test", { status: response.status }, corsHeaders);
