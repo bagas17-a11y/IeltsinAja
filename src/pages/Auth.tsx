@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,16 +26,14 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; phone?: string }>({});
-  const isNewSignupRef = useRef(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Shared helper: check profile and route — or show an error and stay on /auth
+  // Resolve where to send the user after login — checks admin role and profile
   const resolveDestination = async (userId: string): Promise<string | null> => {
-    // Admins always go straight to dashboard
     const { data: isAdminRole } = await supabase.rpc('has_role', {
       _user_id: userId,
-      _role: 'admin'
+      _role: 'admin',
     });
     if (isAdminRole) return "/dashboard";
 
@@ -56,8 +54,6 @@ export default function Auth() {
       return null;
     }
 
-    // No profile — this email isn't registered in our system.
-    // Sign them out and show a clear message; do NOT auto-create or redirect.
     if (!profile) {
       await supabase.auth.signOut();
       toast({
@@ -65,40 +61,11 @@ export default function Auth() {
         description: "This email isn't registered. Please sign up first.",
         variant: "destructive",
       });
-      return null; // stay on /auth
+      return null;
     }
 
     return profile.is_verified ? "/dashboard" : "/waiting-room";
   };
-
-  useEffect(() => {
-    // Check for existing session on mount
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const dest = await resolveDestination(session.user.id);
-        if (dest) navigate(dest);
-      }
-    });
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT') return;
-
-      if (event === 'SIGNED_IN' && session?.user) {
-        // New signup → go to pricing selection
-        if (isNewSignupRef.current) {
-          isNewSignupRef.current = false;
-          navigate("/pricing-selection");
-          return;
-        }
-
-        const dest = await resolveDestination(session.user.id);
-        if (dest) navigate(dest);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; phone?: string } = {};
@@ -133,15 +100,12 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast({ title: "Welcome back!", description: "Successfully logged in." });
+
+        const dest = await resolveDestination(data.user.id);
+        if (dest) navigate(dest);
       } else {
-        // Sign up with OTP verification
-        isNewSignupRef.current = true;
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -153,27 +117,18 @@ export default function Auth() {
 
         if (error) throw error;
 
-        // Check if email confirmation is required
-        const needsEmailConfirmation = data.user && !data.user.email_confirmed_at && data.user.identities?.length === 1;
+        const needsEmailConfirmation =
+          data.user && !data.user.email_confirmed_at && data.user.identities?.length === 1;
 
         if (needsEmailConfirmation) {
-          // Email confirmation required - redirect to verification
-          toast({
-            title: "Check your email!",
-            description: "We sent you a 6-digit verification code."
-          });
+          toast({ title: "Check your email!", description: "We sent you a 6-digit verification code." });
           navigate(`/verify-email?email=${encodeURIComponent(email)}`);
         } else {
-          // Email confirmation disabled - user is auto-confirmed
-          toast({
-            title: "Account created!",
-            description: "Redirecting to pricing selection..."
-          });
-          // Auth state change will handle redirect
+          toast({ title: "Account created!", description: "Redirecting to pricing selection..." });
+          navigate("/pricing-selection");
         }
       }
     } catch (error: any) {
-      isNewSignupRef.current = false;
       let message = error.message;
       if (error.message.includes("already registered")) {
         message = "This email is already registered. Please login instead.";

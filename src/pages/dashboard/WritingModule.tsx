@@ -100,6 +100,8 @@ export default function WritingModule() {
   const [adminOverrideScore, setAdminOverrideScore] = useState("");
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const { toast } = useToast();
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
@@ -129,6 +131,76 @@ export default function WritingModule() {
       console.error("Error fetching questions:", error);
     } finally {
       setLoadingQuestions(false);
+    }
+  };
+
+  const generateQuestion = async () => {
+    setIsGenerating(true);
+    try {
+      const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+      const session = refreshed ?? (await supabase.auth.getSession()).data.session;
+      if (!session) throw new Error("Please sign in to generate a question.");
+
+      const { data, error } = await supabase.functions.invoke("generate-writing", {
+        body: { task_type: activeTask, difficulty: generateDifficulty },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (error) throw error;
+
+      const aiData = data?.data ?? data;
+
+      let title = aiData.topic || "AI Writing Prompt";
+      let questionPrompt = aiData.instruction || "";
+      let secretContext = "";
+
+      if (activeTask === "Task 1") {
+        // Append data description to the prompt
+        if (aiData.data) {
+          const d = aiData.data;
+          const dataLines = [
+            d.title ? `**${d.title}**` : "",
+            d.key_features?.length
+              ? `Key features: ${d.key_features.join("; ")}`
+              : "",
+          ].filter(Boolean).join("\n");
+          questionPrompt = `${questionPrompt}\n\n${dataLines}`.trim();
+        }
+        secretContext = aiData.model_answer_guide
+          ? JSON.stringify(aiData.model_answer_guide)
+          : "";
+      } else {
+        // Task 2: append statement
+        if (aiData.statement) {
+          questionPrompt = `${aiData.statement}\n\n${questionPrompt}`.trim();
+        }
+        secretContext = aiData.model_answer_guide
+          ? JSON.stringify(aiData.model_answer_guide)
+          : "";
+      }
+
+      const generatedQuestion: IeltsQuestion = {
+        id: `ai-${Date.now()}`,
+        task_type: activeTask,
+        title,
+        question_prompt: questionPrompt,
+        question_image_url: null,
+        model_answer_band9: null,
+        ai_secret_context: secretContext,
+        target_keywords: null,
+        difficulty: generateDifficulty,
+        is_active: true,
+      };
+
+      handleStartPractice(generatedQuestion);
+    } catch (error: any) {
+      console.error("generate-writing error:", error);
+      toast({
+        title: "Generation failed",
+        description: error.message || "Could not generate a writing prompt. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -742,10 +814,35 @@ export default function WritingModule() {
                       </div>
                     ) : filteredQuestions.length === 0 ? (
                       <Card className="border-dashed">
-                        <CardContent className="flex flex-col items-center justify-center py-12">
-                          <BookOpen className="w-12 h-12 text-muted-foreground mb-4" />
-                          <p className="text-muted-foreground mb-2">No questions available for {activeTask}</p>
-                          <p className="text-sm text-muted-foreground">Check back later or contact your instructor.</p>
+                        <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
+                          <BookOpen className="w-12 h-12 text-muted-foreground" />
+                          <div className="text-center">
+                            <p className="text-muted-foreground mb-1">No questions available for {activeTask}</p>
+                            <p className="text-sm text-muted-foreground">Generate one with AI now.</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={generateDifficulty}
+                              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+                              className="bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+                            >
+                              <option value="easy">Easy</option>
+                              <option value="medium">Medium</option>
+                              <option value="hard">Hard</option>
+                            </select>
+                            <Button
+                              onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
+                              disabled={isGenerating}
+                              className="gap-2"
+                            >
+                              {isGenerating ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Zap className="w-4 h-4" />
+                              )}
+                              {isGenerating ? "Generating..." : "Generate AI Question"}
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ) : (
@@ -816,10 +913,35 @@ export default function WritingModule() {
                     </div>
                   ) : filteredQuestions.length === 0 ? (
                     <Card className="border-dashed">
-                      <CardContent className="flex flex-col items-center justify-center py-12">
-                        <BookOpen className="w-12 h-12 text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground mb-2">No questions available for {activeTask}</p>
-                        <p className="text-sm text-muted-foreground">Check back later or contact your instructor.</p>
+                      <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
+                        <BookOpen className="w-12 h-12 text-muted-foreground" />
+                        <div className="text-center">
+                          <p className="text-muted-foreground mb-1">No questions available for {activeTask}</p>
+                          <p className="text-sm text-muted-foreground">Generate one with AI now.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={generateDifficulty}
+                            onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+                            className="bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+                          >
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                          </select>
+                          <Button
+                            onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
+                            disabled={isGenerating}
+                            className="gap-2"
+                          >
+                            {isGenerating ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Zap className="w-4 h-4" />
+                            )}
+                            {isGenerating ? "Generating..." : "Generate AI Question"}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ) : (

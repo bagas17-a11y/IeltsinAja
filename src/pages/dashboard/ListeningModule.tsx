@@ -5,17 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Headphones, 
-  Play, 
-  Volume2, 
-  VolumeX, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Headphones,
+  Play,
+  Volume2,
+  VolumeX,
+  Clock,
+  CheckCircle2,
+  XCircle,
   FileText,
   RefreshCw,
-  ChevronRight
+  ChevronRight,
+  Loader2,
+  Wand2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -83,8 +85,13 @@ export default function ListeningModule() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
+  const [generatePart, setGeneratePart] = useState<"Part 1" | "Part 2" | "Part 3" | "Part 4">("Part 1");
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   
   const [cachedState, setCachedState] = useLocalStorage<CachedListeningState | null>(
     LISTENING_CACHE_KEY,
@@ -179,6 +186,77 @@ export default function ListeningModule() {
     }
   };
 
+  const generateTest = async () => {
+    setIsGenerating(true);
+    try {
+      const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+      const session = refreshed ?? (await supabase.auth.getSession()).data.session;
+      if (!session) throw new Error("Please sign in to generate a test.");
+
+      const { data, error } = await supabase.functions.invoke("generate-listening", {
+        body: { difficulty: generateDifficulty, part: generatePart },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (error) throw error;
+
+      const aiData = data?.data ?? data;
+
+      // Build questions + answer key from sections
+      const questions: Question[] = [];
+      const fallbackAnswerKey: Record<string, string> = {};
+
+      (aiData.sections || []).forEach((section: any) => {
+        const isMultiChoice = section.type === "multiple_choice";
+        (section.questions || []).forEach((q: any) => {
+          const id: number = q.number ?? questions.length + 1;
+          let text = "";
+          let options: string[] | undefined;
+
+          if (isMultiChoice) {
+            text = q.question || q.text || `Question ${id}`;
+            if (q.options && typeof q.options === "object") {
+              if (Array.isArray(q.options)) {
+                options = q.options;
+              } else {
+                options = Object.values(q.options) as string[];
+              }
+            }
+          } else {
+            const label = q.label || q.text || `Item ${id}`;
+            text = `${label}: _____`;
+          }
+
+          questions.push({
+            id,
+            type: isMultiChoice ? "multiple-choice" : "gap-fill",
+            part: parseInt((aiData.part || "Part 1").replace("Part ", "")) || 1,
+            text,
+            options,
+          });
+          fallbackAnswerKey[id.toString()] = q.answer;
+        });
+      });
+
+      const generatedTest: ListeningTest = {
+        id: aiData.id || `ai-${Date.now()}`,
+        title: `AI Test: ${aiData.part || generatePart} — ${aiData.topic || aiData.context || "Listening Practice"}`,
+        audio_url: "",
+        transcript: aiData.transcript || null,
+        questions,
+        answer_key: aiData.answer_key || fallbackAnswerKey,
+        difficulty: generateDifficulty,
+        duration_minutes: aiData.duration_minutes || 30,
+      };
+
+      await startTest(generatedTest);
+    } catch (error: any) {
+      console.error("generate-listening error:", error);
+      toast.error(error.message || "Failed to generate test. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const startTest = async (test: ListeningTest) => {
     // Check feature gating before starting a test
     if (!canAccess("listening")) {
@@ -224,10 +302,18 @@ export default function ListeningModule() {
   };
 
   const handlePlay = () => {
-    if (audioRef.current && !hasPlayed) {
-      audioRef.current.play();
-      setIsPlaying(true);
-      setHasPlayed(true);
+    if (hasPlayed) return;
+    setIsPlaying(true);
+    setHasPlayed(true);
+
+    if (currentTest?.audio_url) {
+      audioRef.current?.play();
+    } else if (currentTest?.transcript) {
+      const utterance = new SpeechSynthesisUtterance(currentTest.transcript);
+      utterance.rate = 0.88;
+      utterance.onend = handleAudioEnded;
+      speechRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
     }
   };
 
@@ -505,10 +591,50 @@ export default function ListeningModule() {
     const practiceContent = tests.length === 0 ? (
       <div className="glass-card p-12 text-center">
         <Headphones className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-        <h2 className="text-xl font-light mb-2">No Tests Available</h2>
-        <p className="text-muted-foreground">
-          Your administrator hasn&apos;t uploaded any listening tests yet.
+        <h2 className="text-xl font-light mb-2">Generate an AI Listening Test</h2>
+        <p className="text-muted-foreground mb-6">
+          No pre-built tests yet. Generate a fresh IELTS-style test with AI.
         </p>
+        <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
+          <div className="flex gap-2 w-full">
+            <select
+              value={generatePart}
+              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
+              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+            >
+              <option value="Part 1">Part 1</option>
+              <option value="Part 2">Part 2</option>
+              <option value="Part 3">Part 3</option>
+              <option value="Part 4">Part 4</option>
+            </select>
+            <select
+              value={generateDifficulty}
+              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <Button
+            onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
+            disabled={isGenerating}
+            className="w-full bg-accent hover:bg-accent/90"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Wand2 className="w-4 h-4 mr-2" />
+                Generate AI Test
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     ) : (
       <div className="grid gap-4">
@@ -539,6 +665,40 @@ export default function ListeningModule() {
             </div>
           </button>
         ))}
+        {/* AI Generation row */}
+        <div className="glass-card p-4 border-dashed">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Wand2 className="w-4 h-4 text-accent flex-shrink-0" />
+            <span className="text-sm text-muted-foreground flex-1">Generate a new AI test</span>
+            <select
+              value={generatePart}
+              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
+              className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
+            >
+              <option value="Part 1">Part 1</option>
+              <option value="Part 2">Part 2</option>
+              <option value="Part 3">Part 3</option>
+              <option value="Part 4">Part 4</option>
+            </select>
+            <select
+              value={generateDifficulty}
+              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+              className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+            <Button
+              size="sm"
+              onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
+              disabled={isGenerating}
+              className="bg-accent hover:bg-accent/90"
+            >
+              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate"}
+            </Button>
+          </div>
+        </div>
       </div>
     );
 

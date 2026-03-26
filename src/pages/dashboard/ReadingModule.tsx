@@ -17,11 +17,12 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useReadingCache, CachedPassage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { useNavigate } from "react-router-dom";
+import { Lock } from "lucide-react";
 
 interface Question {
   number: number;
@@ -78,24 +79,15 @@ export default function ReadingModule() {
   const [testStartTime, setTestStartTime] = useState<Date | null>(null);
   const passageRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { cache, addToCache, updateCacheEntry, getLatestPassage } = useReadingCache();
   const { saveProgress } = useUserProgress();
   const { user } = useAuth();
   const { canAccess, refreshCounts } = useFeatureGating();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const navigate = useNavigate();
 
-  // Load cached passage on mount
+  // Clear old localStorage reading cache on mount
   useEffect(() => {
-    const cached = getLatestPassage();
-    if (cached && !cached.submitted) {
-      setCurrentTest(cached as ReadingTest);
-      setUserAnswers(cached.userAnswers || {});
-      setIsSubmitted(cached.submitted || false);
-      toast({
-        title: "Progress restored",
-        description: "Your previous test has been loaded from cache.",
-      });
-    }
+    localStorage.removeItem('ielts-reading-cache');
   }, []);
 
   // Timer logic
@@ -115,12 +107,6 @@ export default function ReadingModule() {
     return () => clearInterval(interval);
   }, [isTimerActive, timeRemaining, isSubmitted]);
 
-  // Auto-save to cache when answers change
-  useEffect(() => {
-    if (currentTest && Object.keys(userAnswers).length > 0) {
-      updateCacheEntry(currentTest.id, { userAnswers });
-    }
-  }, [userAnswers, currentTest?.id]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -216,7 +202,6 @@ export default function ReadingModule() {
       }
 
       setCurrentTest(data);
-      addToCache(data as CachedPassage);
       setIsTimerActive(true);
 
       // Save progress immediately on generate to count usage for free tier gating
@@ -368,12 +353,6 @@ export default function ReadingModule() {
       ? Math.floor((new Date().getTime() - testStartTime.getTime()) / 1000)
       : 20 * 60 - timeRemaining;
     
-    updateCacheEntry(currentTest.id, { 
-      submitted: true, 
-      score: correct,
-      userAnswers 
-    });
-
     // Save to user_progress table
     try {
       await saveProgress({
@@ -501,7 +480,18 @@ export default function ReadingModule() {
               {(['easy', 'medium', 'hard'] as const).map((d) => (
                 <button
                   key={d}
-                  onClick={() => setDifficulty(d)}
+                  onClick={() => {
+                    if (difficulty === d) return;
+                    // Switching difficulty always clears the current test
+                    setDifficulty(d);
+                    setCurrentTest(null);
+                    setUserAnswers({});
+                    setIsSubmitted(false);
+                    setIsTimerActive(false);
+                    setTimeRemaining(20 * 60);
+                    setHighlightedEvidence(null);
+                    setSelectedQuestion(null);
+                  }}
                   className={`px-3 py-1 text-xs rounded-md transition-all capitalize ${
                     difficulty === d
                       ? getDifficultyColor(d)
@@ -524,6 +514,11 @@ export default function ReadingModule() {
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Generating...
+                </>
+              ) : !canAccess("reading") ? (
+                <>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Upgrade to Generate
                 </>
               ) : (
                 <>
@@ -570,19 +565,32 @@ export default function ReadingModule() {
         {/* Main Content */}
         {!currentTest ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center max-w-md">
-              <BookOpen className="w-16 h-16 text-accent/30 mx-auto mb-4" />
-              <h2 className="text-xl font-light mb-2">Ready to Practice?</h2>
-              <p className="text-muted-foreground mb-6">
-                Generate an AI-powered IELTS Academic Reading passage with 13 questions. 
-                Select your difficulty level and click the button above.
-              </p>
-              {cache.length > 0 && (
-                <div className="text-sm text-muted-foreground">
-                  <p>{cache.length} cached test(s) available</p>
+            {!canAccess("reading") ? (
+              <div className="text-center max-w-md">
+                <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
+                  <Lock className="w-10 h-10 text-accent" />
                 </div>
-              )}
-            </div>
+                <h2 className="text-xl font-light mb-3">Free Practice Used</h2>
+                <p className="text-muted-foreground mb-6">
+                  You've used your one free reading test. Upgrade to a paid plan for unlimited AI-generated tests across all modules.
+                </p>
+                <Button
+                  onClick={() => navigate("/pricing-selection")}
+                  variant="neumorphicPrimary"
+                >
+                  View Plans
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center max-w-md">
+                <BookOpen className="w-16 h-16 text-accent/30 mx-auto mb-4" />
+                <h2 className="text-xl font-light mb-2">Ready to Practice?</h2>
+                <p className="text-muted-foreground mb-6">
+                  Generate an AI-powered IELTS Academic Reading passage with 13 questions.
+                  Select your difficulty level and click the button above.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
