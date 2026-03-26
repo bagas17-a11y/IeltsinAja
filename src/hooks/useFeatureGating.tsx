@@ -72,17 +72,22 @@ export function useFeatureGating(): FeatureGatingResult {
 
   const canAccess = useCallback(
     (module: ModuleType): boolean => {
-      // If pro subscription is expired, treat as free tier
-      if (profile?.subscription_tier === "pro" && isExpired) {
+      // Treat null profile (not yet loaded) as free tier — never grant unlimited access by default
+      if (!profile) {
         return practiceCount[module] < FREE_PRACTICE_LIMIT;
       }
 
-      // If user is not on free tier, they have unlimited access
-      if (profile?.subscription_tier !== "free") {
+      // If pro subscription is expired, treat as free tier
+      if (profile.subscription_tier === "pro" && isExpired) {
+        return practiceCount[module] < FREE_PRACTICE_LIMIT;
+      }
+
+      // Paid tier with valid subscription — unlimited access
+      if (profile.subscription_tier !== "free") {
         return true;
       }
 
-      // Free tier users can only do 1 practice per module
+      // Free tier: one practice per module
       return practiceCount[module] < FREE_PRACTICE_LIMIT;
     },
     [profile, practiceCount, isExpired]

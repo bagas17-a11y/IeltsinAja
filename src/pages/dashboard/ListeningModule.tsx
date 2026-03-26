@@ -92,6 +92,7 @@ export default function ListeningModule() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const generateAbortRef = useRef<AbortController | null>(null);
   
   const [cachedState, setCachedState] = useLocalStorage<CachedListeningState | null>(
     LISTENING_CACHE_KEY,
@@ -186,13 +187,26 @@ export default function ListeningModule() {
     }
   };
 
+  const stopGeneration = () => {
+    generateAbortRef.current?.abort();
+    generateAbortRef.current = null;
+    setIsGenerating(false);
+    toast.info("Generation cancelled.");
+  };
+
   const generateTest = async () => {
+    const controller = new AbortController();
+    generateAbortRef.current = controller;
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-listening", {
         body: { difficulty: generateDifficulty, part: generatePart },
+        signal: controller.signal,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.name === "AbortError" || error.message?.includes("aborted")) return;
+        throw error;
+      }
 
       const aiData = data?.data ?? data;
 
@@ -612,23 +626,24 @@ export default function ListeningModule() {
               <option value="hard">Hard</option>
             </select>
           </div>
-          <Button
-            onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
-            disabled={isGenerating}
-            className="w-full bg-accent hover:bg-accent/90"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-4 h-4 mr-2" />
-                Generate AI Test
-              </>
-            )}
-          </Button>
+          {isGenerating ? (
+            <Button
+              onClick={stopGeneration}
+              variant="destructive"
+              className="w-full"
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              Stop Generation
+            </Button>
+          ) : (
+            <Button
+              onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
+              className="w-full bg-accent hover:bg-accent/90"
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              Generate AI Test
+            </Button>
+          )}
         </div>
       </div>
     ) : (
@@ -684,14 +699,19 @@ export default function ListeningModule() {
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
             </select>
-            <Button
-              size="sm"
-              onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
-              disabled={isGenerating}
-              className="bg-accent hover:bg-accent/90"
-            >
-              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate"}
-            </Button>
+            {isGenerating ? (
+              <Button size="sm" onClick={stopGeneration} variant="destructive">
+                <XCircle className="w-4 h-4 mr-1" /> Stop
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
+                className="bg-accent hover:bg-accent/90"
+              >
+                Generate
+              </Button>
+            )}
           </div>
         </div>
       </div>

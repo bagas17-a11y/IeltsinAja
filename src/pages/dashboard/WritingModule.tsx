@@ -25,6 +25,9 @@ interface IeltsQuestion {
   target_keywords: string | null;
   difficulty: string;
   is_active: boolean;
+  // AI-generated questions only — raw data for chart/map rendering
+  visual_type?: string;
+  visual_data?: Record<string, unknown>;
 }
 
 // Grading Rubric for Task 1
@@ -184,6 +187,8 @@ export default function WritingModule() {
         target_keywords: null,
         difficulty: generateDifficulty,
         is_active: true,
+        visual_type: activeTask === "Task 1" ? (aiData.visual_type ?? undefined) : undefined,
+        visual_data: activeTask === "Task 1" ? (aiData.data ?? undefined) : undefined,
       };
 
       handleStartPractice(generatedQuestion);
@@ -368,6 +373,100 @@ export default function WritingModule() {
       case "hard": return "bg-red-500/20 text-red-400";
       default: return "bg-yellow-500/20 text-yellow-400";
     }
+  };
+
+  const VisualDataRenderer = ({ visualType, data }: { visualType: string; data: Record<string, unknown> }) => {
+    if (visualType === "map") {
+      const features = (data.key_features as string[]) ?? [];
+      const title = data.title as string ?? "";
+      return (
+        <div className="space-y-3">
+          {title && <p className="text-xs font-medium text-accent">{title}</p>}
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Key changes</p>
+          <ul className="space-y-2">
+            {features.map((f, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+                <span className="text-accent mt-0.5">→</span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    if (visualType === "process_diagram") {
+      const stages = (data.stages as Array<{ stage: number; description: string }>) ?? [];
+      const title = data.title as string ?? "";
+      return (
+        <div className="space-y-2">
+          {title && <p className="text-xs font-medium text-accent mb-2">{title}</p>}
+          <div className="flex flex-wrap gap-2 items-center">
+            {stages.map((s, i) => (
+              <div key={i} className="flex items-center gap-1">
+                <div className="px-2 py-1 bg-accent/10 border border-accent/30 rounded text-xs text-foreground/80 max-w-[120px] text-center">
+                  {s.description}
+                </div>
+                {i < stages.length - 1 && <span className="text-accent text-xs">→</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // For bar_chart, line_graph, table, pie_chart, bar_line_combo — render a data table
+    const series = (data.series as Array<{ label: string; values: Record<string, number> }>) ?? [];
+    const segments = (data.segments as Array<{ label: string; percentage: number }>) ?? [];
+    const title = data.title as string ?? "";
+    const unit = data.unit as string ?? "";
+
+    if (segments.length > 0) {
+      return (
+        <div className="space-y-2">
+          {title && <p className="text-xs font-medium text-accent">{title}</p>}
+          <div className="grid grid-cols-2 gap-2">
+            {segments.map((s, i) => (
+              <div key={i} className="flex justify-between items-center px-3 py-1.5 bg-secondary/30 rounded text-xs">
+                <span className="text-foreground/80">{s.label}</span>
+                <span className="text-accent font-medium">{s.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (series.length > 0) {
+      const allKeys = Object.keys(series[0]?.values ?? {});
+      return (
+        <div className="space-y-2 overflow-x-auto">
+          {title && <p className="text-xs font-medium text-accent">{title}{unit ? ` (${unit})` : ""}</p>}
+          <table className="text-xs w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="text-left px-2 py-1 text-muted-foreground font-normal border-b border-border/30"></th>
+                {allKeys.map(k => <th key={k} className="px-2 py-1 text-muted-foreground font-normal border-b border-border/30 text-right">{k}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {series.map((s, i) => (
+                <tr key={i} className="border-b border-border/20">
+                  <td className="px-2 py-1 text-foreground/80">{s.label}</td>
+                  {allKeys.map(k => <td key={k} className="px-2 py-1 text-accent text-right">{s.values[k]}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-center h-16">
+        <p className="text-xs text-muted-foreground">Data not available for this question type</p>
+      </div>
+    );
   };
 
   const ScoreCell = ({ label, score, justification }: { label: string; score: number; justification?: string }) => (
@@ -1018,15 +1117,22 @@ export default function WritingModule() {
                 </div>
               )}
 
-              {/* Placeholder if no image */}
+              {/* Visual data for AI-generated Task 1 questions */}
               {!selectedQuestion.question_image_url && selectedQuestion.task_type.startsWith("Task 1") && (
-                <div className="p-4 bg-secondary/20 rounded-lg border border-dashed border-border/50 mb-4">
-                  <div className="flex items-center justify-center h-48">
-                    <div className="text-center">
-                      <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">Diagram/chart for this question</p>
+                <div className="p-4 bg-secondary/20 rounded-lg border border-border/50 mb-4">
+                  {selectedQuestion.visual_data ? (
+                    <VisualDataRenderer
+                      visualType={selectedQuestion.visual_type ?? "bar_chart"}
+                      data={selectedQuestion.visual_data}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-24">
+                      <div className="text-center">
+                        <BarChart3 className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">Diagram/chart for this question</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

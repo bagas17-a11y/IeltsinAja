@@ -232,8 +232,8 @@ Return ONLY valid JSON matching the specified schema. No markdown, no commentary
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 8192,
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4096,
         temperature: 0.8,
         messages: [
           { role: "user", content: `${LISTENING_SYSTEM_PROMPT}\n\n${userPrompt}` },

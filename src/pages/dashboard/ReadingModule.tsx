@@ -133,6 +133,27 @@ export default function ReadingModule() {
     setTestStartTime(new Date());
 
     try {
+      // Consume the free usage BEFORE calling the API — prevents race conditions
+      // where the API succeeds but the save fails (leaving count at 0)
+      try {
+        await saveProgress({
+          exam_type: "reading",
+          score: null,
+          band_score: null,
+          total_questions: null,
+          correct_answers: null,
+          feedback: `Started reading test. Difficulty: ${difficulty}`,
+          completed_at: new Date().toISOString(),
+          time_taken: null,
+          errors_log: [],
+          metadata: { difficulty, status: "started" },
+        });
+        await refreshCounts();
+      } catch (saveErr) {
+        console.error("Failed to record usage:", saveErr);
+        // Don't block generation if save fails — but log it
+      }
+
       // Force session refresh to ensure we have a valid JWT token
       const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
 
@@ -205,30 +226,6 @@ export default function ReadingModule() {
 
       setCurrentTest(data);
       setIsTimerActive(true);
-
-      // Save progress immediately on generate to count usage for free tier gating
-      try {
-        await saveProgress({
-          exam_type: "reading",
-          score: null,
-          band_score: null,
-          total_questions: null,
-          correct_answers: null,
-          feedback: `Started: ${data.passage.title}. Difficulty: ${data.difficulty}`,
-          completed_at: new Date().toISOString(),
-          time_taken: null,
-          errors_log: [],
-          metadata: {
-            topic: data.passage.topic,
-            difficulty: data.difficulty,
-            passageId: data.id,
-            status: "started",
-          },
-        });
-        await refreshCounts();
-      } catch (err) {
-        console.error("Failed to save initial progress:", err);
-      }
 
       toast({
         title: "Test generated!",
