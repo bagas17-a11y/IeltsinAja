@@ -66,6 +66,13 @@ interface ReadingTest {
   generatedAt: string;
 }
 
+interface DifficultyCache {
+  test: ReadingTest;
+  userAnswers: Record<number, string>;
+  isSubmitted: boolean;
+  timeRemaining: number;
+}
+
 export default function ReadingModule() {
   const [currentTest, setCurrentTest] = useState<ReadingTest | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -77,6 +84,7 @@ export default function ReadingModule() {
   const [highlightedEvidence, setHighlightedEvidence] = useState<string | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null);
   const [testStartTime, setTestStartTime] = useState<Date | null>(null);
+  const [testCache, setTestCache] = useState<Partial<Record<'easy' | 'medium' | 'hard', DifficultyCache>>>({});
   const passageRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
@@ -225,6 +233,10 @@ export default function ReadingModule() {
       }
 
       setCurrentTest(data);
+      setTestCache(prev => ({
+        ...prev,
+        [difficulty]: { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60 }
+      }));
       setIsTimerActive(true);
 
       toast({
@@ -481,15 +493,31 @@ export default function ReadingModule() {
                   key={d}
                   onClick={() => {
                     if (difficulty === d) return;
-                    // Switching difficulty always clears the current test
+                    // Save current test state before switching
+                    if (currentTest) {
+                      setTestCache(prev => ({
+                        ...prev,
+                        [difficulty]: { test: currentTest, userAnswers, isSubmitted, timeRemaining }
+                      }));
+                    }
                     setDifficulty(d);
-                    setCurrentTest(null);
-                    setUserAnswers({});
-                    setIsSubmitted(false);
                     setIsTimerActive(false);
-                    setTimeRemaining(20 * 60);
                     setHighlightedEvidence(null);
                     setSelectedQuestion(null);
+                    // Restore cached state for the target difficulty, or reset
+                    const cached = testCache[d];
+                    if (cached) {
+                      setCurrentTest(cached.test);
+                      setUserAnswers(cached.userAnswers);
+                      setIsSubmitted(cached.isSubmitted);
+                      setTimeRemaining(cached.timeRemaining);
+                    } else {
+                      setCurrentTest(null);
+                      setUserAnswers({});
+                      setIsSubmitted(false);
+                      setTimeRemaining(20 * 60);
+                      setTestStartTime(null);
+                    }
                   }}
                   className={`px-3 py-1 text-xs rounded-md transition-all capitalize ${
                     difficulty === d
