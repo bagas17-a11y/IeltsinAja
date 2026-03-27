@@ -72,12 +72,23 @@ interface DifficultyCache {
   isSubmitted: boolean;
   timeRemaining: number;
   timerEndAt: number | null; // Unix ms timestamp when timer reaches 0
+  isTimerPaused?: boolean;
 }
 
 export default function ReadingModule() {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+
   const [currentTest, setCurrentTest] = useState<ReadingTest | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => {
+    if (typeof window !== "undefined" && userId) {
+      // Free users only have one difficulty active usually, check all or specific
+      const stored = sessionStorage.getItem(`ielts-reading-active-diff-${userId}`);
+      if (stored === 'easy' || stored === 'medium' || stored === 'hard') return stored as any;
+    }
+    return 'medium';
+  });
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(20 * 60); // 20 minutes
@@ -91,15 +102,12 @@ export default function ReadingModule() {
   const passageRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
-  const { user } = useAuth();
-  const userId = user?.id ?? null;
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
 
   // Load cached tests from sessionStorage on mount — reset when app is closed
   useEffect(() => {
-    sessionStorage.removeItem('ielts-reading-cache'); // remove old format
     if (!userId) return;
     const loaded: Partial<Record<'easy' | 'medium' | 'hard', DifficultyCache>> = {};
     (['easy', 'medium', 'hard'] as const).forEach(d => {
@@ -112,25 +120,26 @@ export default function ReadingModule() {
     });
     if (Object.keys(loaded).length === 0) return;
     setTestCache(loaded);
-    // Auto-load whichever difficulty has a cached test (free users have at most one)
-    const generatedDiff = (['easy', 'medium', 'hard'] as const).find(d => loaded[d]);
-    if (!generatedDiff) return;
-    const init = loaded[generatedDiff]!;
-    // Use timerEndAt for accurate remaining time after navigation/refresh
-    const remaining = (init.timerEndAt && !init.isSubmitted)
-      ? Math.max(0, Math.ceil((init.timerEndAt - Date.now()) / 1000))
-      : init.timeRemaining;
-    setDifficulty(generatedDiff);
-    setCurrentTest(init.test);
-    setUserAnswers(init.userAnswers);
-    setIsSubmitted(init.isSubmitted);
-    setTimeRemaining(remaining);
-    setTimerEndAt(init.timerEndAt);
-    if (!init.isSubmitted && remaining > 0) {
-      setIsTimerActive(true);
-      setIsTimerPaused(false);
+    
+    // Auto-load based on current difficulty (hydrated above) or whichever has data
+    const activeDiff = difficulty;
+    if (loaded[activeDiff]) {
+      const init = loaded[activeDiff]!;
+      const remaining = (init.timerEndAt && !init.isSubmitted && !init.isTimerPaused)
+        ? Math.max(0, Math.ceil((init.timerEndAt - Date.now()) / 1000))
+        : init.timeRemaining;
+      
+      setCurrentTest(init.test);
+      setUserAnswers(init.userAnswers);
+      setIsSubmitted(init.isSubmitted);
+      setTimeRemaining(remaining);
+      setTimerEndAt(init.timerEndAt);
+      if (!init.isSubmitted && remaining > 0) {
+        setIsTimerActive(true);
+        setIsTimerPaused(init.isTimerPaused ?? false);
+      }
     }
-  }, [userId]);  
+  }, [userId]); 
 
   // Sync testCache → sessionStorage whenever it changes
   useEffect(() => {
@@ -279,12 +288,23 @@ export default function ReadingModule() {
       }
 
       const newTimerEndAt = Date.now() + 20 * 60 * 1000;
+      const newCache = { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt: newTimerEndAt, isTimerPaused: false };
+      
+      try {
+        if (userId) sessionStorage.setItem(`ielts-reading-${userId}-${difficulty}`, JSON.stringify(newCache));
+      } catch (err) {
+        console.error("Failed to persist reading cache in background:", err);
+      }
+
       setCurrentTest(data);
       setTimerEndAt(newTimerEndAt);
       setTestCache(prev => ({
         ...prev,
-        [difficulty]: { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt: newTimerEndAt }
+        [difficulty]: newCache
       }));
+      try {
+        if (userId) sessionStorage.setItem(`ielts-reading-active-diff-${userId}`, difficulty);
+      } catch(e) {}
       setIsTimerActive(true);
       setIsTimerPaused(false);
 
@@ -577,7 +597,8 @@ export default function ReadingModule() {
                         ...prev,
                         [difficulty]: {
                           test: currentTest, userAnswers, isSubmitted, timeRemaining,
-                          timerEndAt: timerEndAt
+                          timerEndAt: timerEndAt,
+                          isTimerPaused: isTimerPaused
                         }
                       }));
                     }
@@ -593,14 +614,14 @@ export default function ReadingModule() {
                       setUserAnswers(cached.userAnswers);
                       setIsSubmitted(cached.isSubmitted);
                       
-                      const remaining = (cached.timerEndAt && !cached.isSubmitted)
+                      const remaining = (cached.timerEndAt && !cached.isSubmitted && !cached.isTimerPaused)
                          ? Math.max(0, Math.ceil((cached.timerEndAt - Date.now()) / 1000))
                          : cached.timeRemaining;
                       setTimeRemaining(remaining);
                       setTimerEndAt(cached.timerEndAt);
                       if (!cached.isSubmitted && remaining > 0) {
                         setIsTimerActive(true);
-                        setIsTimerPaused(false); // Can be adjusted if pausing is persisted
+                        setIsTimerPaused(cached.isTimerPaused ?? false);
                       }
                     } else {
                       setCurrentTest(null);

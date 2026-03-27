@@ -30,6 +30,16 @@ interface IeltsQuestion {
   visual_data?: Record<string, unknown>;
 }
 
+interface CachedWritingState {
+  view: "library" | "practice";
+  selectedQuestion: IeltsQuestion | null;
+  essay: string;
+  revisedEssay: string;
+  feedback: any;
+  revisionFeedback: any;
+  previousScore: number | null;
+}
+
 // Grading Rubric for Task 1
 const task1Rubric = [
   {
@@ -88,7 +98,13 @@ const task2Rubric = [
 
 export default function WritingModule() {
   const [view, setView] = useState<"library" | "practice">("library");
-  const [activeTask, setActiveTask] = useState<"Task 1" | "Task 2">("Task 1");
+  const [activeTask, setActiveTask] = useState<"Task 1" | "Task 2">(() => {
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem(`ielts-writing-active-task-${user?.id || 'guest'}`);
+      if (stored === "Task 1" || stored === "Task 2") return stored;
+    }
+    return "Task 1";
+  });
   const [questions, setQuestions] = useState<IeltsQuestion[]>([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [selectedQuestion, setSelectedQuestion] = useState<IeltsQuestion | null>(null);
@@ -103,12 +119,11 @@ export default function WritingModule() {
   const [adminOverrideScore, setAdminOverrideScore] = useState("");
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [pendingGenerations, setPendingGenerations] = useState<Record<string, boolean>>({});
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
-  // isAdmin comes from useAuth hook
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts } = useFeatureGating();
 
@@ -119,6 +134,44 @@ export default function WritingModule() {
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  // Restore and Sync cache based on active task
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const stored = sessionStorage.getItem(`ielts-writing-cache-${user.id}-${activeTask}`);
+      if (stored) {
+        const state = JSON.parse(stored) as CachedWritingState;
+        if (state.selectedQuestion) {
+          setView(state.view || "library");
+          setSelectedQuestion(state.selectedQuestion);
+          setEssay(state.essay || "");
+          setRevisedEssay(state.revisedEssay || "");
+          setFeedback(state.feedback || null);
+          setRevisionFeedback(state.revisionFeedback || null);
+          setPreviousScore(state.previousScore || null);
+          return;
+        }
+      }
+    } catch (err) { console.error("Cache load error:", err); }
+    
+    // Reset if no deep cache found
+    setView("library");
+    setSelectedQuestion(null);
+    setEssay("");
+    setRevisedEssay("");
+    setFeedback(null);
+    setRevisionFeedback(null);
+    setPreviousScore(null);
+  }, [user?.id, activeTask]);
+
+  useEffect(() => {
+    if (!user?.id || !selectedQuestion) return;
+    const state: CachedWritingState = {
+      view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore
+    };
+    sessionStorage.setItem(`ielts-writing-cache-${user.id}-${activeTask}`, JSON.stringify(state));
+  }, [user?.id, activeTask, view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore]);
 
   const fetchQuestions = async () => {
     try {
@@ -138,10 +191,30 @@ export default function WritingModule() {
   };
 
   const generateQuestion = async () => {
-    setIsGenerating(true);
+    let currentSession;
+    try {
+      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+      currentSession = refreshedSession || (await supabase.auth.getSession()).data.session;
+    } catch (e) {
+      console.error(e);
+    }
+    
+    if (!currentSession) {
+      toast({ title: "Authentication required", description: "You must be logged in.", variant: "destructive" });
+      return;
+    }
+
+    const generatingTask = activeTask;
+    try {
+      if (user?.id) sessionStorage.setItem(`ielts-writing-active-task-${user.id}`, generatingTask);
+    } catch(e) {}
+    setPendingGenerations(prev => ({ ...prev, [generatingTask]: true }));
     try {
       const { data, error } = await supabase.functions.invoke("generate-writing", {
-        body: { task_type: activeTask, difficulty: generateDifficulty },
+        body: { task_type: generatingTask, difficulty: generateDifficulty },
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
       });
       if (error) throw error;
 
@@ -178,7 +251,7 @@ export default function WritingModule() {
 
       const generatedQuestion: IeltsQuestion = {
         id: `ai-${Date.now()}`,
-        task_type: activeTask,
+        task_type: generatingTask,
         title,
         question_prompt: questionPrompt,
         question_image_url: null,
@@ -187,11 +260,29 @@ export default function WritingModule() {
         target_keywords: null,
         difficulty: generateDifficulty,
         is_active: true,
-        visual_type: activeTask === "Task 1" ? (aiData.visual_type ?? undefined) : undefined,
-        visual_data: activeTask === "Task 1" ? (aiData.data ?? undefined) : undefined,
+        visual_type: generatingTask === "Task 1" ? (aiData.visual_type ?? undefined) : undefined,
+        visual_data: generatingTask === "Task 1" ? (aiData.data ?? undefined) : undefined,
       };
 
-      handleStartPractice(generatedQuestion);
+      const newCache: CachedWritingState = {
+        view: "practice",
+        selectedQuestion: generatedQuestion,
+        essay: "",
+        revisedEssay: "",
+        feedback: null,
+        revisionFeedback: null,
+        previousScore: null
+      };
+
+      try {
+        if (user?.id) sessionStorage.setItem(`ielts-writing-cache-${user.id}-${generatingTask}`, JSON.stringify(newCache));
+      } catch (err) { console.error("Cache save error:", err); }
+
+      if (activeTask === generatingTask) {
+        handleStartPractice(generatedQuestion);
+      } else {
+        toast({ title: "Background Generation Complete", description: `${generatingTask} is ready to practice!` });
+      }
     } catch (error: any) {
       console.error("generate-writing error:", error);
       toast({
@@ -200,7 +291,7 @@ export default function WritingModule() {
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
+      setPendingGenerations(prev => ({ ...prev, [generatingTask]: false }));
     }
   };
 
@@ -364,7 +455,11 @@ export default function WritingModule() {
   };
 
   const handleTaskChange = (task: string) => {
-    setActiveTask(task as "Task 1" | "Task 2");
+    const newTask = task as "Task 1" | "Task 2";
+    setActiveTask(newTask);
+    try {
+      if (user?.id) sessionStorage.setItem(`ielts-writing-active-task-${user.id}`, newTask);
+    } catch(e) {}
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -926,15 +1021,15 @@ export default function WritingModule() {
                             </select>
                             <Button
                               onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
-                              disabled={isGenerating}
+                              disabled={pendingGenerations[activeTask]}
                               className="gap-2"
                             >
-                              {isGenerating ? (
+                              {pendingGenerations[activeTask] ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Zap className="w-4 h-4" />
                               )}
-                              {isGenerating ? "Generating..." : "Generate AI Question"}
+                              {pendingGenerations[activeTask] ? "Generating in background..." : "Generate AI Question"}
                             </Button>
                           </div>
                         </CardContent>
@@ -1025,15 +1120,15 @@ export default function WritingModule() {
                           </select>
                           <Button
                             onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
-                            disabled={isGenerating}
+                            disabled={pendingGenerations[activeTask]}
                             className="gap-2"
                           >
-                            {isGenerating ? (
+                            {pendingGenerations[activeTask] ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
                               <Zap className="w-4 h-4" />
                             )}
-                            {isGenerating ? "Generating..." : "Generate AI Question"}
+                            {pendingGenerations[activeTask] ? "Generating in background..." : "Generate AI Question"}
                           </Button>
                         </div>
                       </CardContent>

@@ -135,8 +135,21 @@ function mapAIToLegacy(ai: AISpeakingTest) {
 
 type SpeakingPart = 'part1' | 'part2' | 'part3';
 
+interface CachedSpeakingState {
+  activeQuestions: typeof FALLBACK_SPEAKING_QUESTIONS;
+  currentPart: SpeakingPart;
+  currentQuestionIndex: number;
+  feedback: any;
+}
+
 export default function SpeakingModule() {
-  const [currentPart, setCurrentPart] = useState<SpeakingPart>('part1');
+  const [currentPart, setCurrentPart] = useState<SpeakingPart>(() => {
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem(`ielts-speaking-active-part-${user?.id || 'guest'}`);
+      if (stored === "part1" || stored === "part2" || stored === "part3") return stored as SpeakingPart;
+    }
+    return "part1";
+  });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -147,6 +160,32 @@ export default function SpeakingModule() {
   const { saveProgress } = useUserProgress();
   const { user } = useAuth();
   const { canAccess, refreshCounts } = useFeatureGating();
+
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const stored = sessionStorage.getItem(`ielts-speaking-cache-${user.id}`);
+      if (stored) {
+        const state = JSON.parse(stored) as CachedSpeakingState;
+        if (state.activeQuestions) setActiveQuestions(state.activeQuestions);
+        if (state.currentPart) setCurrentPart(state.currentPart);
+        if (state.currentQuestionIndex !== undefined) setCurrentQuestionIndex(state.currentQuestionIndex);
+        if (state.feedback) setFeedback(state.feedback);
+      }
+    } catch (err) { console.error("Cache load error:", err); }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const state: CachedSpeakingState = {
+      activeQuestions,
+      currentPart,
+      currentQuestionIndex,
+      feedback
+    };
+    sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify(state));
+    sessionStorage.setItem(`ielts-speaking-active-part-${user.id}`, currentPart);
+  }, [user?.id, activeQuestions, currentPart, currentQuestionIndex, feedback]);
   
   const {
     isListening,
@@ -159,7 +198,6 @@ export default function SpeakingModule() {
     audioLevel
   } = useSpeechRecognition();
 
-  // Get current question based on part
   const getCurrentQuestion = () => {
     switch (currentPart) {
       case 'part1':
@@ -172,19 +210,53 @@ export default function SpeakingModule() {
   };
 
   const generateNewQuestion = async () => {
+    let currentSession;
+    try {
+      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+      currentSession = refreshedSession || (await supabase.auth.getSession()).data.session;
+    } catch (e) {
+      console.error(e);
+    }
+    
+    if (!currentSession) {
+      toast({ title: "Authentication required", description: "You must be logged in.", variant: "destructive" });
+      return;
+    }
+
     resetTranscript();
     setFeedback(null);
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-speaking", {
         body: { difficulty: "medium" },
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
       });
       if (error) throw error;
       const aiData: AISpeakingTest = data?.success ? data.data : data;
       if (aiData?.part1 && aiData?.part2 && aiData?.part3) {
-        const mapped = mapAIToLegacy(aiData);
-        setActiveQuestions(mapped as typeof FALLBACK_SPEAKING_QUESTIONS);
-        setCurrentQuestionIndex(0);
+        const mapped = mapAIToLegacy(aiData) as typeof FALLBACK_SPEAKING_QUESTIONS;
+        
+    try {
+       if (user?.id) {
+         const newCache: CachedSpeakingState = {
+            activeQuestions: mapped,
+            currentPart: "part1",
+            currentQuestionIndex: 0,
+            feedback: null
+         };
+         sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify(newCache));
+         sessionStorage.setItem(`ielts-speaking-active-part-${user.id}`, "part1");
+       }
+    } catch (e) {
+       console.error("Failed to save generation to cache:", e);
+    }
+
+    setActiveQuestions(mapped);
+    setCurrentPart('part1');
+    setCurrentQuestionIndex(0);
+    toast({ title: "Test Generated", description: "Your AI speaking practice is ready!" });
       } else {
         throw new Error("Incomplete AI response");
       }
@@ -206,7 +278,6 @@ export default function SpeakingModule() {
   const handlePartChange = (part: SpeakingPart) => {
     setCurrentPart(part);
     setCurrentQuestionIndex(0);
-    setActiveQuestions(FALLBACK_SPEAKING_QUESTIONS);
     resetTranscript();
     setFeedback(null);
   };

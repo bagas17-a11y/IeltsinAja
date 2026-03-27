@@ -55,11 +55,13 @@ interface UserAnswers {
 
 interface CachedListeningState {
   testId: string;
+  testContext?: ListeningTest;
   answers: UserAnswers;
   notes: string;
   hasPlayed: boolean;
   timeRemaining: number;
   timerEndAt?: number | null;
+  isAudioComplete?: boolean;
   isSubmitted: boolean;
   score?: number;
   results?: Record<string, { correct: boolean; correctAnswer: string }>;
@@ -82,22 +84,36 @@ export default function ListeningModule() {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isAudioComplete, setIsAudioComplete] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [results, setResults] = useState<Record<string, { correct: boolean; correctAnswer: string }>>({});
   const [showTranscript, setShowTranscript] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
-  const [generatePart, setGeneratePart] = useState<"Part 1" | "Part 2" | "Part 3" | "Part 4">("Part 1");
+  const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">(() => {
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem(`ielts-listening-active-diff-${user?.id || 'guest'}`);
+      if (stored === "easy" || stored === "medium" || stored === "hard") return stored;
+    }
+    return "medium";
+  });
+  const [generatePart, setGeneratePart] = useState<"Part 1" | "Part 2" | "Part 3" | "Part 4">(() => {
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem(`ielts-listening-active-part-${user?.id || 'guest'}`);
+      if (stored === "Part 1" || stored === "Part 2" || stored === "Part 3" || stored === "Part 4") return stored;
+    }
+    return "Part 1";
+  });
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const generateAbortRef = useRef<AbortController | null>(null);
   
+  const LISTENING_SESSION_PREFIX = `ielts-listening-${user?.id || 'guest'}`;
+
   const [cachedState, setCachedState] = useSessionStorage<CachedListeningState | null>(
-    LISTENING_CACHE_KEY,
+    `${LISTENING_SESSION_PREFIX}-active`,
     null
   );
   const { saveProgress } = useUserProgress();
@@ -108,44 +124,54 @@ export default function ListeningModule() {
     fetchTests();
   }, []);
 
-  // Restore cached state
+  // Restore cached state on mount
   useEffect(() => {
-    if (cachedState && tests.length > 0 && !currentTest) {
-      const cachedTest = tests.find(t => t.id === cachedState.testId);
-      if (cachedTest) {
-        setCurrentTest(cachedTest);
-        setAnswers(cachedState.answers);
-        setNotes(cachedState.notes);
-        setHasPlayed(cachedState.hasPlayed);
-        setTimeRemaining(
-          cachedState.timerEndAt && !cachedState.isSubmitted
-            ? Math.max(0, Math.ceil((cachedState.timerEndAt - Date.now()) / 1000))
-            : cachedState.timeRemaining
-        );
-        setTimerEndAt(cachedState.timerEndAt ?? null);
-        setIsSubmitted(cachedState.isSubmitted);
-        if (cachedState.score !== undefined) setScore(cachedState.score);
-        if (cachedState.results) setResults(cachedState.results);
+    if (!user?.id) return;
+    try {
+      const activeKey = `${LISTENING_SESSION_PREFIX}-active`;
+      const stored = sessionStorage.getItem(activeKey);
+      if (stored) {
+        const parsed = JSON.parse(stored) as CachedListeningState;
+        setCachedState(parsed);
+        if (!currentTest) {
+          const cachedTest = tests.find(t => t.id === parsed.testId) || parsed.testContext;
+          if (cachedTest) {
+            setCurrentTest(cachedTest);
+            setAnswers(parsed.answers || {});
+            setNotes(parsed.notes || "");
+            setHasPlayed(parsed.hasPlayed || false);
+            setTimeRemaining(parsed.timeRemaining);
+            setTimerEndAt(parsed.timerEndAt ?? null);
+            setIsSubmitted(parsed.isSubmitted || false);
+            if (parsed.isAudioComplete !== undefined) setIsAudioComplete(parsed.isAudioComplete);
+            if (parsed.score !== undefined) setScore(parsed.score);
+            if (parsed.results) setResults(parsed.results);
+          }
+        }
       }
-    }
-  }, [tests, cachedState]);
+    } catch {}
+  }, [user?.id, tests]);
 
   // Save state to cache
   useEffect(() => {
     if (currentTest) {
-      setCachedState({
+      const newState = {
         testId: currentTest.id,
+        testContext: currentTest.id.startsWith('ai-') ? currentTest : undefined,
         answers,
         notes,
         hasPlayed,
         timeRemaining,
         timerEndAt,
+        isAudioComplete,
         isSubmitted,
         score: score ?? undefined,
         results: Object.keys(results).length > 0 ? results : undefined,
-      });
+      };
+      setCachedState(newState);
+      if (user?.id) sessionStorage.setItem(`${LISTENING_SESSION_PREFIX}-active`, JSON.stringify(newState));
     }
-  }, [currentTest, answers, notes, hasPlayed, timeRemaining, isSubmitted, score, results]);
+  }, [currentTest, answers, notes, hasPlayed, timeRemaining, timerEndAt, isAudioComplete, isSubmitted, score, results]);
 
   // Timer logic
   useEffect(() => {
@@ -196,20 +222,31 @@ export default function ListeningModule() {
   };
 
   const stopGeneration = () => {
-    generateAbortRef.current?.abort();
-    generateAbortRef.current = null;
     setIsGenerating(false);
-    toast.info("Generation cancelled.");
+    toast.info("Generation will continue in the background.");
   };
 
   const generateTest = async () => {
-    const controller = new AbortController();
-    generateAbortRef.current = controller;
+    let currentSession;
+    try {
+      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+      currentSession = refreshedSession || (await supabase.auth.getSession()).data.session;
+    } catch (e) {
+      console.error(e);
+    }
+    
+    if (!currentSession) {
+      toast.error("Authentication required", { description: "You must be logged in." });
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-listening", {
         body: { difficulty: generateDifficulty, part: generatePart },
-        signal: controller.signal,
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
       });
       if (error) {
         if (error.name === "AbortError" || error.message?.includes("aborted")) return;
@@ -265,6 +302,23 @@ export default function ListeningModule() {
         duration_minutes: aiData.duration_minutes || 30,
       };
 
+      const newState = {
+        testId: generatedTest.id,
+        testContext: generatedTest,
+        answers: {},
+        notes: "",
+        hasPlayed: false,
+        timeRemaining: generatedTest.duration_minutes * 60,
+        isAudioComplete: false,
+        isSubmitted: false
+      };
+
+      if (user?.id) {
+        sessionStorage.setItem(`${LISTENING_SESSION_PREFIX}-active`, JSON.stringify(newState));
+        sessionStorage.setItem(`ielts-listening-active-diff-${user.id}`, generateDifficulty);
+        sessionStorage.setItem(`ielts-listening-active-part-${user.id}`, generatePart);
+      }
+
       await startTest(generatedTest);
     } catch (error: any) {
       console.error("generate-listening error:", error);
@@ -281,6 +335,18 @@ export default function ListeningModule() {
       return;
     }
 
+    const newCache = {
+      testId: test.id,
+      testContext: test,
+      answers: {},
+      notes: "",
+      hasPlayed: false,
+      timeRemaining: test.duration_minutes * 60,
+      isSubmitted: false
+    };
+
+    if (user?.id) sessionStorage.setItem(`${LISTENING_SESSION_PREFIX}-active`, JSON.stringify(newCache));
+    
     setCurrentTest(test);
     setAnswers({});
     setNotes("");
