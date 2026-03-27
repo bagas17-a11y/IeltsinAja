@@ -167,8 +167,11 @@ export default function SpeakingModule() {
     return "part1";
   });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
+
+  // Background analysis store — persists isAnalyzing across module navigation
+  const analysisEntry = useGenerationEntry('speaking-analysis');
+  const isAnalyzing = analysisEntry.isGenerating;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [activeQuestions, setActiveQuestions] = useState(FALLBACK_SPEAKING_QUESTIONS);
   const { toast } = useToast();
@@ -220,6 +223,23 @@ export default function SpeakingModule() {
       }
     }
   }, [genEntry]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Apply analysis results that arrived while this component was unmounted
+  useEffect(() => {
+    if (analysisEntry.isGenerating) return;
+    if (analysisEntry.result) {
+      const { feedbackData } = analysisEntry.result;
+      generationStore.clearEntry('speaking-analysis');
+      if (isMountedRef.current) {
+        setFeedback(feedbackData);
+      }
+    } else if (analysisEntry.error) {
+      generationStore.clearEntry('speaking-analysis');
+      if (isMountedRef.current) {
+        toast({ title: "Analysis failed", description: analysisEntry.error, variant: "destructive" });
+      }
+    }
+  }, [analysisEntry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     isListening,
@@ -356,12 +376,12 @@ export default function SpeakingModule() {
       return;
     }
 
-    setIsAnalyzing(true);
+    generationStore.startGen('speaking-analysis');
 
     try {
       const currentQuestion = getCurrentQuestion();
-      const questionContext = currentPart === 'part2' 
-        ? (currentQuestion as any).cueCard 
+      const questionContext = currentPart === 'part2'
+        ? (currentQuestion as any).cueCard
         : currentPart === 'part3'
         ? (currentQuestion as any).questions.join('\n')
         : (currentQuestion as any).question;
@@ -379,9 +399,8 @@ export default function SpeakingModule() {
 
       // Unwrap response: supabase.functions.invoke returns {success, data} wrapper
       const unwrappedData = data?.success ? data.data : data;
-      setFeedback(unwrappedData);
 
-      // Save progress to user_progress for stats tracking
+      // Save progress regardless of mount state
       if (unwrappedData?.overallBand && user) {
         try {
           await saveProgress({
@@ -405,15 +424,32 @@ export default function SpeakingModule() {
           console.error("Failed to save speaking progress:", err);
         }
       }
+
+      // Save feedback to sessionStorage so it survives navigation
+      try {
+        if (user?.id) {
+          const existingRaw = sessionStorage.getItem(`ielts-speaking-cache-${user.id}`);
+          const existing = existingRaw ? JSON.parse(existingRaw) : {};
+          sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify({ ...existing, feedback: unwrappedData }));
+        }
+      } catch (e) {}
+
+      if (isMountedRef.current) {
+        generationStore.clearEntry('speaking-analysis');
+        setFeedback(unwrappedData);
+      } else {
+        // Component unmounted — store result for remount to apply
+        generationStore.finishGen('speaking-analysis', { feedbackData: unwrappedData });
+      }
     } catch (error: any) {
       console.error("Analysis error:", error);
-      toast({
-        title: "Analysis failed",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
+      const msg = error.message || "Please try again later.";
+      if (isMountedRef.current) {
+        generationStore.clearEntry('speaking-analysis');
+        toast({ title: "Analysis failed", description: msg, variant: "destructive" });
+      } else {
+        generationStore.failGen('speaking-analysis', msg);
+      }
     }
   };
 

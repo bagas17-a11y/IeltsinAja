@@ -1,7 +1,7 @@
 // Module-level singleton — survives React component unmount/remount
 // Enables background generation: user can navigate away while generation continues
 
-export type GenModuleKey = 'reading' | 'listening' | 'writing' | 'speaking';
+export type GenModuleKey = 'reading' | 'listening' | 'writing' | 'speaking' | 'speaking-analysis' | 'writing-analysis';
 
 export interface GenEntry {
   isGenerating: boolean;
@@ -19,6 +19,8 @@ const _store: Record<GenModuleKey, GenEntry> = {
   listening: defaultEntry(),
   writing: defaultEntry(),
   speaking: defaultEntry(),
+  'speaking-analysis': defaultEntry(),
+  'writing-analysis': defaultEntry(),
 };
 
 const _listeners: Set<() => void> = new Set();

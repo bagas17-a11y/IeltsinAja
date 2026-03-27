@@ -624,8 +624,9 @@ export default function ReadingModule() {
               {(['easy', 'medium', 'hard'] as const).map((d) => (
                 <button
                   key={d}
+                  disabled={isGenerating}
                   onClick={() => {
-                    if (difficulty === d) return;
+                    if (difficulty === d || isGenerating) return;
                     // Save current test state before switching
                     if (currentTest) {
                       setTestCache(prev => ({
@@ -670,7 +671,9 @@ export default function ReadingModule() {
                   className={`px-3 py-1 text-xs rounded-md transition-all capitalize ${
                     difficulty === d
                       ? getDifficultyColor(d)
-                      : 'text-muted-foreground hover:text-foreground'
+                      : isGenerating
+                        ? 'text-muted-foreground/40 cursor-not-allowed'
+                        : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {d}

@@ -125,9 +125,12 @@ export default function WritingModule() {
   const [selectedQuestion, setSelectedQuestion] = useState<IeltsQuestion | null>(null);
   const [essay, setEssay] = useState("");
   const [revisedEssay, setRevisedEssay] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isAnalyzingRevision, setIsAnalyzingRevision] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
+
+  // Background analysis store — persists isAnalyzing across module navigation
+  const analysisEntry = useGenerationEntry('writing-analysis');
+  const isAnalyzing = analysisEntry.isGenerating && !analysisEntry.config?.isRevision;
+  const isAnalyzingRevision = analysisEntry.isGenerating && analysisEntry.config?.isRevision === true;
   const [revisionFeedback, setRevisionFeedback] = useState<any>(null);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
@@ -184,6 +187,29 @@ export default function WritingModule() {
     };
     sessionStorage.setItem(`ielts-writing-cache-${user.id}-${activeTask}`, JSON.stringify(state));
   }, [user?.id, activeTask, view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore]);
+
+  // Apply analysis results that arrived while this component was unmounted
+  useEffect(() => {
+    if (analysisEntry.isGenerating) return;
+    if (analysisEntry.result) {
+      const { feedbackData, wasRevision } = analysisEntry.result;
+      generationStore.clearEntry('writing-analysis');
+      if (isMountedRef.current) {
+        if (wasRevision) {
+          setRevisionFeedback(feedbackData);
+        } else {
+          setFeedback(feedbackData);
+          setRevisionFeedback(null);
+          setRevisedEssay("");
+        }
+      }
+    } else if (analysisEntry.error) {
+      generationStore.clearEntry('writing-analysis');
+      if (isMountedRef.current) {
+        toast({ title: "Analysis failed", description: analysisEntry.error, variant: "destructive" });
+      }
+    }
+  }, [analysisEntry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Apply generation results that arrived while this component was unmounted
   useEffect(() => {
@@ -387,11 +413,7 @@ export default function WritingModule() {
       return;
     }
 
-    if (isRevision) {
-      setIsAnalyzingRevision(true);
-    } else {
-      setIsAnalyzing(true);
-    }
+    generationStore.startGen('writing-analysis', { isRevision: !!isRevision });
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-analyze", {
@@ -412,65 +434,75 @@ export default function WritingModule() {
       // Unwrap response: supabase.functions.invoke returns {success, data} wrapper
       const unwrappedData = data?.success ? data.data : data;
 
-      if (isRevision) {
-        setRevisionFeedback(unwrappedData);
-        // Show score improvement
-        if (feedback?.overallBand && unwrappedData?.overallBand) {
-          const improvement = unwrappedData.overallBand - feedback.overallBand;
-          if (improvement > 0) {
-            toast({
-              title: "Score Improved! 🎉",
-              description: `Your score went up by ${improvement.toFixed(1)} bands!`,
-            });
-          }
-        }
-      } else {
-        setPreviousScore(feedback?.overallBand || null);
-        setFeedback(unwrappedData);
-        setRevisionFeedback(null);
-        setRevisedEssay("");
-
-        // Save progress to user_progress for stats tracking
-        if (unwrappedData?.overallBand && user) {
-          try {
-            await saveProgress({
-              exam_type: "writing",
-              score: null,
-              band_score: unwrappedData.overallBand,
-              total_questions: null,
-              correct_answers: null,
-              feedback: `${activeTask}: ${selectedQuestion?.title || 'Practice'}`,
-              completed_at: new Date().toISOString(),
-              time_taken: null,
-              errors_log: [],
-              metadata: {
-                taskType: activeTask,
-                questionId: selectedQuestion?.id,
-                questionTitle: selectedQuestion?.title,
-                wordCount: essay.split(/\s+/).filter(Boolean).length,
-              },
-            });
-            await refreshCounts();
-          } catch (err) {
-            console.error("Failed to save writing progress:", err);
-          }
+      // Save progress regardless of mount state (for initial analysis only)
+      if (!isRevision && unwrappedData?.overallBand && user) {
+        try {
+          await saveProgress({
+            exam_type: "writing",
+            score: null,
+            band_score: unwrappedData.overallBand,
+            total_questions: null,
+            correct_answers: null,
+            feedback: `${activeTask}: ${selectedQuestion?.title || 'Practice'}`,
+            completed_at: new Date().toISOString(),
+            time_taken: null,
+            errors_log: [],
+            metadata: {
+              taskType: activeTask,
+              questionId: selectedQuestion?.id,
+              questionTitle: selectedQuestion?.title,
+              wordCount: essay.split(/\s+/).filter(Boolean).length,
+            },
+          });
+          await refreshCounts();
+        } catch (err) {
+          console.error("Failed to save writing progress:", err);
         }
       }
-      
+
       setAdminNote("");
       setAdminOverrideScore("");
+
+      // Save feedback to sessionStorage so it survives navigation
+      try {
+        if (user?.id) {
+          const existingRaw = sessionStorage.getItem(`ielts-writing-cache-${user.id}-${activeTask}`);
+          const existing = existingRaw ? JSON.parse(existingRaw) : {};
+          const updated = isRevision
+            ? { ...existing, revisionFeedback: unwrappedData }
+            : { ...existing, feedback: unwrappedData, revisionFeedback: null, revisedEssay: "" };
+          sessionStorage.setItem(`ielts-writing-cache-${user.id}-${activeTask}`, JSON.stringify(updated));
+        }
+      } catch (e) {}
+
+      if (isMountedRef.current) {
+        generationStore.clearEntry('writing-analysis');
+        if (isRevision) {
+          setRevisionFeedback(unwrappedData);
+          if (feedback?.overallBand && unwrappedData?.overallBand) {
+            const improvement = unwrappedData.overallBand - feedback.overallBand;
+            if (improvement > 0) {
+              toast({ title: "Score Improved!", description: `Your score went up by ${improvement.toFixed(1)} bands!` });
+            }
+          }
+        } else {
+          setPreviousScore(feedback?.overallBand || null);
+          setFeedback(unwrappedData);
+          setRevisionFeedback(null);
+          setRevisedEssay("");
+        }
+      } else {
+        // Component unmounted — store result for remount to apply
+        generationStore.finishGen('writing-analysis', { feedbackData: unwrappedData, wasRevision: !!isRevision });
+      }
     } catch (error: any) {
       console.error("Analysis error:", error);
-      toast({
-        title: "Analysis failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      if (isRevision) {
-        setIsAnalyzingRevision(false);
+      const msg = error.message || "Please try again later.";
+      if (isMountedRef.current) {
+        generationStore.clearEntry('writing-analysis');
+        toast({ title: "Analysis failed", description: msg, variant: "destructive" });
       } else {
-        setIsAnalyzing(false);
+        generationStore.failGen('writing-analysis', msg);
       }
     }
   };
