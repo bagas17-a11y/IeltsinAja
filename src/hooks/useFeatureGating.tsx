@@ -34,10 +34,17 @@ export function useFeatureGating(): FeatureGatingResult {
     }
 
     try {
+      let sessionStart = sessionStorage.getItem('ielts-session-start');
+      if (!sessionStart) {
+        sessionStart = new Date().toISOString();
+        sessionStorage.setItem('ielts-session-start', sessionStart);
+      }
+
       const { data, error } = await supabase
         .from("user_progress")
         .select("exam_type")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .gte("completed_at", sessionStart);
 
       if (error) {
         console.error("Error fetching practice counts:", error);

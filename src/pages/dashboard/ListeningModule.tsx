@@ -22,7 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useSessionStorage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -94,7 +94,7 @@ export default function ListeningModule() {
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const generateAbortRef = useRef<AbortController | null>(null);
   
-  const [cachedState, setCachedState] = useLocalStorage<CachedListeningState | null>(
+  const [cachedState, setCachedState] = useSessionStorage<CachedListeningState | null>(
     LISTENING_CACHE_KEY,
     null
   );

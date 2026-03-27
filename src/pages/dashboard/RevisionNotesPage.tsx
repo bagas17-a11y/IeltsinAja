@@ -45,7 +45,7 @@ function getTopicTitle(id: RevisionNoteTopicId): string {
 
 function loadCompletedTopics(): Set<string> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return new Set();
     const arr = JSON.parse(raw) as unknown;
     if (!Array.isArray(arr)) return new Set();
@@ -58,7 +58,7 @@ function loadCompletedTopics(): Set<string> {
 
 function saveCompletedTopics(set: Set<string>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
   } catch {
     /* ignore */
   }

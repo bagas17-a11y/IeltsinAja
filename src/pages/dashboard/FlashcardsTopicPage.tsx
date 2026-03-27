@@ -30,7 +30,7 @@ function loadFlashcardProgress(topicId: string, subtopicId: string): {
   }
   try {
     const key = `${STORAGE_KEY_PREFIX}${topicId}-${subtopicId}`;
-    const raw = localStorage.getItem(key);
+    const raw = sessionStorage.getItem(key);
     if (!raw) return { stillLearning: new Set(), know: new Set() };
     const data = JSON.parse(raw) as {
       stillLearning?: string[];
@@ -56,7 +56,7 @@ function saveFlashcardProgress(
   }
   try {
     const key = `${STORAGE_KEY_PREFIX}${topicId}-${subtopicId}`;
-    localStorage.setItem(
+    sessionStorage.setItem(
       key,
       JSON.stringify({
         stillLearning: [...stillLearning],

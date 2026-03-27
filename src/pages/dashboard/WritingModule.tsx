@@ -147,7 +147,7 @@ export default function WritingModule() {
 
       const aiData = data?.data ?? data;
 
-      let title = aiData.topic || "AI Writing Prompt";
+      const title = aiData.topic || "AI Writing Prompt";
       let questionPrompt = aiData.instruction || "";
       let secretContext = "";
 

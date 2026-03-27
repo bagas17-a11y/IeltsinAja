@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Error fetching profile:", error);
       return null;
     }
-    return data as Profile | null;
+    return data as unknown as Profile | null;
   };
 
   const checkAdminRole = async (userId: string) => {
@@ -119,6 +119,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    
+    // Clear all application-specific storage (both session and local)
+    // All relevant keys start with 'ielts-'
+    [localStorage, sessionStorage].forEach(storage => {
+      Object.keys(storage).forEach(key => {
+        if (key.startsWith('ielts-')) {
+          storage.removeItem(key);
+        }
+      });
+    });
+
     setUser(null);
     setSession(null);
     setProfile(null);

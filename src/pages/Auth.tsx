@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Phone } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Phone, AlertCircle } from "lucide-react";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
@@ -26,6 +26,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; phone?: string }>({});
+  const [authError, setAuthError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -56,11 +57,7 @@ export default function Auth() {
 
     if (!profile) {
       await supabase.auth.signOut();
-      toast({
-        title: "No account found",
-        description: "This email isn't registered. Please sign up first.",
-        variant: "destructive",
-      });
+      setAuthError("No account found for this email. Please sign up first.");
       return null;
     }
 
@@ -98,6 +95,7 @@ export default function Auth() {
     
     setIsLoading(true);
 
+    setAuthError(null);
     try {
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -130,10 +128,12 @@ export default function Auth() {
       }
     } catch (error: any) {
       let message = error.message;
-      if (error.message.includes("already registered")) {
+      if (error.message?.includes("Invalid login credentials")) {
+        message = "Incorrect email or password. Please try again.";
+      } else if (error.message?.includes("already registered")) {
         message = "This email is already registered. Please login instead.";
       }
-      toast({ title: "Error", description: message, variant: "destructive" });
+      setAuthError(message);
     } finally {
       setIsLoading(false);
     }
@@ -253,6 +253,13 @@ export default function Auth() {
               {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
             </div>
 
+            {authError && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+                <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-destructive">{authError}</p>
+              </div>
+            )}
+
             <Button
               type="submit"
               variant="neumorphicPrimary"
@@ -269,6 +276,7 @@ export default function Auth() {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setErrors({});
+                setAuthError(null);
               }}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >

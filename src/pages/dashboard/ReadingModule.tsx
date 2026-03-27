@@ -71,6 +71,7 @@ interface DifficultyCache {
   userAnswers: Record<number, string>;
   isSubmitted: boolean;
   timeRemaining: number;
+  timerEndAt: number | null; // Unix ms timestamp when timer reaches 0
 }
 
 export default function ReadingModule() {
@@ -89,14 +90,52 @@ export default function ReadingModule() {
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { user } = useAuth();
+  const userId = user?.id ?? null;
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
 
-  // Clear old localStorage reading cache on mount
+  // Load cached tests from sessionStorage on mount — reset when app is closed
   useEffect(() => {
-    localStorage.removeItem('ielts-reading-cache');
-  }, []);
+    sessionStorage.removeItem('ielts-reading-cache'); // remove old format
+    if (!userId) return;
+    const loaded: Partial<Record<'easy' | 'medium' | 'hard', DifficultyCache>> = {};
+    (['easy', 'medium', 'hard'] as const).forEach(d => {
+      try {
+        const raw = sessionStorage.getItem(`ielts-reading-${userId}-${d}`);
+        if (raw) loaded[d] = JSON.parse(raw) as DifficultyCache;
+      } catch (err) {
+        console.warn(`Error loading cached reading test for ${d}:`, err);
+      }
+    });
+    if (Object.keys(loaded).length === 0) return;
+    setTestCache(loaded);
+    // Auto-load whichever difficulty has a cached test (free users have at most one)
+    const generatedDiff = (['easy', 'medium', 'hard'] as const).find(d => loaded[d]);
+    if (!generatedDiff) return;
+    const init = loaded[generatedDiff]!;
+    // Use timerEndAt for accurate remaining time after navigation/refresh
+    const remaining = (init.timerEndAt && !init.isSubmitted)
+      ? Math.max(0, Math.ceil((init.timerEndAt - Date.now()) / 1000))
+      : init.timeRemaining;
+    setDifficulty(generatedDiff);
+    setCurrentTest(init.test);
+    setUserAnswers(init.userAnswers);
+    setIsSubmitted(init.isSubmitted);
+    setTimeRemaining(remaining);
+    if (!init.isSubmitted && remaining > 0) {
+      setIsTimerActive(true);
+    }
+  }, [userId]);  
+
+  // Sync testCache → sessionStorage whenever it changes
+  useEffect(() => {
+    if (!userId) return;
+    (['easy', 'medium', 'hard'] as const).forEach(d => {
+      const entry = testCache[d];
+      if (entry) sessionStorage.setItem(`ielts-reading-${userId}-${d}`, JSON.stringify(entry));
+    });
+  }, [testCache, userId]);
 
   // Timer logic
   useEffect(() => {
@@ -232,10 +271,11 @@ export default function ReadingModule() {
         throw new Error("Invalid response - passage missing title or content");
       }
 
+      const timerEndAt = Date.now() + 20 * 60 * 1000;
       setCurrentTest(data);
       setTestCache(prev => ({
         ...prev,
-        [difficulty]: { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60 }
+        [difficulty]: { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt }
       }));
       setIsTimerActive(true);
 
@@ -321,7 +361,13 @@ export default function ReadingModule() {
     
     setIsSubmitted(true);
     setIsTimerActive(false);
-    
+    setTestCache(prev => {
+      const d = difficulty as 'easy' | 'medium' | 'hard';
+      const existing = prev[d];
+      if (!existing) return prev;
+      return { ...prev, [d]: { ...existing, isSubmitted: true, timerEndAt: null } };
+    });
+
     const questions = getAllQuestions();
     let correct = 0;
     const errorsLog: { type: string; count: number }[] = [];
@@ -497,7 +543,10 @@ export default function ReadingModule() {
                     if (currentTest) {
                       setTestCache(prev => ({
                         ...prev,
-                        [difficulty]: { test: currentTest, userAnswers, isSubmitted, timeRemaining }
+                        [difficulty]: {
+                          test: currentTest, userAnswers, isSubmitted, timeRemaining,
+                          timerEndAt: prev[difficulty as 'easy' | 'medium' | 'hard']?.timerEndAt ?? null
+                        }
                       }));
                     }
                     setDifficulty(d);
@@ -592,7 +641,26 @@ export default function ReadingModule() {
         {/* Main Content */}
         {!currentTest ? (
           <div className="flex-1 flex items-center justify-center">
-            {!canAccess("reading") ? (
+            {isGenerating ? (
+              <div className="text-center max-w-md">
+                <div className="relative w-24 h-24 mx-auto mb-6">
+                  <div className="absolute inset-0 rounded-full bg-accent/10 animate-pulse" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <BookOpen className="w-10 h-10 text-accent" />
+                  </div>
+                </div>
+                <h2 className="text-xl font-light mb-2">Generating Your Test...</h2>
+                <p className="text-muted-foreground text-sm mb-6">
+                  Creating an AI-powered IELTS Academic reading passage with 13 questions.
+                  This usually takes 15–30 seconds.
+                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-accent animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-accent animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-accent animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            ) : !canAccess("reading") ? (
               <div className="text-center max-w-md">
                 <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
                   <Lock className="w-10 h-10 text-accent" />
