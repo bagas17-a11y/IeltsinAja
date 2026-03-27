@@ -3,10 +3,10 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  BookOpen, 
-  Loader2, 
-  Clock, 
+import {
+  BookOpen,
+  Loader2,
+  Clock,
   RefreshCw,
   CheckCircle,
   XCircle,
@@ -23,6 +23,8 @@ import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useNavigate } from "react-router-dom";
 import { Lock, Play, Pause } from "lucide-react";
+import { generationStore } from "@/stores/generationStore";
+import { useGenerationEntry } from "@/hooks/useGenerationEntry";
 
 interface Question {
   number: number;
@@ -79,8 +81,19 @@ export default function ReadingModule() {
   const { user } = useAuth();
   const userId = user?.id ?? null;
 
+  // isMountedRef: tracks whether component is currently mounted
+  // Used to decide whether to apply generation results directly or save to store for later
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
+  // Background generation store — survives component unmount/remount
+  const genEntry = useGenerationEntry('reading');
+  const isGenerating = genEntry.isGenerating;
+
   const [currentTest, setCurrentTest] = useState<ReadingTest | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => {
     if (typeof window !== "undefined" && userId) {
       // Free users only have one difficulty active usually, check all or specific
@@ -150,6 +163,30 @@ export default function ReadingModule() {
     });
   }, [testCache, userId]);
 
+  // Apply generation results that arrived while this component was unmounted
+  useEffect(() => {
+    if (genEntry.isGenerating) return;
+    if (genEntry.result) {
+      const { test, timerEndAt: newTimerEndAt, capturedDifficulty } = genEntry.result;
+      generationStore.clearEntry('reading');
+      const newCache = { test, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt: newTimerEndAt, isTimerPaused: false };
+      setDifficulty(capturedDifficulty);
+      setCurrentTest(test);
+      setTimerEndAt(newTimerEndAt);
+      setTestCache(prev => ({ ...prev, [capturedDifficulty]: newCache }));
+      try {
+        if (userId) sessionStorage.setItem(`ielts-reading-${userId}-${capturedDifficulty}`, JSON.stringify(newCache));
+        if (userId) sessionStorage.setItem(`ielts-reading-active-diff-${userId}`, capturedDifficulty);
+      } catch(e) {}
+      setIsTimerActive(true);
+      setIsTimerPaused(false);
+      toast({ title: "Test ready!", description: `${test.passage?.topic || 'Reading'} passage is ready. Timer started.` });
+    } else if (genEntry.error) {
+      generationStore.clearEntry('reading');
+      toast({ title: "Generation failed", description: genEntry.error, variant: "destructive", duration: 6000 });
+    }
+  }, [genEntry]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Timer logic
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -185,7 +222,7 @@ export default function ReadingModule() {
       return;
     }
 
-    setIsGenerating(true);
+    generationStore.startGen('reading', { difficulty });
     setIsSubmitted(false);
     setUserAnswers({});
     setHighlightedEvidence(null);
@@ -289,49 +326,47 @@ export default function ReadingModule() {
 
       const newTimerEndAt = Date.now() + 20 * 60 * 1000;
       const newCache = { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt: newTimerEndAt, isTimerPaused: false };
-      
+
+      // Always persist to sessionStorage first (survives component unmount)
       try {
         if (userId) sessionStorage.setItem(`ielts-reading-${userId}-${difficulty}`, JSON.stringify(newCache));
+        if (userId) sessionStorage.setItem(`ielts-reading-active-diff-${userId}`, difficulty);
       } catch (err) {
-        console.error("Failed to persist reading cache in background:", err);
+        console.error("Failed to persist reading cache:", err);
       }
 
-      setCurrentTest(data);
-      setTimerEndAt(newTimerEndAt);
-      setTestCache(prev => ({
-        ...prev,
-        [difficulty]: newCache
-      }));
-      try {
-        if (userId) sessionStorage.setItem(`ielts-reading-active-diff-${userId}`, difficulty);
-      } catch(e) {}
-      setIsTimerActive(true);
-      setIsTimerPaused(false);
-
-      toast({
-        title: "Test generated!",
-        description: `${data.passage.topic || 'Reading'} passage ready. Timer started.`,
-      });
+      if (isMountedRef.current) {
+        // Component is still mounted — apply directly and clear store
+        generationStore.clearEntry('reading');
+        setDifficulty(difficulty);
+        setCurrentTest(data);
+        setTimerEndAt(newTimerEndAt);
+        setTestCache(prev => ({ ...prev, [difficulty]: newCache }));
+        setIsTimerActive(true);
+        setIsTimerPaused(false);
+        toast({ title: "Test generated!", description: `${data.passage.topic || 'Reading'} passage ready. Timer started.` });
+      } else {
+        // Component unmounted during generation — store result for remount to apply
+        generationStore.finishGen('reading', { test: data, timerEndAt: newTimerEndAt, capturedDifficulty: difficulty });
+      }
     } catch (error: any) {
       console.error("Generate error:", error);
 
       let errorMessage = error.message || "Please try again.";
       let errorAction = "";
 
-      // Provide specific guidance for authentication errors
       if (error.message?.includes("401") || error.message?.includes("Unauthorized") || error.message?.includes("Authentication")) {
         errorMessage = "Authentication error: Your session may have expired or is invalid.";
         errorAction = "Please log out and log back in, then try again.";
       }
 
-      toast({
-        title: "Generation failed",
-        description: errorAction ? `${errorMessage} ${errorAction}` : errorMessage,
-        variant: "destructive",
-        duration: 6000,
-      });
-    } finally {
-      setIsGenerating(false);
+      const fullMessage = errorAction ? `${errorMessage} ${errorAction}` : errorMessage;
+      if (isMountedRef.current) {
+        generationStore.clearEntry('reading');
+        toast({ title: "Generation failed", description: fullMessage, variant: "destructive", duration: 6000 });
+      } else {
+        generationStore.failGen('reading', fullMessage);
+      }
     }
   };
 

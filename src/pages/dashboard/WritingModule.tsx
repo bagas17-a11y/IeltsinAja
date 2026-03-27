@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,8 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
+import { generationStore } from "@/stores/generationStore";
+import { useGenerationEntry } from "@/hooks/useGenerationEntry";
 
 interface IeltsQuestion {
   id: string;
@@ -97,6 +99,19 @@ const task2Rubric = [
 ];
 
 export default function WritingModule() {
+  // useAuth MUST be called before any useState that references user?.id
+  const { user, profile, isAdmin } = useAuth();
+  const isElite = profile?.subscription_tier === "elite";
+
+  // isMountedRef: tracks whether component is currently mounted
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
+  // Background generation store — survives component unmount/remount
+  const genEntry = useGenerationEntry('writing');
   const [view, setView] = useState<"library" | "practice">("library");
   const [activeTask, setActiveTask] = useState<"Task 1" | "Task 2">(() => {
     if (typeof window !== "undefined") {
@@ -119,11 +134,8 @@ export default function WritingModule() {
   const [adminOverrideScore, setAdminOverrideScore] = useState("");
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [pendingGenerations, setPendingGenerations] = useState<Record<string, boolean>>({});
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const { toast } = useToast();
-  const { user, profile, isAdmin } = useAuth();
-  const isElite = profile?.subscription_tier === "elite";
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts } = useFeatureGating();
 
@@ -173,6 +185,27 @@ export default function WritingModule() {
     sessionStorage.setItem(`ielts-writing-cache-${user.id}-${activeTask}`, JSON.stringify(state));
   }, [user?.id, activeTask, view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore]);
 
+  // Apply generation results that arrived while this component was unmounted
+  useEffect(() => {
+    if (genEntry.isGenerating) return;
+    if (genEntry.result) {
+      const { generatedQuestion, generatingTask } = genEntry.result;
+      generationStore.clearEntry('writing');
+      if (isMountedRef.current) {
+        if (activeTask === generatingTask) {
+          handleStartPractice(generatedQuestion);
+        } else {
+          toast({ title: "Background Generation Complete", description: `${generatingTask} is ready to practice!` });
+        }
+      }
+    } else if (genEntry.error) {
+      generationStore.clearEntry('writing');
+      if (isMountedRef.current) {
+        toast({ title: "Generation failed", description: genEntry.error, variant: "destructive" });
+      }
+    }
+  }, [genEntry]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const fetchQuestions = async () => {
     try {
       const { data, error } = await supabase
@@ -208,7 +241,7 @@ export default function WritingModule() {
     try {
       if (user?.id) sessionStorage.setItem(`ielts-writing-active-task-${user.id}`, generatingTask);
     } catch(e) {}
-    setPendingGenerations(prev => ({ ...prev, [generatingTask]: true }));
+    generationStore.startGen('writing', { task: generatingTask });
     try {
       const { data, error } = await supabase.functions.invoke("generate-writing", {
         body: { task_type: generatingTask, difficulty: generateDifficulty },
@@ -278,20 +311,26 @@ export default function WritingModule() {
         if (user?.id) sessionStorage.setItem(`ielts-writing-cache-${user.id}-${generatingTask}`, JSON.stringify(newCache));
       } catch (err) { console.error("Cache save error:", err); }
 
-      if (activeTask === generatingTask) {
-        handleStartPractice(generatedQuestion);
+      if (isMountedRef.current) {
+        generationStore.clearEntry('writing');
+        if (activeTask === generatingTask) {
+          handleStartPractice(generatedQuestion);
+        } else {
+          toast({ title: "Background Generation Complete", description: `${generatingTask} is ready to practice!` });
+        }
       } else {
-        toast({ title: "Background Generation Complete", description: `${generatingTask} is ready to practice!` });
+        // Component unmounted — store result for remount to apply
+        generationStore.finishGen('writing', { generatedQuestion, generatingTask });
       }
     } catch (error: any) {
       console.error("generate-writing error:", error);
-      toast({
-        title: "Generation failed",
-        description: error.message || "Could not generate a writing prompt. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setPendingGenerations(prev => ({ ...prev, [generatingTask]: false }));
+      const msg = error.message || "Could not generate a writing prompt. Please try again.";
+      if (isMountedRef.current) {
+        generationStore.clearEntry('writing');
+        toast({ title: "Generation failed", description: msg, variant: "destructive" });
+      } else {
+        generationStore.failGen('writing', msg);
+      }
     }
   };
 
@@ -1021,15 +1060,15 @@ export default function WritingModule() {
                             </select>
                             <Button
                               onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
-                              disabled={pendingGenerations[activeTask]}
+                              disabled={(genEntry.isGenerating && genEntry.config?.task === activeTask)}
                               className="gap-2"
                             >
-                              {pendingGenerations[activeTask] ? (
+                              {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Zap className="w-4 h-4" />
                               )}
-                              {pendingGenerations[activeTask] ? "Generating in background..." : "Generate AI Question"}
+                              {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? "Generating in background..." : "Generate AI Question"}
                             </Button>
                           </div>
                         </CardContent>
@@ -1120,15 +1159,15 @@ export default function WritingModule() {
                           </select>
                           <Button
                             onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
-                            disabled={pendingGenerations[activeTask]}
+                            disabled={(genEntry.isGenerating && genEntry.config?.task === activeTask)}
                             className="gap-2"
                           >
-                            {pendingGenerations[activeTask] ? (
+                            {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
                               <Zap className="w-4 h-4" />
                             )}
-                            {pendingGenerations[activeTask] ? "Generating in background..." : "Generate AI Question"}
+                            {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? "Generating in background..." : "Generate AI Question"}
                           </Button>
                         </div>
                       </CardContent>

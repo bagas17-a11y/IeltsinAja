@@ -28,6 +28,8 @@ import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListeningCheatsheet } from "@/components/listening/ListeningCheatsheet";
+import { generationStore } from "@/stores/generationStore";
+import { useGenerationEntry } from "@/hooks/useGenerationEntry";
 
 interface Question {
   id: number;
@@ -72,6 +74,18 @@ const LISTENING_CACHE_KEY = "ielts-listening-cache";
 export default function ListeningModule() {
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
+
+  // isMountedRef: tracks whether component is currently mounted
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
+  // Background generation store — survives component unmount/remount
+  const genEntry = useGenerationEntry('listening');
+  const isGenerating = genEntry.isGenerating;
+
   const [tests, setTests] = useState<ListeningTest[]>([]);
   const [currentTest, setCurrentTest] = useState<ListeningTest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,8 +103,6 @@ export default function ListeningModule() {
   const [results, setResults] = useState<Record<string, { correct: boolean; correctAnswer: string }>>({});
   const [showTranscript, setShowTranscript] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  
-  const [isGenerating, setIsGenerating] = useState(false);
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">(() => {
     if (typeof window !== "undefined") {
       const stored = sessionStorage.getItem(`ielts-listening-active-diff-${user?.id || 'guest'}`);
@@ -151,6 +163,23 @@ export default function ListeningModule() {
       }
     } catch {}
   }, [user?.id, tests]);
+
+  // Apply generation results that arrived while this component was unmounted
+  useEffect(() => {
+    if (genEntry.isGenerating) return;
+    if (genEntry.result) {
+      const { generatedTest } = genEntry.result;
+      generationStore.clearEntry('listening');
+      if (isMountedRef.current) {
+        startTest(generatedTest);
+      }
+    } else if (genEntry.error) {
+      generationStore.clearEntry('listening');
+      if (isMountedRef.current) {
+        toast.error(genEntry.error);
+      }
+    }
+  }, [genEntry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save state to cache
   useEffect(() => {
@@ -222,8 +251,8 @@ export default function ListeningModule() {
   };
 
   const stopGeneration = () => {
-    setIsGenerating(false);
-    toast.info("Generation will continue in the background.");
+    // Hide the loading UI locally — generation continues in background via the store
+    toast.info("Generation continues in the background. Come back to see your test.");
   };
 
   const generateTest = async () => {
@@ -234,13 +263,13 @@ export default function ListeningModule() {
     } catch (e) {
       console.error(e);
     }
-    
+
     if (!currentSession) {
       toast.error("Authentication required", { description: "You must be logged in." });
       return;
     }
 
-    setIsGenerating(true);
+    generationStore.startGen('listening', { difficulty: generateDifficulty, part: generatePart });
     try {
       const { data, error } = await supabase.functions.invoke("generate-listening", {
         body: { difficulty: generateDifficulty, part: generatePart },
@@ -319,12 +348,22 @@ export default function ListeningModule() {
         sessionStorage.setItem(`ielts-listening-active-part-${user.id}`, generatePart);
       }
 
-      await startTest(generatedTest);
+      if (isMountedRef.current) {
+        generationStore.clearEntry('listening');
+        await startTest(generatedTest);
+      } else {
+        // Component unmounted — store result for remount to apply
+        generationStore.finishGen('listening', { generatedTest });
+      }
     } catch (error: any) {
       console.error("generate-listening error:", error);
-      toast.error(error.message || "Failed to generate test. Please try again.");
-    } finally {
-      setIsGenerating(false);
+      const msg = error.message || "Failed to generate test. Please try again.";
+      if (isMountedRef.current) {
+        generationStore.clearEntry('listening');
+        toast.error(msg);
+      } else {
+        generationStore.failGen('listening', msg);
+      }
     }
   };
 

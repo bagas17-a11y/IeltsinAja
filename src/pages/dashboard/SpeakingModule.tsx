@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Loader2, Play, Square, Volume2, RefreshCw, ChevronRight } from "lucide-react";
@@ -9,6 +9,8 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { generationStore } from "@/stores/generationStore";
+import { useGenerationEntry } from "@/hooks/useGenerationEntry";
 
 // Fallback IELTS Speaking Questions (used when AI generation is unavailable)
 const FALLBACK_SPEAKING_QUESTIONS = {
@@ -143,6 +145,20 @@ interface CachedSpeakingState {
 }
 
 export default function SpeakingModule() {
+  // useAuth MUST be called before any useState that references user?.id
+  const { user } = useAuth();
+
+  // isMountedRef: tracks whether component is currently mounted
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
+  // Background generation store — survives component unmount/remount
+  const genEntry = useGenerationEntry('speaking');
+  const isGenerating = genEntry.isGenerating;
+
   const [currentPart, setCurrentPart] = useState<SpeakingPart>(() => {
     if (typeof window !== "undefined") {
       const stored = sessionStorage.getItem(`ielts-speaking-active-part-${user?.id || 'guest'}`);
@@ -152,13 +168,11 @@ export default function SpeakingModule() {
   });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [activeQuestions, setActiveQuestions] = useState(FALLBACK_SPEAKING_QUESTIONS);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
-  const { user } = useAuth();
   const { canAccess, refreshCounts } = useFeatureGating();
 
   useEffect(() => {
@@ -186,7 +200,27 @@ export default function SpeakingModule() {
     sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify(state));
     sessionStorage.setItem(`ielts-speaking-active-part-${user.id}`, currentPart);
   }, [user?.id, activeQuestions, currentPart, currentQuestionIndex, feedback]);
-  
+
+  // Apply generation results that arrived while this component was unmounted
+  useEffect(() => {
+    if (genEntry.isGenerating) return;
+    if (genEntry.result) {
+      const { mapped } = genEntry.result;
+      generationStore.clearEntry('speaking');
+      if (isMountedRef.current) {
+        setActiveQuestions(mapped);
+        setCurrentPart('part1');
+        setCurrentQuestionIndex(0);
+        toast({ title: "Test Generated", description: "Your AI speaking practice is ready!" });
+      }
+    } else if (genEntry.error) {
+      generationStore.clearEntry('speaking');
+      if (isMountedRef.current) {
+        toast({ title: "Generation failed", description: genEntry.error, variant: "destructive" });
+      }
+    }
+  }, [genEntry]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const {
     isListening,
     transcript,
@@ -225,7 +259,7 @@ export default function SpeakingModule() {
 
     resetTranscript();
     setFeedback(null);
-    setIsGenerating(true);
+    generationStore.startGen('speaking');
     try {
       const { data, error } = await supabase.functions.invoke("generate-speaking", {
         body: { difficulty: "medium" },
@@ -237,36 +271,41 @@ export default function SpeakingModule() {
       const aiData: AISpeakingTest = data?.success ? data.data : data;
       if (aiData?.part1 && aiData?.part2 && aiData?.part3) {
         const mapped = mapAIToLegacy(aiData) as typeof FALLBACK_SPEAKING_QUESTIONS;
-        
-    try {
-       if (user?.id) {
-         const newCache: CachedSpeakingState = {
-            activeQuestions: mapped,
-            currentPart: "part1",
-            currentQuestionIndex: 0,
-            feedback: null
-         };
-         sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify(newCache));
-         sessionStorage.setItem(`ielts-speaking-active-part-${user.id}`, "part1");
-       }
-    } catch (e) {
-       console.error("Failed to save generation to cache:", e);
-    }
 
-    setActiveQuestions(mapped);
-    setCurrentPart('part1');
-    setCurrentQuestionIndex(0);
-    toast({ title: "Test Generated", description: "Your AI speaking practice is ready!" });
+        // Always persist to sessionStorage (survives component unmount)
+        try {
+          if (user?.id) {
+            const newCache: CachedSpeakingState = { activeQuestions: mapped, currentPart: "part1", currentQuestionIndex: 0, feedback: null };
+            sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify(newCache));
+            sessionStorage.setItem(`ielts-speaking-active-part-${user.id}`, "part1");
+          }
+        } catch (e) {
+          console.error("Failed to save generation to cache:", e);
+        }
+
+        if (isMountedRef.current) {
+          generationStore.clearEntry('speaking');
+          setActiveQuestions(mapped);
+          setCurrentPart('part1');
+          setCurrentQuestionIndex(0);
+          toast({ title: "Test Generated", description: "Your AI speaking practice is ready!" });
+        } else {
+          // Component unmounted — store result for remount to apply
+          generationStore.finishGen('speaking', { mapped });
+        }
       } else {
         throw new Error("Incomplete AI response");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to generate AI speaking questions, using fallback:", err);
-      // Cycle through fallback questions instead
-      const maxIndex = FALLBACK_SPEAKING_QUESTIONS[currentPart].length;
-      setCurrentQuestionIndex((prev) => (prev + 1) % maxIndex);
-    } finally {
-      setIsGenerating(false);
+      if (isMountedRef.current) {
+        generationStore.clearEntry('speaking');
+        // Cycle through fallback questions instead
+        const maxIndex = FALLBACK_SPEAKING_QUESTIONS[currentPart].length;
+        setCurrentQuestionIndex((prev) => (prev + 1) % maxIndex);
+      } else {
+        generationStore.failGen('speaking', err?.message || "Generation failed");
+      }
     }
   };
 
