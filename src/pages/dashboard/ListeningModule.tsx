@@ -151,8 +151,9 @@ export default function ListeningModule() {
     try {
       const activeKey = `${LISTENING_SESSION_PREFIX}-active`;
       const stored = sessionStorage.getItem(activeKey);
-      if (stored) {
+      if (stored && stored !== 'null') {
         const parsed = JSON.parse(stored) as CachedListeningState;
+        if (!parsed) return;
         setCachedState(parsed);
         if (!currentTest) {
           const cachedTest = tests.find(t => t.id === parsed.testId) || parsed.testContext;
@@ -195,7 +196,7 @@ export default function ListeningModule() {
     if (currentTest) {
       const newState = {
         testId: currentTest.id,
-        testContext: currentTest.id.startsWith('ai-') ? currentTest : undefined,
+        testContext: currentTest,
         answers,
         notes,
         hasPlayed,
@@ -592,6 +593,7 @@ export default function ListeningModule() {
 
   const resetTest = () => {
     setCachedState(null);
+    if (user?.id) sessionStorage.removeItem(`${LISTENING_SESSION_PREFIX}-active`);
     setCurrentTest(null);
     setAnswers({});
     setNotes("");
