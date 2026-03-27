@@ -129,7 +129,16 @@ export default function ListeningModule() {
     null
   );
   const { saveProgress } = useUserProgress();
-  const { canAccess, refreshCounts } = useFeatureGating();
+  const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
+
+  // Persist active difficulty and part to sessionStorage whenever they change
+  useEffect(() => {
+    if (user?.id) sessionStorage.setItem(`ielts-listening-active-diff-${user.id}`, generateDifficulty);
+  }, [generateDifficulty, user?.id]);
+
+  useEffect(() => {
+    if (user?.id) sessionStorage.setItem(`ielts-listening-active-part-${user.id}`, generatePart);
+  }, [generatePart, user?.id]);
 
   // Load available tests
   useEffect(() => {
@@ -256,6 +265,12 @@ export default function ListeningModule() {
   };
 
   const generateTest = async () => {
+    if (isGatingLoading) return;
+    if (!canAccess("listening")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     let currentSession;
     try {
       const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
@@ -278,7 +293,11 @@ export default function ListeningModule() {
         },
       });
       if (error) {
-        if (error.name === "AbortError" || error.message?.includes("aborted")) return;
+        if (error.name === "AbortError" || error.message?.includes("aborted")) {
+        if (isMountedRef.current) generationStore.clearEntry('listening');
+        else generationStore.failGen('listening', "Generation cancelled");
+        return;
+      }
         throw error;
       }
 
@@ -368,12 +387,6 @@ export default function ListeningModule() {
   };
 
   const startTest = async (test: ListeningTest) => {
-    // Check feature gating before starting a test
-    if (!canAccess("listening")) {
-      setShowUpgradeModal(true);
-      return;
-    }
-
     const newCache = {
       testId: test.id,
       testContext: test,
@@ -769,7 +782,7 @@ export default function ListeningModule() {
         {tests.map((test) => (
           <button
             key={test.id}
-            onClick={() => startTest(test)}
+            onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : startTest(test)}
             className="glass-card p-6 text-left hover:scale-[1.01] transition-all group"
           >
             <div className="flex items-center justify-between">

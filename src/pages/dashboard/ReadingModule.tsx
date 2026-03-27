@@ -223,6 +223,7 @@ export default function ReadingModule() {
     }
 
     generationStore.startGen('reading', { difficulty });
+    if (userId) sessionStorage.setItem(`ielts-reading-active-diff-${userId}`, difficulty);
     setIsSubmitted(false);
     setUserAnswers({});
     setHighlightedEvidence(null);
@@ -639,6 +640,7 @@ export default function ReadingModule() {
                       }));
                     }
                     setDifficulty(d);
+                    if (userId) sessionStorage.setItem(`ielts-reading-active-diff-${userId}`, d);
                     setIsTimerActive(false);
                     setIsTimerPaused(false);
                     setHighlightedEvidence(null);

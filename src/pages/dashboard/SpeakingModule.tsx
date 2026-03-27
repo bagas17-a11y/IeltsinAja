@@ -176,7 +176,7 @@ export default function SpeakingModule() {
   const [activeQuestions, setActiveQuestions] = useState(FALLBACK_SPEAKING_QUESTIONS);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
-  const { canAccess, refreshCounts } = useFeatureGating();
+  const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -264,6 +264,12 @@ export default function SpeakingModule() {
   };
 
   const generateNewQuestion = async () => {
+    if (isGatingLoading) return;
+    if (!canAccess("speaking")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     let currentSession;
     try {
       const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
@@ -512,7 +518,7 @@ export default function SpeakingModule() {
                 </span>
               )}
             </div>
-            <Button variant="ghost" size="sm" onClick={generateNewQuestion} disabled={isGenerating}>
+            <Button variant="ghost" size="sm" onClick={() => !canAccess("speaking") ? setShowUpgradeModal(true) : generateNewQuestion()} disabled={isGenerating}>
               {isGenerating
                 ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
                 : <><RefreshCw className="w-4 h-4 mr-2" />New Question</>

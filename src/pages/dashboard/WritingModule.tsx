@@ -140,7 +140,7 @@ export default function WritingModule() {
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
-  const { canAccess, refreshCounts } = useFeatureGating();
+  const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
 
   const isTask1 = activeTask === "Task 1";
   const minWords = isTask1 ? 150 : 250;
@@ -250,6 +250,12 @@ export default function WritingModule() {
   };
 
   const generateQuestion = async () => {
+    if (isGatingLoading) return;
+    if (!canAccess("writing")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     let currentSession;
     try {
       const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
