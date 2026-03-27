@@ -59,6 +59,7 @@ interface CachedListeningState {
   notes: string;
   hasPlayed: boolean;
   timeRemaining: number;
+  timerEndAt?: number | null;
   isSubmitted: boolean;
   score?: number;
   results?: Record<string, { correct: boolean; correctAnswer: string }>;
@@ -79,6 +80,7 @@ export default function ListeningModule() {
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [results, setResults] = useState<Record<string, { correct: boolean; correctAnswer: string }>>({});
@@ -115,7 +117,12 @@ export default function ListeningModule() {
         setAnswers(cachedState.answers);
         setNotes(cachedState.notes);
         setHasPlayed(cachedState.hasPlayed);
-        setTimeRemaining(cachedState.timeRemaining);
+        setTimeRemaining(
+          cachedState.timerEndAt && !cachedState.isSubmitted
+            ? Math.max(0, Math.ceil((cachedState.timerEndAt - Date.now()) / 1000))
+            : cachedState.timeRemaining
+        );
+        setTimerEndAt(cachedState.timerEndAt ?? null);
         setIsSubmitted(cachedState.isSubmitted);
         if (cachedState.score !== undefined) setScore(cachedState.score);
         if (cachedState.results) setResults(cachedState.results);
@@ -132,6 +139,7 @@ export default function ListeningModule() {
         notes,
         hasPlayed,
         timeRemaining,
+        timerEndAt,
         isSubmitted,
         score: score ?? undefined,
         results: Object.keys(results).length > 0 ? results : undefined,
@@ -141,21 +149,21 @@ export default function ListeningModule() {
 
   // Timer logic
   useEffect(() => {
-    if (hasPlayed && !isSubmitted && timeRemaining > 0) {
+    if (hasPlayed && !isSubmitted && timerEndAt) {
       timerRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            handleSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
+        const remaining = Math.max(0, Math.ceil((timerEndAt - Date.now()) / 1000));
+        setTimeRemaining(remaining);
+        
+        if (remaining <= 0) {
+          handleSubmit();
+          if (timerRef.current) clearInterval(timerRef.current);
+        }
       }, 1000);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [hasPlayed, isSubmitted, timeRemaining]);
+  }, [hasPlayed, isSubmitted, timerEndAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchTests = async () => {
     setIsLoading(true);
@@ -282,6 +290,7 @@ export default function ListeningModule() {
     setResults({});
     setShowTranscript(false);
     setTimeRemaining(test.duration_minutes * 60);
+    setTimerEndAt(null);
 
     // Save progress immediately to count usage for free tier gating
     if (user) {
@@ -314,6 +323,8 @@ export default function ListeningModule() {
     if (hasPlayed) return;
     setIsPlaying(true);
     setHasPlayed(true);
+    const endAt = Date.now() + timeRemaining * 1000;
+    setTimerEndAt(endAt);
 
     if (currentTest?.audio_url) {
       audioRef.current?.play();

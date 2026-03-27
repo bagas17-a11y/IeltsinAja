@@ -22,7 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useNavigate } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Lock, Play, Pause } from "lucide-react";
 
 interface Question {
   number: number;
@@ -82,6 +82,8 @@ export default function ReadingModule() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(20 * 60); // 20 minutes
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isTimerPaused, setIsTimerPaused] = useState(false);
+  const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
   const [highlightedEvidence, setHighlightedEvidence] = useState<string | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null);
   const [testStartTime, setTestStartTime] = useState<Date | null>(null);
@@ -123,8 +125,10 @@ export default function ReadingModule() {
     setUserAnswers(init.userAnswers);
     setIsSubmitted(init.isSubmitted);
     setTimeRemaining(remaining);
+    setTimerEndAt(init.timerEndAt);
     if (!init.isSubmitted && remaining > 0) {
       setIsTimerActive(true);
+      setIsTimerPaused(false);
     }
   }, [userId]);  
 
@@ -140,19 +144,21 @@ export default function ReadingModule() {
   // Timer logic
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isTimerActive && timeRemaining > 0 && !isSubmitted) {
+    if (isTimerActive && !isTimerPaused && !isSubmitted && timerEndAt) {
       interval = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev <= 1) {
-            handleSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
+        const now = Date.now();
+        const remaining = Math.max(0, Math.ceil((timerEndAt - now) / 1000));
+        
+        setTimeRemaining(remaining);
+        
+        if (remaining <= 0) {
+          handleSubmit();
+          clearInterval(interval);
+        }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isTimerActive, timeRemaining, isSubmitted]);
+  }, [isTimerActive, isTimerPaused, isSubmitted, timerEndAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const formatTime = (seconds: number) => {
@@ -177,6 +183,7 @@ export default function ReadingModule() {
     setSelectedQuestion(null);
     setTimeRemaining(20 * 60);
     setIsTimerActive(false);
+    setIsTimerPaused(false);
     setTestStartTime(new Date());
 
     try {
@@ -271,13 +278,15 @@ export default function ReadingModule() {
         throw new Error("Invalid response - passage missing title or content");
       }
 
-      const timerEndAt = Date.now() + 20 * 60 * 1000;
+      const newTimerEndAt = Date.now() + 20 * 60 * 1000;
       setCurrentTest(data);
+      setTimerEndAt(newTimerEndAt);
       setTestCache(prev => ({
         ...prev,
-        [difficulty]: { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt }
+        [difficulty]: { test: data, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt: newTimerEndAt }
       }));
       setIsTimerActive(true);
+      setIsTimerPaused(false);
 
       toast({
         title: "Test generated!",
@@ -522,13 +531,36 @@ export default function ReadingModule() {
           <div className="flex items-center gap-3">
             {/* Timer */}
             {currentTest && (
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-                timeRemaining < 300 ? 'border-destructive/50 bg-destructive/10' : 'border-border bg-card'
-              }`}>
-                <Clock className={`w-4 h-4 ${timeRemaining < 300 ? 'text-destructive' : 'text-muted-foreground'}`} />
-                <span className={`font-mono text-sm ${timeRemaining < 300 ? 'text-destructive' : 'text-foreground'}`}>
-                  {formatTime(timeRemaining)}
-                </span>
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-colors ${
+                  timeRemaining < 300 ? 'border-destructive/50 bg-destructive/10' : 'border-border bg-card'
+                } ${isTimerPaused ? 'opacity-70' : ''}`}>
+                  <Clock className={`w-4 h-4 ${timeRemaining < 300 ? 'text-destructive' : 'text-muted-foreground'}`} />
+                  <span className={`font-mono text-sm ${timeRemaining < 300 ? 'text-destructive' : 'text-foreground'}`}>
+                    {formatTime(timeRemaining)}
+                  </span>
+                </div>
+                {!isSubmitted && isTimerActive && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      if (isTimerPaused) {
+                        setTimerEndAt(Date.now() + timeRemaining * 1000);
+                        setIsTimerPaused(false);
+                      } else {
+                        if (timerEndAt) {
+                          setTimeRemaining(Math.max(0, Math.ceil((timerEndAt - Date.now()) / 1000)));
+                        }
+                        setIsTimerPaused(true);
+                      }
+                    }}
+                    className={`h-8 w-8 transition-colors ${isTimerPaused ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}
+                    title={isTimerPaused ? "Resume Timer" : "Pause Timer"}
+                  >
+                    {isTimerPaused ? <Play className="w-4 h-4 text-emerald-500 fill-emerald-500/20" /> : <Pause className="w-4 h-4 text-amber-500 fill-amber-500/20" />}
+                  </Button>
+                )}
               </div>
             )}
 
@@ -545,12 +577,13 @@ export default function ReadingModule() {
                         ...prev,
                         [difficulty]: {
                           test: currentTest, userAnswers, isSubmitted, timeRemaining,
-                          timerEndAt: prev[difficulty as 'easy' | 'medium' | 'hard']?.timerEndAt ?? null
+                          timerEndAt: timerEndAt
                         }
                       }));
                     }
                     setDifficulty(d);
                     setIsTimerActive(false);
+                    setIsTimerPaused(false);
                     setHighlightedEvidence(null);
                     setSelectedQuestion(null);
                     // Restore cached state for the target difficulty, or reset
@@ -559,12 +592,22 @@ export default function ReadingModule() {
                       setCurrentTest(cached.test);
                       setUserAnswers(cached.userAnswers);
                       setIsSubmitted(cached.isSubmitted);
-                      setTimeRemaining(cached.timeRemaining);
+                      
+                      const remaining = (cached.timerEndAt && !cached.isSubmitted)
+                         ? Math.max(0, Math.ceil((cached.timerEndAt - Date.now()) / 1000))
+                         : cached.timeRemaining;
+                      setTimeRemaining(remaining);
+                      setTimerEndAt(cached.timerEndAt);
+                      if (!cached.isSubmitted && remaining > 0) {
+                        setIsTimerActive(true);
+                        setIsTimerPaused(false); // Can be adjusted if pausing is persisted
+                      }
                     } else {
                       setCurrentTest(null);
                       setUserAnswers({});
                       setIsSubmitted(false);
                       setTimeRemaining(20 * 60);
+                      setTimerEndAt(null);
                       setTestStartTime(null);
                     }
                   }}
