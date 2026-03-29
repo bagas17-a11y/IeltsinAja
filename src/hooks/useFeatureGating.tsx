@@ -17,7 +17,7 @@ interface FeatureGatingResult {
 const FREE_PRACTICE_LIMIT = 1;
 
 export function useFeatureGating(): FeatureGatingResult {
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading: isAuthLoading } = useAuth();
   const { isExpired } = useSubscriptionStatus();
   const [practiceCount, setPracticeCount] = useState<Record<ModuleType, number>>({
     reading: 0,
@@ -25,11 +25,16 @@ export function useFeatureGating(): FeatureGatingResult {
     writing: 0,
     speaking: 0,
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isCountLoading, setIsCountLoading] = useState(true);
+
+  // isLoading is true until BOTH auth (profile) AND practice counts are resolved.
+  // This prevents canAccess from making tier decisions before profile is known,
+  // which would incorrectly apply free-tier limits to paid users.
+  const isLoading = isAuthLoading || isCountLoading;
 
   const fetchPracticeCounts = useCallback(async () => {
     if (!user) {
-      setIsLoading(false);
+      setIsCountLoading(false);
       return;
     }
 
@@ -69,7 +74,7 @@ export function useFeatureGating(): FeatureGatingResult {
     } catch (error) {
       console.error("Error in fetchPracticeCounts:", error);
     } finally {
-      setIsLoading(false);
+      setIsCountLoading(false);
     }
   }, [user]);
 
