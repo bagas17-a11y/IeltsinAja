@@ -27,13 +27,18 @@ const ALLOWED_ORIGINS = [
  * Gets CORS headers for a request
  * Returns appropriate headers based on origin allowlist
  */
+function isOriginAllowedDynamic(origin: string): boolean {
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+-[a-z0-9]+-[a-z0-9-]+\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 export function getCorsHeaders(req: Request): HeadersInit {
   const origin = req.headers.get('Origin') || '';
 
-  // Check if origin is in allowlist
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
+  const allowedOrigin = isOriginAllowedDynamic(origin)
     ? origin
-    : ALLOWED_ORIGINS[0]; // Default to first allowed origin
+    : ALLOWED_ORIGINS[0];
 
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
@@ -57,7 +62,7 @@ export function handleCorsPreflightRequest(req: Request): Response {
  * Checks if origin is allowed
  */
 export function isOriginAllowed(origin: string): boolean {
-  return ALLOWED_ORIGINS.includes(origin);
+  return isOriginAllowedDynamic(origin);
 }
 
 /**

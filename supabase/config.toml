@@ -12,8 +12,6 @@ verify_jwt = false
 [functions.generate-speaking]
 verify_jwt = false
 
-[functions.generate-model]
-verify_jwt = false
 
 [functions.generate-reading]
 verify_jwt = false
