@@ -273,10 +273,15 @@ const _DEV_ORIGINS = [
   'http://127.0.0.1:8080', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000',
 ];
 
+function _isVercelOrigin(origin: string): boolean {
+  return /^https:\/\/[a-z0-9-]+-[a-z0-9]+-[a-z0-9-]+\.vercel\.app$/.test(origin);
+}
+
 function _resolveOrigin(requestOrigin: string): string {
   const isProd = Deno.env.get('ENVIRONMENT') === 'production';
   const allowed = isProd ? _PRODUCTION_ORIGINS : [..._PRODUCTION_ORIGINS, ..._DEV_ORIGINS];
-  return allowed.includes(requestOrigin) ? requestOrigin : _PRODUCTION_ORIGINS[0];
+  if (allowed.includes(requestOrigin) || _isVercelOrigin(requestOrigin)) return requestOrigin;
+  return _PRODUCTION_ORIGINS[0];
 }
 
 /**
@@ -285,9 +290,7 @@ function _resolveOrigin(requestOrigin: string): string {
  * to enforce the restriction on deployed functions.
  */
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ENVIRONMENT') === 'production'
-    ? _PRODUCTION_ORIGINS[0]
-    : '*',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
