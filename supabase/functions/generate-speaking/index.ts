@@ -264,9 +264,9 @@ Return ONLY valid JSON matching the schema. No markdown.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
-      // Fall back to mock data for any API failure (credits, billing, overloaded, etc.)
-      console.log("Claude API unavailable (status:", response.status, "), falling back to mock speaking test");
-      return successResponse(getMockSpeakingTest(theme, difficulty), 200, corsHeaders);
+      if (response.status === 429) return rateLimitError(undefined, 60, corsHeaders);
+      if (response.status === 401) return unauthorizedError("Invalid API key", corsHeaders);
+      return aiServiceError("Failed to generate speaking questions", { status: response.status }, corsHeaders);
     }
 
     const data = await response.json();
