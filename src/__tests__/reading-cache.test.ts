@@ -2,19 +2,6 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useReadingCache, type CachedPassage } from "@/hooks/useLocalStorage";
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
-  };
-})();
-
-Object.defineProperty(window, "localStorage", { value: localStorageMock });
-
 const makePassage = (id: string, title = "Test"): CachedPassage => ({
   id,
   passage: { title, content: "content", topic: "Science", wordCount: 800 },
@@ -26,7 +13,7 @@ const makePassage = (id: string, title = "Test"): CachedPassage => ({
 
 describe("useReadingCache", () => {
   beforeEach(() => {
-    localStorageMock.clear();
+    window.sessionStorage.clear();
     vi.clearAllMocks();
   });
 

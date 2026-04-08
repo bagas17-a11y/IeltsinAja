@@ -272,7 +272,7 @@ export default function WritingModule() {
     const generatingTask = activeTask;
     try {
       if (user?.id) sessionStorage.setItem(`ielts-writing-active-task-${user.id}`, generatingTask);
-    } catch(e) {}
+    } catch { /* non-critical sessionStorage write */ }
     generationStore.startGen('writing', { task: generatingTask });
     try {
       const { data, error } = await supabase.functions.invoke("generate-writing", {
@@ -479,7 +479,7 @@ export default function WritingModule() {
             : { ...existing, feedback: unwrappedData, revisionFeedback: null, revisedEssay: "" };
           sessionStorage.setItem(`ielts-writing-cache-${user.id}-${activeTask}`, JSON.stringify(updated));
         }
-      } catch (e) {}
+      } catch { /* non-critical sessionStorage write */ }
 
       if (isMountedRef.current) {
         generationStore.clearEntry('writing-analysis');
@@ -536,7 +536,7 @@ export default function WritingModule() {
     setActiveTask(newTask);
     try {
       if (user?.id) sessionStorage.setItem(`ielts-writing-active-task-${user.id}`, newTask);
-    } catch(e) {}
+    } catch { /* non-critical sessionStorage write */ }
   };
 
   const getDifficultyColor = (difficulty: string) => {

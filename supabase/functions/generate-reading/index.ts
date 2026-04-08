@@ -270,27 +270,17 @@ Return ONLY valid JSON in the specified schema format. No markdown, no commentar
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
 
-      // Check if it's a credit/billing issue - use mock data as fallback
-      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
-        console.log("Claude API unavailable (credits/billing issue), falling back to mock data");
-        const mockTest = getMockReadingTest(difficulty);
-        const responseData = {
-          ...mockTest,
-          generatedAt: new Date().toISOString(),
-          id: crypto.randomUUID(),
-          isMock: true,
-          note: "Generated using mock data (Claude API credits exhausted)"
-        };
-        return successResponse(responseData, 200, corsHeaders);
-      }
-
-      if (response.status === 429) {
-        return rateLimitError(undefined, 60, corsHeaders);
-      }
-      if (response.status === 401) {
-        return unauthorizedError("Invalid API key", corsHeaders);
-      }
-      return aiServiceError("Failed to generate reading passage", { status: response.status }, corsHeaders);
+      // Fall back to mock data for any API failure (credits, billing, overloaded, etc.)
+      console.log("Claude API unavailable (status:", response.status, "), falling back to mock reading test");
+      const mockTest = getMockReadingTest(difficulty);
+      const responseData = {
+        ...mockTest,
+        generatedAt: new Date().toISOString(),
+        id: crypto.randomUUID(),
+        isMock: true,
+        note: "Generated using mock data (Claude API unavailable)",
+      };
+      return successResponse(responseData, 200, corsHeaders);
     }
 
     const data = await response.json();

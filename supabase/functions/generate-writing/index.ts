@@ -311,23 +311,17 @@ Return ONLY valid JSON matching the Task 2 schema. No markdown.`;
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
 
-      // Fall back to mock data on credit/billing/model errors
-      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
-        console.log("Claude API unavailable (credits/billing issue), falling back to mock data");
-        const mockPrompt = getMockWritingPrompt(task_type, difficulty);
-        return successResponse({
-          ...mockPrompt,
-          generatedAt: new Date().toISOString(),
-          id: crypto.randomUUID(),
-          difficulty,
-          isMock: true,
-          note: "Generated using mock data (Claude API credits exhausted)",
-        }, 200, corsHeaders);
-      }
-
-      if (response.status === 429) return rateLimitError(undefined, 60, corsHeaders);
-      if (response.status === 401) return unauthorizedError("Invalid API key", corsHeaders);
-      return aiServiceError("Failed to generate writing prompt", { status: response.status }, corsHeaders);
+      // Fall back to mock data for any API failure (credits, billing, overloaded, etc.)
+      console.log("Claude API unavailable (status:", response.status, "), falling back to mock writing prompt");
+      const mockPrompt = getMockWritingPrompt(task_type, difficulty);
+      return successResponse({
+        ...mockPrompt,
+        generatedAt: new Date().toISOString(),
+        id: crypto.randomUUID(),
+        difficulty,
+        isMock: true,
+        note: "Generated using mock data (Claude API unavailable)",
+      }, 200, corsHeaders);
     }
 
     const data = await response.json();

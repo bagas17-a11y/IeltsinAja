@@ -171,7 +171,7 @@ export default function ListeningModule() {
           }
         }
       }
-    } catch {}
+    } catch { /* ignore parse errors on mount */ }
   }, [user?.id, tests]);
 
   // Apply generation results that arrived while this component was unmounted
@@ -388,6 +388,16 @@ export default function ListeningModule() {
   };
 
   const startTest = async (test: ListeningTest) => {
+    // Stop any currently playing audio or speech synthesis
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+    }
+    speechRef.current = null;
+
     const newCache = {
       testId: test.id,
       testContext: test,
@@ -399,11 +409,12 @@ export default function ListeningModule() {
     };
 
     if (user?.id) sessionStorage.setItem(`${LISTENING_SESSION_PREFIX}-active`, JSON.stringify(newCache));
-    
+
     setCurrentTest(test);
     setAnswers({});
     setNotes("");
     setHasPlayed(false);
+    setIsPlaying(false);
     setIsSubmitted(false);
     setScore(null);
     setResults({});

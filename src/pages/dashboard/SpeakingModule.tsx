@@ -438,7 +438,7 @@ export default function SpeakingModule() {
           const existing = existingRaw ? JSON.parse(existingRaw) : {};
           sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify({ ...existing, feedback: unwrappedData }));
         }
-      } catch (e) {}
+      } catch { /* non-critical sessionStorage write */ }
 
       if (isMountedRef.current) {
         generationStore.clearEntry('speaking-analysis');

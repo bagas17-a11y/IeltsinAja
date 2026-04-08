@@ -511,8 +511,13 @@ serve(async (req) => {
     const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt, speakingPart, question } = validation.data;
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) {
-      return internalError("AI service not configured", undefined, corsHeaders);
+    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
+
+    // Global mock mode or missing API key — return mock without calling Claude
+    if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {
+      console.log("Mock mode active, skipping Claude API call for type:", type);
+      const mockResponse = getMockResponse(type, content, speakingPart, taskType);
+      return successResponse(mockResponse, 200, corsHeaders);
     }
 
     let userPrompt = "";
@@ -830,20 +835,10 @@ Provide your response in this JSON format:
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
 
-      // If billing/credits issue, return mock responses
-      if (errorText.includes("credit balance") || errorText.includes("billing") || response.status === 400) {
-        console.log("Claude API credits exhausted, returning mock response for type:", type);
-        const mockResponse = getMockResponse(type, content, speakingPart, taskType);
-        return successResponse(mockResponse, 200, corsHeaders);
-      }
-
-      if (response.status === 429) {
-        return rateLimitError(undefined, 60, corsHeaders);
-      }
-      if (response.status === 401) {
-        return unauthorizedError("Invalid API key", corsHeaders);
-      }
-      return aiServiceError("AI analysis failed", { status: response.status }, corsHeaders);
+      // Fall back to mock for any API failure (credits exhausted, billing, overloaded, etc.)
+      console.log("Claude API unavailable (status:", response.status, "), returning mock response for type:", type);
+      const mockResponse = getMockResponse(type, content, speakingPart, taskType);
+      return successResponse(mockResponse, 200, corsHeaders);
     }
 
     const data = await response.json();

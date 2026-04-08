@@ -129,6 +129,68 @@ const SPEAKING_THEMES = [
   "Fashion and personal style",
 ];
 
+function getMockSpeakingTest(theme: string, difficulty: string) {
+  return {
+    id: crypto.randomUUID(),
+    topic: theme,
+    difficulty,
+    isMock: true,
+    generatedAt: new Date().toISOString(),
+    part1: {
+      topics: [
+        {
+          theme: "Daily Routines",
+          questions: [
+            "What time do you usually wake up in the morning?",
+            "Do you prefer mornings or evenings? Why?",
+            "How do you usually spend your evenings?",
+            "Has your daily routine changed much over the past few years?",
+          ],
+        },
+        {
+          theme: "Hobbies and Free Time",
+          questions: [
+            "What do you enjoy doing in your free time?",
+            "Is there a hobby you have always wanted to try?",
+            "Do you prefer indoor or outdoor activities?",
+            "How much free time do you have each week?",
+          ],
+        },
+      ],
+    },
+    part2: {
+      cue_card: "Describe a skill you would like to learn.",
+      bullet_points: [
+        "what the skill is",
+        "why you want to learn it",
+        "how you plan to learn it",
+      ],
+      final_instruction: "and explain how this skill would benefit your life.",
+      prep_time: "1 minute",
+      speak_time: "1–2 minutes",
+      rounding_off_questions: [
+        "Do you think it is ever too late to learn new skills?",
+        "Have you started learning this skill yet?",
+      ],
+    },
+    part3: {
+      theme: "Learning and Personal Development",
+      questions: [
+        "Why do you think some people are more motivated to learn new skills than others?",
+        "How has technology changed the way people learn today compared to the past?",
+        "Do you think governments should invest more in adult education programmes?",
+        "In what ways can learning new skills benefit society as a whole?",
+        "Do you think formal education or self-study is more effective for learning practical skills?",
+      ],
+    },
+    examiner_notes: {
+      part1_purpose: "Establish rapport; test fluency on familiar topics",
+      part2_purpose: "Extended monologue; test ability to organise and develop ideas",
+      part3_purpose: "Abstract discussion; test ability to analyse, speculate, compare",
+    },
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return handleCorsPreflightRequest(req);
@@ -149,14 +211,17 @@ serve(async (req) => {
 
     const { difficulty, theme: requestedTheme } = validation.data;
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-
-    if (!ANTHROPIC_API_KEY) {
-      return aiServiceError("AI service not configured", undefined, corsHeaders);
-    }
+    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
 
     const theme =
       requestedTheme ??
       SPEAKING_THEMES[Math.floor(Math.random() * SPEAKING_THEMES.length)];
+
+    // Global mock mode or missing API key — return mock without calling Claude
+    if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {
+      console.log("Mock mode active, skipping Claude API call for speaking");
+      return successResponse(getMockSpeakingTest(theme, difficulty), 200, corsHeaders);
+    }
 
     const userPrompt = `Generate a complete IELTS Speaking test (all 3 parts).
 
@@ -199,9 +264,9 @@ Return ONLY valid JSON matching the schema. No markdown.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
-      if (response.status === 429) return rateLimitError(undefined, 60, corsHeaders);
-      if (response.status === 401) return unauthorizedError("Invalid API key", corsHeaders);
-      return aiServiceError("Failed to generate speaking questions", { status: response.status }, corsHeaders);
+      // Fall back to mock data for any API failure (credits, billing, overloaded, etc.)
+      console.log("Claude API unavailable (status:", response.status, "), falling back to mock speaking test");
+      return successResponse(getMockSpeakingTest(theme, difficulty), 200, corsHeaders);
     }
 
     const data = await response.json();

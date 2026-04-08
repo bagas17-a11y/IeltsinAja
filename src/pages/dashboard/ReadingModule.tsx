@@ -177,7 +177,7 @@ export default function ReadingModule() {
       try {
         if (userId) sessionStorage.setItem(`ielts-reading-${userId}-${capturedDifficulty}`, JSON.stringify(newCache));
         if (userId) sessionStorage.setItem(`ielts-reading-active-diff-${userId}`, capturedDifficulty);
-      } catch(e) {}
+      } catch { /* non-critical sessionStorage write */ }
       setIsTimerActive(true);
       setIsTimerPaused(false);
       toast({ title: "Test ready!", description: `${test.passage?.topic || 'Reading'} passage is ready. Timer started.` });
