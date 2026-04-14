@@ -428,10 +428,10 @@ export default function WritingModule() {
           content: essayContent,
           taskType: activeTask,
           isRevision,
-          questionId: selectedQuestion?.id,
-          secretContext: selectedQuestion?.ai_secret_context,
-          modelAnswer: selectedQuestion?.model_answer_band9,
-          targetKeywords: selectedQuestion?.target_keywords,
+          questionId: selectedQuestion?.id || undefined,
+          secretContext: selectedQuestion?.ai_secret_context || undefined,
+          modelAnswer: selectedQuestion?.model_answer_band9 || undefined,
+          targetKeywords: selectedQuestion?.target_keywords || undefined,
         },
       });
 
@@ -1275,7 +1275,7 @@ export default function WritingModule() {
               </div>
               
               <div className="p-4 bg-secondary/30 rounded-lg border border-border/30 mb-4">
-                <p className="text-sm text-foreground">{selectedQuestion.question_prompt}</p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{selectedQuestion.question_prompt}</p>
               </div>
 
               {/* Question Image */}

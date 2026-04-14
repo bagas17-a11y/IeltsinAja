@@ -10,8 +10,6 @@ import {
   Play,
   Pause,
   Square,
-  Volume2,
-  VolumeX,
   Clock,
   CheckCircle2,
   XCircle,
@@ -96,8 +94,6 @@ export default function ListeningModule() {
   const [hasPlayed, setHasPlayed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -472,13 +468,11 @@ export default function ListeningModule() {
 
     if (currentTest?.audio_url) {
       if (audioRef.current) {
-        audioRef.current.volume = volume;
         audioRef.current.play();
       }
     } else if (currentTest?.transcript) {
       const utterance = new SpeechSynthesisUtterance(currentTest.transcript);
       utterance.rate = 0.88;
-      utterance.volume = volume;
       utterance.onend = handleAudioEnded;
       speechRef.current = utterance;
       window.speechSynthesis.speak(utterance);
@@ -515,24 +509,6 @@ export default function ListeningModule() {
     setIsAudioComplete(true);
   };
 
-  const toggleMute = () => {
-    const newMuted = !isMuted;
-    setIsMuted(newMuted);
-    if (audioRef.current) {
-      audioRef.current.muted = newMuted;
-    }
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
-      audioRef.current.muted = false;
-      setIsMuted(false);
-    }
-  };
-
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
@@ -544,26 +520,73 @@ export default function ListeningModule() {
   const checkAnswer = useCallback((userAnswer: string, correctAnswer: string): boolean => {
     const normalizedUser = normalizeAnswer(userAnswer);
     const normalizedCorrect = normalizeAnswer(correctAnswer);
-    
+
     // Direct match
     if (normalizedUser === normalizedCorrect) return true;
-    
-    // Number word equivalents
+
+    // Number word equivalents (digit ↔ word)
     const numberWords: Record<string, string> = {
       "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
       "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
       "10": "ten", "11": "eleven", "12": "twelve", "13": "thirteen",
       "14": "fourteen", "15": "fifteen", "16": "sixteen", "17": "seventeen",
-      "18": "eighteen", "19": "nineteen", "20": "twenty"
+      "18": "eighteen", "19": "nineteen", "20": "twenty", "30": "thirty",
+      "40": "forty", "50": "fifty", "60": "sixty", "70": "seventy",
+      "80": "eighty", "90": "ninety", "100": "hundred",
     };
-    
-    // Check if user typed number and correct is word (or vice versa)
     if (numberWords[normalizedUser] === normalizedCorrect) return true;
     const reverseMap = Object.fromEntries(
       Object.entries(numberWords).map(([k, v]) => [v, k])
     );
     if (reverseMap[normalizedUser] === normalizedCorrect) return true;
-    
+
+    // Phone / ID numbers: strip all non-digit chars and compare
+    const digitsOnly = (s: string) => s.replace(/\D/g, '');
+    const userDigits = digitsOnly(normalizedUser);
+    const correctDigits = digitsOnly(normalizedCorrect);
+    if (userDigits.length >= 4 && userDigits === correctDigits) return true;
+
+    // Date normalization: remove ordinal suffixes (1st→1, 2nd→2 …), expand month abbrevs
+    const normalizeDate = (s: string) =>
+      s
+        .replace(/\b(\d+)(st|nd|rd|th)\b/g, '$1')
+        .replace(/\bjan\b/g, 'january').replace(/\bfeb\b/g, 'february')
+        .replace(/\bmar\b/g, 'march').replace(/\bapr\b/g, 'april')
+        .replace(/\bjun\b/g, 'june').replace(/\bjul\b/g, 'july')
+        .replace(/\baug\b/g, 'august').replace(/\bsept?\b/g, 'september')
+        .replace(/\boct\b/g, 'october').replace(/\bnov\b/g, 'november')
+        .replace(/\bdec\b/g, 'december')
+        .replace(/\s+/g, ' ').trim();
+    if (normalizeDate(normalizedUser) === normalizeDate(normalizedCorrect)) return true;
+
+    // Name / word fuzzy matching: edit distance ≤ 2 per word (for words ≥ 4 chars)
+    const editDist = (a: string, b: string): number => {
+      const m = a.length, n = b.length;
+      const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
+        Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+      );
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          dp[i][j] = a[i - 1] === b[j - 1]
+            ? dp[i - 1][j - 1]
+            : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+        }
+      }
+      return dp[m][n];
+    };
+    const userWords = normalizedUser.split(/\s+/);
+    const correctWords = normalizedCorrect.split(/\s+/);
+    if (userWords.length === correctWords.length) {
+      const allClose = userWords.every((w, i) => {
+        const cw = correctWords[i];
+        if (w === cw) return true;
+        // Only apply fuzzy match for words of meaningful length (≥4 chars)
+        if (w.length >= 4 && cw.length >= 4) return editDist(w, cw) <= 2;
+        return false;
+      });
+      if (allClose) return true;
+    }
+
     return false;
   }, []);
 
@@ -1053,21 +1076,6 @@ export default function ListeningModule() {
               )}
             </div>
 
-            {/* Volume Control */}
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={toggleMute}>
-                {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </Button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={isMuted ? 0 : volume}
-                onChange={handleVolumeChange}
-                className="w-24 accent-accent cursor-pointer"
-              />
-            </div>
           </div>
         </div>
 

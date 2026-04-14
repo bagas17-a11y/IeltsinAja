@@ -462,6 +462,15 @@ export default function SpeakingModule() {
   const currentQuestion = getCurrentQuestion();
   const feedbackRef = useRef<HTMLDivElement>(null);
 
+  // Split a paragraph of feedback into bullet-point sentences
+  const toBullets = (text: string | undefined): string[] => {
+    if (!text) return [];
+    return text
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+  };
+
   // Auto-scroll to feedback when it appears
   useEffect(() => {
     if (feedback && feedbackRef.current) {
@@ -754,7 +763,14 @@ export default function SpeakingModule() {
                       : "text-destructive"
                     }`}>{feedback.fluencyCoherence.score ?? "—"}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.fluencyCoherence.feedback}</p>
+                  <ul className="space-y-1">
+                    {toBullets(feedback.fluencyCoherence.feedback).map((s, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
                   {feedback.fillerWords?.count > 0 && (
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <span className="text-xs text-destructive font-medium">Filler words ({feedback.fillerWords.count}):</span>
@@ -783,7 +799,14 @@ export default function SpeakingModule() {
                       : "text-destructive"
                     }`}>{feedback.lexicalResource.score ?? "—"}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.lexicalResource.feedback}</p>
+                  <ul className="space-y-1">
+                    {toBullets(feedback.lexicalResource.feedback).map((s, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
                   {feedback.lexicalResource.suggestions?.length > 0 && (
                     <div className="mt-3">
                       <p className="text-xs text-muted-foreground mb-1.5">Try using these instead:</p>
@@ -818,7 +841,14 @@ export default function SpeakingModule() {
                       : "text-destructive"
                     }`}>{feedback.grammaticalRange.score ?? "—"}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.grammaticalRange.feedback}</p>
+                  <ul className="space-y-1">
+                    {toBullets(feedback.grammaticalRange.feedback).map((s, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
                   {feedback.grammarErrors?.length > 0 && (
                     <div className="mt-3">
                       <p className="text-xs text-destructive font-medium mb-1.5">Errors to correct:</p>
@@ -857,7 +887,14 @@ export default function SpeakingModule() {
                       : "text-destructive"
                     }`}>{feedback.pronunciation.score ?? "—"}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.pronunciation.feedback}</p>
+                  <ul className="space-y-1">
+                    {toBullets(feedback.pronunciation.feedback).map((s, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>

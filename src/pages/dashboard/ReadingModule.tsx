@@ -892,10 +892,19 @@ export default function ReadingModule() {
                 <div 
                   ref={passageRef}
                   className="prose prose-invert max-w-none font-serif text-[15px] leading-relaxed"
-                  dangerouslySetInnerHTML={{ 
+                  dangerouslySetInnerHTML={{
                     __html: highlightPassage(currentTest.passage.content)
                       .split('\n\n')
-                      .map(p => `<p class="mb-4 text-foreground/85">${p}</p>`)
+                      .map(p => {
+                        // Detect paragraphs that start with a single capital letter label (A The ..., B Central ...)
+                        const labelMatch = p.match(/^([A-Z])\s+([\s\S]+)/);
+                        if (labelMatch) {
+                          const label = labelMatch[1];
+                          const body = labelMatch[2];
+                          return `<p class="mb-5 text-foreground/85"><strong class="block text-foreground font-bold text-base mb-1">${label}</strong>${body}</p>`;
+                        }
+                        return `<p class="mb-4 text-foreground/85">${p}</p>`;
+                      })
                       .join('')
                   }}
                 />
