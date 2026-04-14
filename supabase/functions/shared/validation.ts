@@ -14,7 +14,7 @@ export const AIAnalyzeSchema = z.object({
   content: z.string().min(1).max(50000),
   taskType: z.string().optional(),
   isRevision: z.boolean().optional(),
-  questionId: z.string().uuid().optional(),
+  questionId: z.string().optional(),
   secretContext: z.string().max(5000).optional(),
   modelAnswer: z.string().max(5000).optional(),
   targetKeywords: z.string().max(1000).optional(),

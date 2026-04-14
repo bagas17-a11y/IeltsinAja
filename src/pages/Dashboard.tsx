@@ -4,7 +4,7 @@ import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { BridgeToSuccess } from "@/components/dashboard/BridgeToSuccess";
-import { BookOpen, Headphones, PenTool, Mic, TrendingUp, Target, Edit2 } from "lucide-react";
+import { BookOpen, Headphones, PenTool, Mic, Target, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,17 +78,6 @@ export default function Dashboard() {
     }
   }, [isLoading, isCheckingAdmin, user, profile, isAdmin, navigate]);
 
-  const scores = [
-    { label: "Reading", score: profile?.current_reading_score },
-    { label: "Listening", score: profile?.current_listening_score },
-    { label: "Writing", score: profile?.current_writing_score },
-    { label: "Speaking", score: profile?.current_speaking_score },
-  ];
-
-  const overallScore = scores.filter(s => s.score).length > 0
-    ? (scores.reduce((acc, s) => acc + (Number(s.score) || 0), 0) / scores.filter(s => s.score).length).toFixed(1)
-    : null;
-
   return (
     <DashboardLayout>
       {/* Subscription Banner */}
@@ -104,73 +93,41 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* Overall Score */}
-        <div className="glass-card p-6 col-span-1">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm text-muted-foreground">Overall Score</span>
-            <TrendingUp className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-4xl font-light text-accent">
-            {overallScore || "—"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {overallScore ? "Current estimate" : "Complete practice to see score"}
-          </p>
+      {/* Target Score */}
+      <div className="glass-card p-6 mb-8 max-w-xs">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm text-muted-foreground">Target Score</span>
+          <button
+            onClick={() => setIsEditingTarget(!isEditingTarget)}
+            className="flex items-center gap-1 text-elite-gold hover:text-elite-gold/80 transition-colors"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
         </div>
-
-        {/* Target Score */}
-        <div className="glass-card p-6 col-span-1">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm text-muted-foreground">Target Score</span>
-            <button 
-              onClick={() => setIsEditingTarget(!isEditingTarget)}
-              className="flex items-center gap-1 text-elite-gold hover:text-elite-gold/80 transition-colors"
-            >
-              <Edit2 className="w-4 h-4" />
-            </button>
-          </div>
-          {isEditingTarget ? (
-            <Select
-              defaultValue={(profile?.target_band_score || 7).toString()}
-              onValueChange={handleTargetChange}
-            >
-              <SelectTrigger className="w-full text-3xl font-light text-elite-gold border-elite-gold/30 bg-transparent h-auto py-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-background border-border">
-                {TARGET_SCORE_OPTIONS.map((score) => (
-                  <SelectItem key={score} value={score.toString()}>
-                    {score}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <p className="text-4xl font-light text-elite-gold">
-              {profile?.target_band_score || 7.0}
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground mt-1">
-            {isEditingTarget ? "Select new target" : "Click edit to change"}
+        {isEditingTarget ? (
+          <Select
+            defaultValue={(profile?.target_band_score || 7).toString()}
+            onValueChange={handleTargetChange}
+          >
+            <SelectTrigger className="w-full text-3xl font-light text-elite-gold border-elite-gold/30 bg-transparent h-auto py-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-border">
+              {TARGET_SCORE_OPTIONS.map((score) => (
+                <SelectItem key={score} value={score.toString()}>
+                  {score}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <p className="text-4xl font-light text-elite-gold">
+            {profile?.target_band_score || 7.0}
           </p>
-        </div>
-
-        {/* Score Breakdown */}
-        <div className="glass-card p-6 col-span-1 lg:col-span-1">
-          <span className="text-sm text-muted-foreground block mb-4">Module Scores</span>
-          <div className="grid grid-cols-2 gap-3">
-            {scores.map((item) => (
-              <div key={item.label} className="text-center">
-                <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-                <p className="text-lg font-light text-foreground">
-                  {item.score || "—"}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
+        <p className="text-xs text-muted-foreground mt-1">
+          {isEditingTarget ? "Select new target" : "Click edit to change"}
+        </p>
       </div>
 
       {/* Bridge to Success - Gap Analysis */}

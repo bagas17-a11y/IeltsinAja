@@ -294,11 +294,11 @@ export default function WritingModule() {
         if (aiData.data) {
           const d = aiData.data;
           const dataLines = [
-            d.title ? `**${d.title}**` : "",
+            d.title ? d.title : "",
             d.key_features?.length
-              ? `Key features: ${d.key_features.join("; ")}`
+              ? `Key features:\n${d.key_features.map((f: string) => `• ${f}`).join("\n")}`
               : "",
-          ].filter(Boolean).join("\n");
+          ].filter(Boolean).join("\n\n");
           questionPrompt = `${questionPrompt}\n\n${dataLines}`.trim();
         }
         secretContext = aiData.model_answer_guide

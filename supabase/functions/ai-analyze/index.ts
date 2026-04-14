@@ -835,13 +835,14 @@ Provide your response in this JSON format:
       const errorText = await response.text();
       console.error("Claude API error:", response.status, errorText);
 
-      if (response.status === 429) {
-        return rateLimitError(undefined, 60, corsHeaders);
-      }
       if (response.status === 401) {
         return unauthorizedError("Invalid API key", corsHeaders);
       }
-      return aiServiceError("AI analysis failed", { status: response.status }, corsHeaders);
+      // For all other errors (429, 402, 500, etc.) fall back to mock data
+      // so users always receive feedback even when the API is unavailable
+      console.log("Claude API unavailable (status:", response.status, "), falling back to mock for:", type);
+      const mockResponse = getMockResponse(type, content, speakingPart, taskType);
+      return successResponse(mockResponse, 200, corsHeaders);
     }
 
     const data = await response.json();

@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Headphones,
   Play,
+  Pause,
+  Square,
   Volume2,
   VolumeX,
   Clock,
@@ -93,6 +95,7 @@ export default function ListeningModule() {
   const [notes, setNotes] = useState("");
   const [hasPlayed, setHasPlayed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -450,6 +453,17 @@ export default function ListeningModule() {
   };
 
   const handlePlay = () => {
+    // Resume from pause
+    if (isPaused) {
+      setIsPaused(false);
+      setIsPlaying(true);
+      if (currentTest?.audio_url && audioRef.current) {
+        audioRef.current.play();
+      } else if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+      return;
+    }
     if (hasPlayed) return;
     setIsPlaying(true);
     setHasPlayed(true);
@@ -457,24 +471,55 @@ export default function ListeningModule() {
     setTimerEndAt(endAt);
 
     if (currentTest?.audio_url) {
-      audioRef.current?.play();
+      if (audioRef.current) {
+        audioRef.current.volume = volume;
+        audioRef.current.play();
+      }
     } else if (currentTest?.transcript) {
       const utterance = new SpeechSynthesisUtterance(currentTest.transcript);
       utterance.rate = 0.88;
+      utterance.volume = volume;
       utterance.onend = handleAudioEnded;
       speechRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     }
   };
 
+  const handlePause = () => {
+    setIsPaused(true);
+    setIsPlaying(false);
+    if (currentTest?.audio_url && audioRef.current) {
+      audioRef.current.pause();
+    } else if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause();
+    }
+  };
+
+  const handleStop = () => {
+    setIsPlaying(false);
+    setIsPaused(false);
+    setHasPlayed(false);
+    setIsAudioComplete(false);
+    if (currentTest?.audio_url && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    } else if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+    }
+    speechRef.current = null;
+  };
+
   const handleAudioEnded = () => {
     setIsPlaying(false);
+    setIsPaused(false);
+    setIsAudioComplete(true);
   };
 
   const toggleMute = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
     if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      audioRef.current.muted = newMuted;
     }
   };
 
@@ -483,6 +528,8 @@ export default function ListeningModule() {
     setVolume(newVolume);
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
+      audioRef.current.muted = false;
+      setIsMuted(false);
     }
   };
 
@@ -609,7 +656,10 @@ export default function ListeningModule() {
     setAnswers({});
     setNotes("");
     setHasPlayed(false);
+    setIsPlaying(false);
+    setIsPaused(false);
     setIsSubmitted(false);
+    setIsAudioComplete(false);
     setScore(null);
     setResults({});
     setShowTranscript(false);
@@ -940,70 +990,82 @@ export default function ListeningModule() {
 
         {/* Audio Player */}
         <div className="flex-shrink-0 glass-card p-4 mb-4">
-          <audio 
-            ref={audioRef} 
-            src={currentTest.audio_url} 
+          <audio
+            ref={audioRef}
+            src={currentTest.audio_url}
             onEnded={handleAudioEnded}
             preload="metadata"
           />
-          
+
           <div className="flex items-center gap-4">
-            {/* Play Button - Hidden after played */}
-            {!hasPlayed ? (
-              <Button 
-                onClick={handlePlay}
-                variant="neumorphicPrimary"
-                size="lg"
-                className="rounded-full w-14 h-14"
-              >
-                <Play className="w-6 h-6 ml-1" />
-              </Button>
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-secondary/50 flex items-center justify-center">
-                {isPlaying ? (
-                  <div className="flex gap-1">
-                    {[...Array(3)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-1 bg-accent rounded-full animate-pulse"
-                        style={{ 
-                          height: `${12 + Math.random() * 12}px`,
-                          animationDelay: `${i * 0.15}s`
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <CheckCircle2 className="w-6 h-6 text-green-500" />
-                )}
-              </div>
-            )}
-            
-            <div className="flex-1">
-              {!hasPlayed ? (
-                <p className="text-muted-foreground">
-                  Press play to start. <span className="text-accent font-medium">Audio plays once only.</span>
-                </p>
+            {/* Playback Controls */}
+            <div className="flex items-center gap-2">
+              {!hasPlayed || isPaused ? (
+                <Button
+                  onClick={handlePlay}
+                  variant="neumorphicPrimary"
+                  size="lg"
+                  className="rounded-full w-12 h-12"
+                  title={isPaused ? "Resume" : "Play"}
+                >
+                  <Play className="w-5 h-5 ml-0.5" />
+                </Button>
               ) : isPlaying ? (
-                <p className="text-accent">Audio playing... Listen carefully!</p>
+                <Button
+                  onClick={handlePause}
+                  variant="outline"
+                  size="lg"
+                  className="rounded-full w-12 h-12"
+                  title="Pause"
+                >
+                  <Pause className="w-5 h-5" />
+                </Button>
               ) : (
-                <p className="text-green-600">Audio complete. Answer the questions below.</p>
+                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-500" />
+                </div>
+              )}
+
+              {hasPlayed && !isAudioComplete && (
+                <Button
+                  onClick={handleStop}
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full w-9 h-9 text-muted-foreground hover:text-destructive"
+                  title="Stop"
+                >
+                  <Square className="w-4 h-4" />
+                </Button>
               )}
             </div>
-            
+
+            <div className="flex-1">
+              {!hasPlayed ? (
+                <p className="text-muted-foreground text-sm">
+                  Press play to start. You can pause if needed.
+                </p>
+              ) : isPaused ? (
+                <p className="text-yellow-500 text-sm">Paused — press play to resume.</p>
+              ) : isPlaying ? (
+                <p className="text-accent text-sm animate-pulse">Audio playing... Listen carefully!</p>
+              ) : (
+                <p className="text-green-600 text-sm">Audio complete. Answer the questions below.</p>
+              )}
+            </div>
+
             {/* Volume Control */}
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={toggleMute}>
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
               </Button>
               <input
                 type="range"
                 min="0"
                 max="1"
-                step="0.1"
-                value={volume}
+                step="0.05"
+                value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-20 accent-accent"
+                className="w-24 accent-accent cursor-pointer"
               />
             </div>
           </div>

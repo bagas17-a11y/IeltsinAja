@@ -460,6 +460,16 @@ export default function SpeakingModule() {
   };
 
   const currentQuestion = getCurrentQuestion();
+  const feedbackRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to feedback when it appears
+  useEffect(() => {
+    if (feedback && feedbackRef.current) {
+      setTimeout(() => {
+        feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [feedback]);
 
   // Generate waveform bars based on audio level
   const waveformBars = Array.from({ length: 12 }, (_, i) => {
@@ -672,162 +682,185 @@ export default function SpeakingModule() {
 
         {/* AI Feedback */}
         {feedback && (
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-light">🎯 AI Speaking Analysis</h2>
-              <Button variant="outline" size="sm" onClick={handleRestartPractice}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                New Response
-              </Button>
-            </div>
-
-            {/* Overall Score */}
-            <div className="flex items-center justify-center mb-8">
-              <div className="w-28 h-28 rounded-full bg-accent/20 flex flex-col items-center justify-center">
-                <span className="text-4xl font-light text-accent">{feedback.overallBand}</span>
-                <span className="text-xs text-muted-foreground">Overall Band</span>
-              </div>
-            </div>
-
-            {/* Detailed Scores Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              {[
-                { label: "Fluency & Coherence", score: feedback.fluencyCoherence?.score, key: "fluencyCoherence" },
-                { label: "Lexical Resource", score: feedback.lexicalResource?.score, key: "lexicalResource" },
-                { label: "Grammar Range", score: feedback.grammaticalRange?.score, key: "grammaticalRange" },
-                { label: "Pronunciation", score: feedback.pronunciation?.score, key: "pronunciation" },
-              ].map((item) => (
-                <div key={item.label} className="text-center p-4 bg-secondary/30 rounded-xl">
-                  <p className="text-2xl font-light text-accent">{item.score || "—"}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
+          <div ref={feedbackRef} className="space-y-4">
+            {/* Header */}
+            <div className="glass-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-medium">Your Results</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Based on your response above</p>
                 </div>
-              ))}
-            </div>
-
-            {/* Fluency Analysis with Pause Detection */}
-            {feedback.fluencyCoherence && (
-              <div className="mb-6 p-4 bg-secondary/20 rounded-xl">
-                <h3 className="text-sm font-medium text-accent mb-3">📊 Fluency Analysis</h3>
-                <p className="text-sm text-foreground/70 mb-3">{feedback.fluencyCoherence.feedback}</p>
-                
-                {feedback.pauseAnalysis && (
-                  <div className="flex items-center gap-4 mt-3">
-                    <div className="px-4 py-2 rounded-lg bg-elite-gold/10">
-                      <span className="text-lg font-medium text-elite-gold">{feedback.pauseAnalysis.count}</span>
-                      <span className="text-xs text-muted-foreground ml-2">Pauses Detected</span>
-                    </div>
-                    {feedback.pauseAnalysis.impact && (
-                      <p className="text-xs text-muted-foreground">{feedback.pauseAnalysis.impact}</p>
-                    )}
-                  </div>
-                )}
+                <Button variant="outline" size="sm" onClick={handleRestartPractice}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  New Response
+                </Button>
               </div>
-            )}
 
-            {/* Filler Words */}
-            {feedback.fillerWords && feedback.fillerWords.count > 0 && (
-              <div className="mb-6 p-4 bg-destructive/5 rounded-xl">
-                <h3 className="text-sm font-medium text-destructive mb-3">⚠️ Filler Words Detected</h3>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-destructive/10 flex items-center justify-center">
-                    <span className="text-2xl font-light text-destructive">
-                      {feedback.fillerWords.count}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {feedback.fillerWords.examples?.map((word: string, i: number) => (
-                        <span key={i} className="px-3 py-1 rounded-full bg-destructive/10 text-destructive text-sm">
-                          "{word}"
-                        </span>
-                      ))}
-                    </div>
-                    {feedback.fillerWords.impact && (
-                      <p className="text-xs text-muted-foreground">{feedback.fillerWords.impact}</p>
-                    )}
-                  </div>
+              {/* Score Row */}
+              <div className="flex items-center gap-6">
+                <div className="w-24 h-24 rounded-2xl bg-accent/10 flex flex-col items-center justify-center shrink-0">
+                  <span className="text-4xl font-light text-accent">{feedback.overallBand ?? "—"}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5">Band Score</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 flex-1">
+                  {[
+                    { label: "Fluency", score: feedback.fluencyCoherence?.score },
+                    { label: "Vocabulary", score: feedback.lexicalResource?.score },
+                    { label: "Grammar", score: feedback.grammaticalRange?.score },
+                    { label: "Pronunciation", score: feedback.pronunciation?.score },
+                  ].map((item) => {
+                    const s = item.score;
+                    const color = !s ? "text-muted-foreground" : s >= 7 ? "text-green-500" : s >= 5.5 ? "text-elite-gold" : "text-destructive";
+                    return (
+                      <div key={item.label} className="flex items-center gap-2">
+                        <span className={`text-xl font-light ${color}`}>{s ?? "—"}</span>
+                        <span className="text-xs text-muted-foreground">{item.label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Lexical Resource */}
-            {feedback.lexicalResource && (
-              <div className="mb-6 p-4 bg-secondary/20 rounded-xl">
-                <h3 className="text-sm font-medium text-primary mb-3">📚 Vocabulary Analysis</h3>
-                <p className="text-sm text-foreground/70 mb-3">{feedback.lexicalResource.feedback}</p>
-                
-                {feedback.lexicalResource.idiomaticExpressions && feedback.lexicalResource.idiomaticExpressions.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs text-muted-foreground mb-2">✅ Good Expressions Used:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {feedback.lexicalResource.idiomaticExpressions.map((expr: string, i: number) => (
-                        <span key={i} className="px-2 py-1 rounded bg-green-500/10 text-green-600 text-xs">
-                          {expr}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {feedback.lexicalResource.suggestions && feedback.lexicalResource.suggestions.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">💡 Vocabulary Upgrades:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {feedback.lexicalResource.suggestions.map((sugg: string, i: number) => (
-                        <span key={i} className="px-2 py-1 rounded bg-elite-gold/10 text-elite-gold text-xs">
-                          {sugg}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Grammar Analysis */}
-            {feedback.grammaticalRange && (
-              <div className="mb-6 p-4 bg-secondary/20 rounded-xl">
-                <h3 className="text-sm font-medium text-accent mb-3">📝 Grammar Analysis</h3>
-                <p className="text-sm text-foreground/70 mb-3">{feedback.grammaticalRange.feedback}</p>
-                
-                {feedback.grammaticalRange.complexStructures && feedback.grammaticalRange.complexStructures.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs text-muted-foreground mb-2">✅ Complex Structures Used:</p>
-                    <ul className="space-y-1">
-                      {feedback.grammaticalRange.complexStructures.map((struct: string, i: number) => (
-                        <li key={i} className="text-xs text-green-600">• {struct}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {feedback.grammarErrors && feedback.grammarErrors.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">⚠️ Errors to Fix:</p>
-                    <ul className="space-y-1">
-                      {feedback.grammarErrors.map((err: string, i: number) => (
-                        <li key={i} className="text-xs text-destructive">• {err}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Improvements */}
+            {/* Priority Actions — most important section */}
             {feedback.improvements && feedback.improvements.length > 0 && (
-              <div className="p-4 bg-elite-gold/5 rounded-xl">
-                <h3 className="text-sm font-medium text-elite-gold mb-3">🚀 Areas for Improvement</h3>
-                <ul className="space-y-2">
-                  {feedback.improvements.map((item: string, i: number) => (
-                    <li key={i} className="text-sm text-foreground/70 flex items-start gap-2">
-                      <span className="text-elite-gold">•</span>
-                      {item}
+              <div className="glass-card p-6 border border-elite-gold/20">
+                <h3 className="text-sm font-semibold text-elite-gold uppercase tracking-wide mb-4">
+                  What to focus on next
+                </h3>
+                <ol className="space-y-3">
+                  {feedback.improvements.slice(0, 3).map((item: string, i: number) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-elite-gold/20 text-elite-gold text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                        {i + 1}
+                      </span>
+                      <p className="text-sm text-foreground/80 leading-relaxed">{item}</p>
                     </li>
                   ))}
-                </ul>
+                </ol>
               </div>
             )}
+
+            {/* Criterion Breakdown */}
+            <div className="space-y-3">
+              {/* Fluency & Coherence */}
+              {feedback.fluencyCoherence && (
+                <div className="glass-card p-5">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-sm font-medium">Fluency & Coherence</h3>
+                    <span className={`text-lg font-light ${
+                      (feedback.fluencyCoherence.score ?? 0) >= 7 ? "text-green-500"
+                      : (feedback.fluencyCoherence.score ?? 0) >= 5.5 ? "text-elite-gold"
+                      : "text-destructive"
+                    }`}>{feedback.fluencyCoherence.score ?? "—"}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.fluencyCoherence.feedback}</p>
+                  {feedback.fillerWords?.count > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-destructive font-medium">Filler words ({feedback.fillerWords.count}):</span>
+                      {feedback.fillerWords.examples?.slice(0, 5).map((w: string, i: number) => (
+                        <span key={i} className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs">"{w}"</span>
+                      ))}
+                    </div>
+                  )}
+                  {feedback.pauseAnalysis?.count > 0 && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {feedback.pauseAnalysis.count} long pause{feedback.pauseAnalysis.count !== 1 ? "s" : ""} detected
+                      {feedback.pauseAnalysis.impact ? ` — ${feedback.pauseAnalysis.impact}` : ""}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Lexical Resource */}
+              {feedback.lexicalResource && (
+                <div className="glass-card p-5">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-sm font-medium">Vocabulary (Lexical Resource)</h3>
+                    <span className={`text-lg font-light ${
+                      (feedback.lexicalResource.score ?? 0) >= 7 ? "text-green-500"
+                      : (feedback.lexicalResource.score ?? 0) >= 5.5 ? "text-elite-gold"
+                      : "text-destructive"
+                    }`}>{feedback.lexicalResource.score ?? "—"}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.lexicalResource.feedback}</p>
+                  {feedback.lexicalResource.suggestions?.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-1.5">Try using these instead:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {feedback.lexicalResource.suggestions.map((s: string, i: number) => (
+                          <span key={i} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {feedback.lexicalResource.idiomaticExpressions?.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-green-600 mb-1.5">Good expressions you used:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {feedback.lexicalResource.idiomaticExpressions.map((e: string, i: number) => (
+                          <span key={i} className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs">{e}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Grammar */}
+              {feedback.grammaticalRange && (
+                <div className="glass-card p-5">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-sm font-medium">Grammar Range & Accuracy</h3>
+                    <span className={`text-lg font-light ${
+                      (feedback.grammaticalRange.score ?? 0) >= 7 ? "text-green-500"
+                      : (feedback.grammaticalRange.score ?? 0) >= 5.5 ? "text-elite-gold"
+                      : "text-destructive"
+                    }`}>{feedback.grammaticalRange.score ?? "—"}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.grammaticalRange.feedback}</p>
+                  {feedback.grammarErrors?.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-destructive font-medium mb-1.5">Errors to correct:</p>
+                      <ul className="space-y-1">
+                        {feedback.grammarErrors.map((e: string, i: number) => (
+                          <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                            <span className="text-destructive mt-0.5">×</span>{e}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {feedback.grammaticalRange.complexStructures?.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-green-600 font-medium mb-1.5">Structures you used well:</p>
+                      <ul className="space-y-1">
+                        {feedback.grammaticalRange.complexStructures.map((s: string, i: number) => (
+                          <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                            <span className="text-green-500 mt-0.5">✓</span>{s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Pronunciation */}
+              {feedback.pronunciation && (
+                <div className="glass-card p-5">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-sm font-medium">Pronunciation</h3>
+                    <span className={`text-lg font-light ${
+                      (feedback.pronunciation.score ?? 0) >= 7 ? "text-green-500"
+                      : (feedback.pronunciation.score ?? 0) >= 5.5 ? "text-elite-gold"
+                      : "text-destructive"
+                    }`}>{feedback.pronunciation.score ?? "—"}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feedback.pronunciation.feedback}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -172,6 +172,10 @@ export default function ReadingModule() {
       const newCache = { test, userAnswers: {}, isSubmitted: false, timeRemaining: 20 * 60, timerEndAt: newTimerEndAt, isTimerPaused: false };
       setDifficulty(capturedDifficulty);
       setCurrentTest(test);
+      setIsSubmitted(false);
+      setUserAnswers({});
+      setHighlightedEvidence(null);
+      setSelectedQuestion(null);
       setTimerEndAt(newTimerEndAt);
       setTestCache(prev => ({ ...prev, [capturedDifficulty]: newCache }));
       try {
@@ -376,12 +380,27 @@ export default function ReadingModule() {
     setUserAnswers((prev) => ({ ...prev, [questionNumber]: answer }));
   };
 
+  /** Converts headings_pool array to a Record keyed by roman numeral */
+  const buildHeadingsOptions = (pool: string[]): Record<string, string> => {
+    const opts: Record<string, string> = {};
+    pool.forEach((h) => {
+      const match = h.match(/^([ivxlcIVXLC]+)\./i);
+      if (match) opts[match[1].toLowerCase()] = h;
+      else opts[h.substring(0, 4).trim()] = h;
+    });
+    return opts;
+  };
+
   const getAllQuestions = useCallback((): Question[] => {
     if (!currentTest) return [];
-    
+
     const questions: Question[] = [];
-    
-    // Type A - True/False/Not Given
+    const typeB = currentTest.questions.typeB as any;
+    const typeC = currentTest.questions.typeC as any;
+    const typeBType: string = typeB.type || 'multiple_choice';
+    const typeCType: string = typeC.type || 'sentence_completion';
+
+    // Type A - True/False/Not Given (always the same)
     currentTest.questions.typeA.items.forEach((item) => {
       questions.push({
         number: item.number,
@@ -392,32 +411,89 @@ export default function ReadingModule() {
         explanation: item.explanation,
       });
     });
-    
-    // Type B - Multiple Choice
-    currentTest.questions.typeB.items.forEach((item) => {
-      questions.push({
-        number: item.number,
-        type: 'mcq',
-        question: item.question,
-        options: item.options,
-        answer: item.answer,
-        evidence: item.evidence,
-        explanation: item.explanation,
+
+    // Type B - varies by type
+    if (typeBType === 'matching_headings') {
+      const options = buildHeadingsOptions(typeB.headings_pool || []);
+      typeB.items.forEach((item: any) => {
+        questions.push({
+          number: item.number,
+          type: 'mcq',
+          question: `Paragraph ${item.paragraph}`,
+          options,
+          answer: item.answer?.toLowerCase?.() ?? item.answer,
+          evidence: item.evidence,
+          explanation: item.explanation,
+        });
       });
-    });
-    
-    // Type C - Completion
-    currentTest.questions.typeC.items.forEach((item) => {
-      questions.push({
-        number: item.number,
-        type: 'completion',
-        sentence: item.sentence,
-        answer: item.answer,
-        evidence: item.evidence,
-        explanation: item.explanation,
+    } else if (typeBType === 'matching_features') {
+      const options: Record<string, string> = typeB.options_pool || {};
+      typeB.items.forEach((item: any) => {
+        questions.push({
+          number: item.number,
+          type: 'mcq',
+          question: item.statement,
+          options,
+          answer: item.answer,
+          evidence: item.evidence,
+          explanation: item.explanation,
+        });
       });
-    });
-    
+    } else {
+      // Standard multiple_choice
+      currentTest.questions.typeB.items.forEach((item: any) => {
+        questions.push({
+          number: item.number,
+          type: 'mcq',
+          question: item.question,
+          options: item.options,
+          answer: item.answer,
+          evidence: item.evidence,
+          explanation: item.explanation,
+        });
+      });
+    }
+
+    // Type C - varies by type
+    if (typeCType === 'matching_sentence_endings') {
+      const options: Record<string, string> = typeC.endings_pool || {};
+      typeC.items.forEach((item: any) => {
+        questions.push({
+          number: item.number,
+          type: 'mcq',
+          question: item.sentence_start,
+          options,
+          answer: item.answer,
+          evidence: item.evidence,
+          explanation: item.explanation,
+        });
+      });
+    } else if (typeCType === 'summary_completion') {
+      const bank: string[] = typeC.word_bank || [];
+      typeC.items.forEach((item: any) => {
+        questions.push({
+          number: item.number,
+          type: 'completion',
+          sentence: bank.length ? `(Word bank: ${bank.join(', ')})` : '',
+          answer: item.answer,
+          evidence: item.evidence,
+          explanation: item.explanation,
+        });
+      });
+    } else {
+      // Standard sentence_completion
+      currentTest.questions.typeC.items.forEach((item: any) => {
+        questions.push({
+          number: item.number,
+          type: 'completion',
+          sentence: item.sentence,
+          answer: item.answer,
+          evidence: item.evidence,
+          explanation: item.explanation,
+        });
+      });
+    }
+
     return questions.sort((a, b) => a.number - b.number);
   }, [currentTest]);
 
@@ -867,64 +943,168 @@ export default function ReadingModule() {
                     </div>
                   </div>
 
-                  {/* Type B - Multiple Choice */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="text-xs">Questions 6-9</Badge>
-                      <span className="text-xs text-muted-foreground">Multiple Choice</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-4 italic">
-                      {currentTest.questions.typeB.instruction}
-                    </p>
-                    <div className="space-y-4">
-                      {currentTest.questions.typeB.items.map((item) => (
-                        <QuestionItem
-                          key={item.number}
-                          number={item.number}
-                          type="mcq"
-                          content={item.question}
-                          options={item.options}
-                          userAnswer={userAnswers[item.number] || ''}
-                          correctAnswer={item.answer}
-                          explanation={item.explanation}
-                          isSubmitted={isSubmitted}
-                          result={getQuestionResult(item.number)}
-                          isSelected={selectedQuestion === item.number}
-                          onAnswerChange={handleAnswerChange}
-                          onQuestionClick={handleQuestionClick}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  {/* Type B - varies (Multiple Choice / Matching Headings / Matching Features) */}
+                  {(() => {
+                    const typeBRaw = currentTest.questions.typeB as any;
+                    const typeBType: string = typeBRaw.type || 'multiple_choice';
 
-                  {/* Type C - Completion */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="text-xs">Questions 10-13</Badge>
-                      <span className="text-xs text-muted-foreground">Sentence Completion</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-4 italic">
-                      {currentTest.questions.typeC.instruction}
-                    </p>
-                    <div className="space-y-3">
-                      {currentTest.questions.typeC.items.map((item) => (
-                        <QuestionItem
-                          key={item.number}
-                          number={item.number}
-                          type="completion"
-                          content={item.sentence}
-                          userAnswer={userAnswers[item.number] || ''}
-                          correctAnswer={item.answer}
-                          explanation={item.explanation}
-                          isSubmitted={isSubmitted}
-                          result={getQuestionResult(item.number)}
-                          isSelected={selectedQuestion === item.number}
-                          onAnswerChange={handleAnswerChange}
-                          onQuestionClick={handleQuestionClick}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                    let label = 'Multiple Choice';
+                    if (typeBType === 'matching_headings') label = 'Matching Headings';
+                    else if (typeBType === 'matching_features') label = 'Matching Features';
+
+                    // Build options pool shared by all typeB items (for non-standard types)
+                    let sharedOptions: Record<string, string> | undefined;
+                    if (typeBType === 'matching_headings') {
+                      sharedOptions = buildHeadingsOptions(typeBRaw.headings_pool || []);
+                    } else if (typeBType === 'matching_features') {
+                      sharedOptions = typeBRaw.options_pool || {};
+                    }
+
+                    return (
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <Badge variant="secondary" className="text-xs">Questions 6-9</Badge>
+                          <span className="text-xs text-muted-foreground">{label}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-4 italic">
+                          {typeBRaw.instruction}
+                        </p>
+                        {/* Show headings pool for matching_headings */}
+                        {typeBType === 'matching_headings' && typeBRaw.headings_pool?.length > 0 && (
+                          <div className="mb-4 p-3 rounded-lg bg-secondary/20 border border-border/30">
+                            <p className="text-xs font-medium text-muted-foreground mb-2">List of Headings</p>
+                            <div className="space-y-1">
+                              {typeBRaw.headings_pool.map((h: string) => (
+                                <p key={h} className="text-xs text-foreground/80">{h}</p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Show options pool for matching_features */}
+                        {typeBType === 'matching_features' && typeBRaw.options_pool && (
+                          <div className="mb-4 p-3 rounded-lg bg-secondary/20 border border-border/30">
+                            <p className="text-xs font-medium text-muted-foreground mb-2">
+                              {typeBRaw.note || 'Match each statement to a category below'}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {Object.entries(typeBRaw.options_pool as Record<string, string>).map(([k, v]) => (
+                                <span key={k} className="text-xs px-2 py-1 rounded bg-accent/10 text-accent">
+                                  <strong>{k}:</strong> {v}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="space-y-4">
+                          {typeBRaw.items.map((item: any) => {
+                            const content = typeBType === 'matching_headings'
+                              ? `Paragraph ${item.paragraph}`
+                              : typeBType === 'matching_features'
+                              ? item.statement
+                              : item.question;
+                            const options = sharedOptions ?? item.options;
+                            const answer = typeBType === 'matching_headings'
+                              ? (item.answer?.toLowerCase?.() ?? item.answer)
+                              : item.answer;
+                            return (
+                              <QuestionItem
+                                key={item.number}
+                                number={item.number}
+                                type="mcq"
+                                content={content}
+                                options={options}
+                                userAnswer={userAnswers[item.number] || ''}
+                                correctAnswer={answer}
+                                explanation={item.explanation}
+                                isSubmitted={isSubmitted}
+                                result={getQuestionResult(item.number)}
+                                isSelected={selectedQuestion === item.number}
+                                onAnswerChange={handleAnswerChange}
+                                onQuestionClick={handleQuestionClick}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Type C - varies (Sentence Completion / Summary Completion / Matching Sentence Endings) */}
+                  {(() => {
+                    const typeCRaw = currentTest.questions.typeC as any;
+                    const typeCType: string = typeCRaw.type || 'sentence_completion';
+
+                    let label = 'Sentence Completion';
+                    if (typeCType === 'summary_completion') label = 'Summary Completion';
+                    else if (typeCType === 'matching_sentence_endings') label = 'Matching Sentence Endings';
+
+                    const endingsPool: Record<string, string> | undefined =
+                      typeCType === 'matching_sentence_endings' ? (typeCRaw.endings_pool || {}) : undefined;
+
+                    return (
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <Badge variant="secondary" className="text-xs">Questions 10-13</Badge>
+                          <span className="text-xs text-muted-foreground">{label}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-4 italic">
+                          {typeCRaw.instruction}
+                        </p>
+                        {/* Word bank for summary_completion */}
+                        {typeCType === 'summary_completion' && typeCRaw.word_bank?.length > 0 && (
+                          <div className="mb-4 p-3 rounded-lg bg-secondary/20 border border-border/30">
+                            <p className="text-xs font-medium text-muted-foreground mb-2">Word Bank</p>
+                            <div className="flex flex-wrap gap-2">
+                              {(typeCRaw.word_bank as string[]).map((w: string) => (
+                                <span key={w} className="text-xs px-2 py-1 rounded bg-accent/10 text-accent font-medium">{w}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Summary text for summary_completion */}
+                        {typeCType === 'summary_completion' && typeCRaw.summary && (
+                          <div className="mb-4 p-3 rounded-lg bg-secondary/10 border border-border/20 text-xs text-foreground/80 leading-relaxed italic">
+                            {typeCRaw.summary}
+                          </div>
+                        )}
+                        {/* Endings pool for matching_sentence_endings */}
+                        {typeCType === 'matching_sentence_endings' && endingsPool && (
+                          <div className="mb-4 p-3 rounded-lg bg-secondary/20 border border-border/30">
+                            <p className="text-xs font-medium text-muted-foreground mb-2">Sentence Endings</p>
+                            <div className="space-y-1">
+                              {Object.entries(endingsPool).map(([k, v]) => (
+                                <p key={k} className="text-xs text-foreground/80">
+                                  <strong className="text-accent">{k}.</strong> {v}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="space-y-3">
+                          {typeCRaw.items.map((item: any) => {
+                            const isEndings = typeCType === 'matching_sentence_endings';
+                            return (
+                              <QuestionItem
+                                key={item.number}
+                                number={item.number}
+                                type={isEndings ? 'mcq' : 'completion'}
+                                content={isEndings ? item.sentence_start : item.sentence}
+                                options={isEndings ? endingsPool : undefined}
+                                userAnswer={userAnswers[item.number] || ''}
+                                correctAnswer={item.answer}
+                                explanation={item.explanation}
+                                isSubmitted={isSubmitted}
+                                result={getQuestionResult(item.number)}
+                                isSelected={selectedQuestion === item.number}
+                                onAnswerChange={handleAnswerChange}
+                                onQuestionClick={handleQuestionClick}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </ScrollArea>
 
