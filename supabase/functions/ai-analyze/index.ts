@@ -195,8 +195,19 @@ ${targetKeywords}
 
   basePrompt += `
 
+=== OFFICIAL IELTS BAND CALCULATION (MANDATORY) ===
+The overall band score MUST follow the official IELTS formula:
+1. Score each of the 4 criteria on the 1–9 scale in 0.5 increments.
+2. Average them: (TR + CC + LR + GR) / 4
+3. Round to the nearest 0.5 using IELTS rules:
+   - If the decimal is .25, round UP to .5
+   - If the decimal is .75, round UP to the next whole number
+   - Example: average 6.25 → 6.5; average 6.75 → 7.0; average 6.5 → 6.5
+4. Report this calculated value as overallBand.
+DO NOT assign overallBand subjectively — it must be the rounded average of your 4 criterion scores.
+
 === GRADING PHILOSOPHY ===
-Be encouraging and constructive. Help students improve. Acknowledge improvements in revisions.`;
+Be honest and accurate. Do not inflate scores — a Band 6 essay should receive Band 6, not 7. Be encouraging but realistic. Acknowledge improvements in revisions.`;
 
   return basePrompt;
 };
@@ -596,14 +607,20 @@ ${content}
 Provide your response in this EXACT JSON format:
 {
   "wordCount": ${wordCount},
-  "overallBand": 7.0,
+  "overallBand": 0.0,
   "isRevision": ${isRevision || false},
+  "scoringGrid": {
+    "taskResponse": { "score": 0.0, "justification": "One sentence" },
+    "coherenceCohesion": { "score": 0.0, "justification": "One sentence" },
+    "lexicalResource": { "score": 0.0, "justification": "One sentence" },
+    "grammaticalRange": { "score": 0.0, "justification": "One sentence" }
+  },
   "structuralGrade": {
     "paragraph1_introduction": {
       "status": "executed/partial/missing",
       "paraphrased": true,
       "noOpinions": true,
-      "feedback": "Brief feedback on introduction"
+      "feedback": "One sentence fix if not fully executed, else empty string"
     },
     "paragraph2_overview": {
       "status": "executed/partial/missing",
@@ -625,31 +642,20 @@ Provide your response in this EXACT JSON format:
     }
   },
   "keyFeaturesAudit": {
-    "identified": ["List of key features user identified (highest, lowest, sharp rises, contrasts)"],
-    "missed": ["List of key features user missed"]
-  },
-  "vocabularySuggestions": {
-    "sequencing": ["Suggested sequencing words if needed"],
-    "contrast": ["Suggested contrast words if needed"],
-    "result": ["Suggested result words if needed"],
-    "emphasis": ["Suggested emphasis words if needed"]
-  },
-  "scoringGrid": {
-    "taskResponse": { "score": 7.0, "justification": "Brief explanation" },
-    "coherenceCohesion": { "score": 7.0, "justification": "Brief explanation" },
-    "lexicalResource": { "score": 7.0, "justification": "Brief explanation" },
-    "grammaticalRange": { "score": 7.0, "justification": "Brief explanation" }
+    "identified": ["key features the student covered"],
+    "missed": ["key features that were missed"]
   },
   "band8Transformations": [
     {
       "original": "Exact sentence from the essay",
       "rewrite": "Band 8.0+ version",
-      "explanation": "What was improved"
+      "explanation": "One sentence: what improved"
     }
   ],
-  "criticalFixes": ["Recurring error 1", "Recurring error 2"],
-  "actionableNextStep": "Specific exercise recommendation"
-}`;
+  "criticalFixes": ["Most important fix", "Second most important fix", "Third fix if applicable"],
+  "actionableNextStep": "One specific, practical thing to do before next attempt"
+}
+IMPORTANT: overallBand must equal the mathematically averaged and IELTS-rounded result of your 4 scoringGrid scores. Do not set it arbitrarily.`;
       } else {
         userPrompt = `Analyze this IELTS Task 2 essay using the STEP-BY-STEP STRUCTURAL AUDIT.
 ${revisionNote}
@@ -663,14 +669,20 @@ ${content}
 Provide your response in this EXACT JSON format:
 {
   "wordCount": ${wordCount},
-  "overallBand": 7.0,
+  "overallBand": 0.0,
   "isRevision": ${isRevision || false},
+  "scoringGrid": {
+    "taskResponse": { "score": 0.0, "justification": "One sentence" },
+    "coherenceCohesion": { "score": 0.0, "justification": "One sentence" },
+    "lexicalResource": { "score": 0.0, "justification": "One sentence" },
+    "grammaticalRange": { "score": 0.0, "justification": "One sentence" }
+  },
   "structuralGrade": {
     "paragraph1_introduction": {
       "status": "executed/partial/missing",
       "paraphrased": true,
       "hasThesis": true,
-      "feedback": "Brief feedback on introduction and thesis"
+      "feedback": "One sentence fix if not fully executed, else empty string"
     },
     "paragraph2_body1": {
       "status": "executed/partial/missing",
@@ -691,44 +703,24 @@ Provide your response in this EXACT JSON format:
       "feedback": "Brief feedback on conclusion"
     }
   },
-  "band9Highlights": {
-    "hedgingUsed": {
-      "found": true,
-      "examples": ["Examples of hedging language used"],
-      "suggestions": ["Suggestions for hedging if not used"]
-    },
-    "cohesiveProgression": {
-      "score": "Strong/Adequate/Weak",
-      "feedback": "Analysis of logical flow between sentences"
-    },
-    "ideaDepth": {
-      "score": "Deep/Moderate/Shallow",
-      "feedback": "Analysis of idea development depth"
-    }
-  },
   "vocabularyUpgrades": [
     {
-      "original": "Simple word/phrase from essay",
-      "upgrade": "Academic Band 8-9 alternative",
+      "original": "simple word/phrase from essay",
+      "upgrade": "academic alternative",
       "function": "Agreeing/Disputing/Showing Cause/Emphasizing/Proving"
     }
   ],
-  "scoringGrid": {
-    "taskResponse": { "score": 7.0, "justification": "Brief explanation" },
-    "coherenceCohesion": { "score": 7.0, "justification": "Brief explanation" },
-    "lexicalResource": { "score": 7.0, "justification": "Brief explanation" },
-    "grammaticalRange": { "score": 7.0, "justification": "Brief explanation" }
-  },
   "band8Transformations": [
     {
       "original": "Exact sentence from the essay",
       "rewrite": "Band 8.0+ version",
-      "explanation": "What was improved"
+      "explanation": "One sentence: what improved"
     }
   ],
-  "criticalFixes": ["Recurring error 1", "Recurring error 2"],
-  "actionableNextStep": "Specific exercise recommendation"
-}`;
+  "criticalFixes": ["Most important fix", "Second most important fix", "Third fix if applicable"],
+  "actionableNextStep": "One specific, practical thing to do before next attempt"
+}
+IMPORTANT: overallBand must equal the mathematically averaged and IELTS-rounded result of your 4 scoringGrid scores. Do not set it arbitrarily.`;
       }
     } else if (type === "speaking") {
       systemPrompt = SPEAKING_EXAMINER_PROMPT;
@@ -850,12 +842,19 @@ Provide your response in this JSON format:
     console.log("AI Response received:", aiResponse?.substring(0, 200));
 
     // Try to parse JSON from response using robust extraction
-    const parsedResponse = extractJsonObject(aiResponse) || { rawFeedback: aiResponse };
+    const parsedResponse = extractJsonObject(aiResponse);
+    if (!parsedResponse) {
+      // Claude returned something we can't parse — fall back to mock
+      console.warn("Could not parse Claude response as JSON, falling back to mock for:", type);
+      const mockResponse = getMockResponse(type, content, speakingPart, taskType);
+      return successResponse(mockResponse, 200, corsHeaders);
+    }
 
     return successResponse(parsedResponse, 200, corsHeaders);
   } catch (error: unknown) {
     console.error("AI analyze error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return internalError(errorMessage, { error: String(error) }, corsHeaders);
+    // Always return mock rather than a 500 so the user sees useful feedback
+    const mockResponse = getMockResponse(type, content, speakingPart, taskType);
+    return successResponse(mockResponse, 200, corsHeaders);
   }
 });

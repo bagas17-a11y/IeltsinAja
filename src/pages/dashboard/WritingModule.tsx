@@ -641,387 +641,194 @@ export default function WritingModule() {
     );
   };
 
-  const ScoreCell = ({ label, score, justification }: { label: string; score: number; justification?: string }) => (
-    <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        <span className="text-lg font-light text-accent">{score}</span>
-      </div>
-      {justification && (
-        <p className="text-xs text-muted-foreground">{justification}</p>
-      )}
-    </div>
-  );
-
-  const StructuralGradeItem = ({ label, status, checks, feedback }: { 
-    label: string; 
-    status: string; 
-    checks: { label: string; passed: boolean }[];
-    feedback: string;
-  }) => (
-    <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        {status === "executed" ? (
-          <span className="flex items-center gap-1 text-xs text-green-500"><CheckCircle className="w-3 h-3" /> Executed</span>
-        ) : status === "partial" ? (
-          <span className="flex items-center gap-1 text-xs text-yellow-500"><AlertTriangle className="w-3 h-3" /> Partial</span>
-        ) : (
-          <span className="flex items-center gap-1 text-xs text-red-500"><XCircle className="w-3 h-3" /> Missing</span>
+  const ScoreCell = ({ label, score, justification }: { label: string; score: number; justification?: string }) => {
+    const color = score >= 7 ? "text-green-400" : score >= 5.5 ? "text-elite-gold" : "text-destructive";
+    return (
+      <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm font-medium text-foreground">{label}</span>
+          <span className={`text-xl font-light ${color}`}>{score}</span>
+        </div>
+        {justification && (
+          <p className="text-sm text-foreground/70 leading-snug">{justification}</p>
         )}
       </div>
-      <div className="flex flex-wrap gap-2 mb-2">
-        {checks.map((check, i) => (
-          <span key={i} className={`text-xs px-2 py-0.5 rounded ${check.passed ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
-            {check.passed ? '✓' : '✗'} {check.label}
-          </span>
-        ))}
+    );
+  };
+
+  const StructuralGradeItem = ({ label, status, checks, feedback }: {
+    label: string;
+    status: string;
+    checks: { label: string; passed: boolean }[];
+    feedback: string;
+  }) => {
+    const allPassed = checks.every(c => c.passed);
+    const somePassed = checks.some(c => c.passed);
+    const effectiveStatus = allPassed ? "executed" : somePassed ? "partial" : status;
+    return (
+      <div className="flex items-start gap-3 py-3 border-b border-border/20 last:border-0">
+        <div className="mt-0.5 shrink-0">
+          {effectiveStatus === "executed"
+            ? <CheckCircle className="w-4 h-4 text-green-500" />
+            : effectiveStatus === "partial"
+            ? <AlertTriangle className="w-4 h-4 text-yellow-500" />
+            : <XCircle className="w-4 h-4 text-destructive" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground">{label}</p>
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {checks.map((check, i) => (
+              <span key={i} className={`text-xs px-1.5 py-0.5 rounded ${check.passed ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                {check.passed ? '✓' : '✗'} {check.label}
+              </span>
+            ))}
+          </div>
+          {!allPassed && feedback && (
+            <p className="text-sm text-foreground/70 mt-1.5 leading-snug">{feedback}</p>
+          )}
+        </div>
       </div>
-      <p className="text-xs text-muted-foreground">{feedback}</p>
-    </div>
-  );
+    );
+  };
 
   const FeedbackDisplay = ({ feedbackData, isRevisionFeedback = false }: { feedbackData: any; isRevisionFeedback?: boolean }) => (
-    <div className="space-y-6">
-      {isRevisionFeedback && (
-        <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20 mb-4">
-          <p className="text-sm text-green-500 flex items-center gap-2">
+    <div className="space-y-5">
+      {/* Revision banner */}
+      {isRevisionFeedback && feedback?.overallBand && feedbackData?.overallBand && (
+        <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+          <p className="text-sm text-green-400 flex items-center gap-2">
             <RefreshCw className="w-4 h-4" />
-            Revised Essay Feedback
-            {feedback?.overallBand && feedbackData?.overallBand && (
-              <span className="ml-2">
-                {feedbackData.overallBand > feedback.overallBand ? (
-                  <span className="text-green-400">↑ +{(feedbackData.overallBand - feedback.overallBand).toFixed(1)} bands</span>
-                ) : feedbackData.overallBand < feedback.overallBand ? (
-                  <span className="text-red-400">↓ {(feedbackData.overallBand - feedback.overallBand).toFixed(1)} bands</span>
-                ) : (
-                  <span className="text-muted-foreground">Same score</span>
-                )}
-              </span>
-            )}
+            Revised Essay —{" "}
+            {feedbackData.overallBand > feedback.overallBand
+              ? <span>↑ +{(feedbackData.overallBand - feedback.overallBand).toFixed(1)} bands</span>
+              : feedbackData.overallBand < feedback.overallBand
+              ? <span className="text-red-400">↓ {(feedbackData.overallBand - feedback.overallBand).toFixed(1)} bands</span>
+              : <span className="text-foreground/60">Same score</span>}
           </p>
         </div>
       )}
 
-      {/* Overall Score */}
-      <div className="flex items-center justify-center py-4">
-        <div className="text-center">
-          <div className="w-24 h-24 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-2">
-            <span className="text-4xl font-light text-accent">{feedbackData.overallBand}</span>
-          </div>
-          <p className="text-sm text-muted-foreground">Overall Band Score</p>
+      {/* Score row */}
+      <div className="flex items-center gap-6 p-4 bg-secondary/30 rounded-xl">
+        <div className="w-20 h-20 rounded-2xl bg-accent/10 flex flex-col items-center justify-center shrink-0">
+          <span className="text-4xl font-light text-accent">{feedbackData.overallBand}</span>
+          <span className="text-xs text-foreground/60 mt-0.5">Band</span>
         </div>
+        {feedbackData.scoringGrid && (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 flex-1">
+            {[
+              { label: "Task Response", val: feedbackData.scoringGrid.taskResponse?.score },
+              { label: "Coherence", val: feedbackData.scoringGrid.coherenceCohesion?.score },
+              { label: "Vocabulary", val: feedbackData.scoringGrid.lexicalResource?.score },
+              { label: "Grammar", val: feedbackData.scoringGrid.grammaticalRange?.score },
+            ].map(item => {
+              const s = item.val ?? 0;
+              const color = s >= 7 ? "text-green-400" : s >= 5.5 ? "text-elite-gold" : "text-destructive";
+              return (
+                <div key={item.label} className="flex items-center gap-2">
+                  <span className={`text-lg font-light ${color}`}>{s || "—"}</span>
+                  <span className="text-sm text-foreground/70">{item.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* 🏆 Structural Grade - Task 1 */}
-      {isTask1 && feedbackData.structuralGrade && (
-        <div>
-          <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
-            🏆 Structural Grade
-          </h3>
-          <div className="grid gap-3">
-            <StructuralGradeItem
-              label="Paragraph 1: Introduction"
-              status={feedbackData.structuralGrade.paragraph1_introduction?.status || "missing"}
-              checks={[
-                { label: "Paraphrased", passed: feedbackData.structuralGrade.paragraph1_introduction?.paraphrased },
-                { label: "No Opinions", passed: feedbackData.structuralGrade.paragraph1_introduction?.noOpinions }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph1_introduction?.feedback || ""}
-            />
-            <StructuralGradeItem
-              label="Paragraph 2: Overview"
-              status={feedbackData.structuralGrade.paragraph2_overview?.status || "missing"}
-              checks={[
-                { label: `${feedbackData.structuralGrade.paragraph2_overview?.trendsCount || 0} Trends`, passed: (feedbackData.structuralGrade.paragraph2_overview?.trendsCount || 0) >= 2 },
-                { label: "General Terms", passed: feedbackData.structuralGrade.paragraph2_overview?.usedGeneralTerms }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph2_overview?.feedback || ""}
-            />
-            <StructuralGradeItem
-              label="Paragraph 3: Body 1"
-              status={feedbackData.structuralGrade.paragraph3_body1?.status || "missing"}
-              checks={[
-                { label: "Key Feature", passed: feedbackData.structuralGrade.paragraph3_body1?.hasKeyFeature },
-                { label: "Data Support", passed: feedbackData.structuralGrade.paragraph3_body1?.hasDataSupport }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph3_body1?.feedback || ""}
-            />
-            <StructuralGradeItem
-              label="Paragraph 4: Body 2"
-              status={feedbackData.structuralGrade.paragraph4_body2?.status || "missing"}
-              checks={[
-                { label: "Second Feature", passed: feedbackData.structuralGrade.paragraph4_body2?.hasSecondFeature },
-                { label: "Precise Figures", passed: feedbackData.structuralGrade.paragraph4_body2?.hasPreciseFigures }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph4_body2?.feedback || ""}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 📍 Key Features Audit - Task 1 */}
-      {isTask1 && feedbackData.keyFeaturesAudit && (
-        <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-            📍 Key Features Audit
-          </h3>
-          {feedbackData.keyFeaturesAudit.identified?.length > 0 && (
-            <div className="mb-3">
-              <span className="text-xs text-green-400">Identified:</span>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {feedbackData.keyFeaturesAudit.identified.map((item: string, i: number) => (
-                  <span key={i} className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded">{item}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {feedbackData.keyFeaturesAudit.missed?.length > 0 && (
-            <div>
-              <span className="text-xs text-red-400">Missed:</span>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {feedbackData.keyFeaturesAudit.missed.map((item: string, i: number) => (
-                  <span key={i} className="text-xs px-2 py-1 bg-red-500/10 text-red-400 rounded">{item}</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ✍️ Vocabulary Suggestion Box - Task 1 */}
-      {isTask1 && feedbackData.vocabularySuggestions && (
-        <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-            ✍️ Vocabulary Suggestion Box
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {feedbackData.vocabularySuggestions.sequencing?.length > 0 && (
-              <div>
-                <span className="text-xs text-blue-400 font-medium">Sequencing:</span>
-                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.sequencing.join(", ")}</p>
-              </div>
-            )}
-            {feedbackData.vocabularySuggestions.contrast?.length > 0 && (
-              <div>
-                <span className="text-xs text-purple-400 font-medium">Contrast:</span>
-                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.contrast.join(", ")}</p>
-              </div>
-            )}
-            {feedbackData.vocabularySuggestions.result?.length > 0 && (
-              <div>
-                <span className="text-xs text-orange-400 font-medium">Result:</span>
-                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.result.join(", ")}</p>
-              </div>
-            )}
-            {feedbackData.vocabularySuggestions.emphasis?.length > 0 && (
-              <div>
-                <span className="text-xs text-green-400 font-medium">Emphasis:</span>
-                <p className="text-xs text-muted-foreground mt-1">{feedbackData.vocabularySuggestions.emphasis.join(", ")}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 🏆 Structural Grade - Task 2 */}
-      {!isTask1 && feedbackData.structuralGrade && (
-        <div>
-          <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
-            🏆 Structural Grade
-          </h3>
-          <div className="grid gap-3">
-            <StructuralGradeItem
-              label="Paragraph 1: Introduction"
-              status={feedbackData.structuralGrade.paragraph1_introduction?.status || "missing"}
-              checks={[
-                { label: "Paraphrased", passed: feedbackData.structuralGrade.paragraph1_introduction?.paraphrased },
-                { label: "Has Thesis", passed: feedbackData.structuralGrade.paragraph1_introduction?.hasThesis }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph1_introduction?.feedback || ""}
-            />
-            <StructuralGradeItem
-              label="Paragraph 2: Body 1 (First Argument)"
-              status={feedbackData.structuralGrade.paragraph2_body1?.status || "missing"}
-              checks={[
-                { label: "Topic Sentence", passed: feedbackData.structuralGrade.paragraph2_body1?.hasTopicSentence },
-                { label: "Has Example", passed: feedbackData.structuralGrade.paragraph2_body1?.hasExample }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph2_body1?.feedback || ""}
-            />
-            <StructuralGradeItem
-              label="Paragraph 3: Body 2 (Second Argument)"
-              status={feedbackData.structuralGrade.paragraph3_body2?.status || "missing"}
-              checks={[
-                { label: "Topic Sentence", passed: feedbackData.structuralGrade.paragraph3_body2?.hasTopicSentence },
-                { label: "Developed/Counter", passed: feedbackData.structuralGrade.paragraph3_body2?.developedOrCounterArg }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph3_body2?.feedback || ""}
-            />
-            <StructuralGradeItem
-              label="Paragraph 4: Conclusion"
-              status={feedbackData.structuralGrade.paragraph4_conclusion?.status || "missing"}
-              checks={[
-                { label: "Summarized", passed: feedbackData.structuralGrade.paragraph4_conclusion?.summarized },
-                { label: "No New Ideas", passed: feedbackData.structuralGrade.paragraph4_conclusion?.noNewIdeas }
-              ]}
-              feedback={feedbackData.structuralGrade.paragraph4_conclusion?.feedback || ""}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 💎 Band 9 Highlights - Task 2 */}
-      {!isTask1 && feedbackData.band9Highlights && (
-        <div className="p-4 bg-elite-gold/5 rounded-lg border border-elite-gold/20">
-          <h3 className="text-sm font-medium text-elite-gold mb-4 flex items-center gap-2">
-            💎 Band 9 Highlights
-          </h3>
-          <div className="space-y-4">
-            {feedbackData.band9Highlights.hedgingUsed && (
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-foreground">Hedging Technique:</span>
-                  {feedbackData.band9Highlights.hedgingUsed.found ? (
-                    <span className="text-xs text-green-400">✓ Found</span>
-                  ) : (
-                    <span className="text-xs text-red-400">✗ Not Found</span>
-                  )}
-                </div>
-                {feedbackData.band9Highlights.hedgingUsed.examples?.length > 0 && (
-                  <p className="text-xs text-green-400/80 mb-1">Examples: {feedbackData.band9Highlights.hedgingUsed.examples.join(", ")}</p>
-                )}
-                {feedbackData.band9Highlights.hedgingUsed.suggestions?.length > 0 && (
-                  <p className="text-xs text-muted-foreground">Try: {feedbackData.band9Highlights.hedgingUsed.suggestions.join(", ")}</p>
-                )}
-              </div>
-            )}
-            {feedbackData.band9Highlights.cohesiveProgression && (
-              <div>
-                <span className="text-xs font-medium text-foreground">Cohesive Progression: </span>
-                <span className={`text-xs ${feedbackData.band9Highlights.cohesiveProgression.score === "Strong" ? "text-green-400" : feedbackData.band9Highlights.cohesiveProgression.score === "Adequate" ? "text-yellow-400" : "text-red-400"}`}>
-                  {feedbackData.band9Highlights.cohesiveProgression.score}
+      {/* What to fix — priority numbered list */}
+      {feedbackData.criticalFixes?.length > 0 && (
+        <div className="p-4 bg-secondary/30 rounded-xl border border-border/30">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">What to fix</h3>
+          <ol className="space-y-2.5">
+            {feedbackData.criticalFixes.slice(0, 4).map((fix: string, i: number) => (
+              <li key={i} className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-destructive/20 text-destructive text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                  {i + 1}
                 </span>
-                <p className="text-xs text-muted-foreground mt-1">{feedbackData.band9Highlights.cohesiveProgression.feedback}</p>
-              </div>
-            )}
-            {feedbackData.band9Highlights.ideaDepth && (
-              <div>
-                <span className="text-xs font-medium text-foreground">Idea Depth: </span>
-                <span className={`text-xs ${feedbackData.band9Highlights.ideaDepth.score === "Deep" ? "text-green-400" : feedbackData.band9Highlights.ideaDepth.score === "Moderate" ? "text-yellow-400" : "text-red-400"}`}>
-                  {feedbackData.band9Highlights.ideaDepth.score}
-                </span>
-                <p className="text-xs text-muted-foreground mt-1">{feedbackData.band9Highlights.ideaDepth.feedback}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 📚 Vocabulary Upgrades - Task 2 */}
-      {!isTask1 && feedbackData.vocabularyUpgrades && feedbackData.vocabularyUpgrades.length > 0 && (
-        <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-            📚 Academic Vocabulary Upgrades
-          </h3>
-          <div className="space-y-2">
-            {feedbackData.vocabularyUpgrades.map((upgrade: any, i: number) => (
-              <div key={i} className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-0.5 bg-muted rounded text-muted-foreground">{upgrade.function}</span>
-                <span className="text-red-400">"{upgrade.original}"</span>
-                <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                <span className="text-green-400">"{upgrade.upgrade}"</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Scoring Grid */}
-      {feedbackData.scoringGrid && (
-        <div>
-          <h3 className="text-sm font-medium text-foreground mb-4">The Scoring Grid</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <ScoreCell 
-              label="Task Response" 
-              score={feedbackData.scoringGrid.taskResponse?.score || 0}
-              justification={feedbackData.scoringGrid.taskResponse?.justification}
-            />
-            <ScoreCell 
-              label="Coherence & Cohesion" 
-              score={feedbackData.scoringGrid.coherenceCohesion?.score || 0}
-              justification={feedbackData.scoringGrid.coherenceCohesion?.justification}
-            />
-            <ScoreCell 
-              label="Lexical Resource" 
-              score={feedbackData.scoringGrid.lexicalResource?.score || 0}
-              justification={feedbackData.scoringGrid.lexicalResource?.justification}
-            />
-            <ScoreCell 
-              label="Grammatical Range & Accuracy" 
-              score={feedbackData.scoringGrid.grammaticalRange?.score || 0}
-              justification={feedbackData.scoringGrid.grammaticalRange?.justification}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Band 8.0+ Transformations */}
-      {feedbackData.band8Transformations && feedbackData.band8Transformations.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-elite-gold mb-4 flex items-center gap-2">
-            <Star className="w-4 h-4" />
-            The Band 8.0+ Transformation
-          </h3>
-          <div className="space-y-4">
-            {feedbackData.band8Transformations.map((transform: any, i: number) => (
-              <div key={i} className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-                <div className="mb-3">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Original</span>
-                  <p className="text-sm text-red-400/80 mt-1 italic">"{transform.original}"</p>
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <ArrowRight className="w-4 h-4 text-elite-gold" />
-                  <span className="text-xs text-elite-gold uppercase tracking-wide">Band 8.0+ Rewrite</span>
-                </div>
-                <p className="text-sm text-green-400/80 italic mb-3">"{transform.rewrite}"</p>
-                <div className="pt-3 border-t border-border/30">
-                  <p className="text-xs text-muted-foreground">
-                    <strong className="text-foreground/70">Why it's better:</strong> {transform.explanation}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Critical Fixes */}
-      {feedbackData.criticalFixes && feedbackData.criticalFixes.length > 0 && (
-        <div className="p-4 bg-red-500/5 rounded-lg border border-red-500/20">
-          <h3 className="text-sm font-medium text-red-500 mb-3 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            Critical Fixes
-          </h3>
-          <ul className="space-y-2">
-            {feedbackData.criticalFixes.map((fix: string, i: number) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-foreground/70">
-                <ChevronRight className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                {fix}
+                <p className="text-sm text-foreground/85 leading-snug">{fix}</p>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
       )}
 
-      {/* Actionable Next Step */}
-      {feedbackData.actionableNextStep && (
-        <div className="p-4 bg-green-500/5 rounded-lg border border-green-500/20">
-          <h3 className="text-sm font-medium text-green-500 mb-2 flex items-center gap-2">
-            <Lightbulb className="w-4 h-4" />
-            Actionable Next Step
+      {/* Structural checks */}
+      {feedbackData.structuralGrade && (
+        <div className="p-4 bg-secondary/30 rounded-xl border border-border/30">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-1">Structure</h3>
+          {isTask1 ? (
+            <>
+              <StructuralGradeItem label="Introduction" status={feedbackData.structuralGrade.paragraph1_introduction?.status || "missing"} checks={[{ label: "Paraphrased", passed: feedbackData.structuralGrade.paragraph1_introduction?.paraphrased }, { label: "No Opinions", passed: feedbackData.structuralGrade.paragraph1_introduction?.noOpinions }]} feedback={feedbackData.structuralGrade.paragraph1_introduction?.feedback || ""} />
+              <StructuralGradeItem label="Overview" status={feedbackData.structuralGrade.paragraph2_overview?.status || "missing"} checks={[{ label: `${feedbackData.structuralGrade.paragraph2_overview?.trendsCount || 0} Trends`, passed: (feedbackData.structuralGrade.paragraph2_overview?.trendsCount || 0) >= 2 }, { label: "General Terms", passed: feedbackData.structuralGrade.paragraph2_overview?.usedGeneralTerms }]} feedback={feedbackData.structuralGrade.paragraph2_overview?.feedback || ""} />
+              <StructuralGradeItem label="Body 1" status={feedbackData.structuralGrade.paragraph3_body1?.status || "missing"} checks={[{ label: "Key Feature", passed: feedbackData.structuralGrade.paragraph3_body1?.hasKeyFeature }, { label: "Data Support", passed: feedbackData.structuralGrade.paragraph3_body1?.hasDataSupport }]} feedback={feedbackData.structuralGrade.paragraph3_body1?.feedback || ""} />
+              <StructuralGradeItem label="Body 2" status={feedbackData.structuralGrade.paragraph4_body2?.status || "missing"} checks={[{ label: "Second Feature", passed: feedbackData.structuralGrade.paragraph4_body2?.hasSecondFeature }, { label: "Precise Figures", passed: feedbackData.structuralGrade.paragraph4_body2?.hasPreciseFigures }]} feedback={feedbackData.structuralGrade.paragraph4_body2?.feedback || ""} />
+            </>
+          ) : (
+            <>
+              <StructuralGradeItem label="Introduction" status={feedbackData.structuralGrade.paragraph1_introduction?.status || "missing"} checks={[{ label: "Paraphrased", passed: feedbackData.structuralGrade.paragraph1_introduction?.paraphrased }, { label: "Has Thesis", passed: feedbackData.structuralGrade.paragraph1_introduction?.hasThesis }]} feedback={feedbackData.structuralGrade.paragraph1_introduction?.feedback || ""} />
+              <StructuralGradeItem label="Body 1" status={feedbackData.structuralGrade.paragraph2_body1?.status || "missing"} checks={[{ label: "Topic Sentence", passed: feedbackData.structuralGrade.paragraph2_body1?.hasTopicSentence }, { label: "Has Example", passed: feedbackData.structuralGrade.paragraph2_body1?.hasExample }]} feedback={feedbackData.structuralGrade.paragraph2_body1?.feedback || ""} />
+              <StructuralGradeItem label="Body 2" status={feedbackData.structuralGrade.paragraph3_body2?.status || "missing"} checks={[{ label: "Topic Sentence", passed: feedbackData.structuralGrade.paragraph3_body2?.hasTopicSentence }, { label: "Developed/Counter", passed: feedbackData.structuralGrade.paragraph3_body2?.developedOrCounterArg }]} feedback={feedbackData.structuralGrade.paragraph3_body2?.feedback || ""} />
+              <StructuralGradeItem label="Conclusion" status={feedbackData.structuralGrade.paragraph4_conclusion?.status || "missing"} checks={[{ label: "Summarized", passed: feedbackData.structuralGrade.paragraph4_conclusion?.summarized }, { label: "No New Ideas", passed: feedbackData.structuralGrade.paragraph4_conclusion?.noNewIdeas }]} feedback={feedbackData.structuralGrade.paragraph4_conclusion?.feedback || ""} />
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Criterion justifications */}
+      {feedbackData.scoringGrid && (
+        <div className="grid md:grid-cols-2 gap-3">
+          <ScoreCell label="Task Response" score={feedbackData.scoringGrid.taskResponse?.score || 0} justification={feedbackData.scoringGrid.taskResponse?.justification} />
+          <ScoreCell label="Coherence & Cohesion" score={feedbackData.scoringGrid.coherenceCohesion?.score || 0} justification={feedbackData.scoringGrid.coherenceCohesion?.justification} />
+          <ScoreCell label="Lexical Resource" score={feedbackData.scoringGrid.lexicalResource?.score || 0} justification={feedbackData.scoringGrid.lexicalResource?.justification} />
+          <ScoreCell label="Grammatical Range & Accuracy" score={feedbackData.scoringGrid.grammaticalRange?.score || 0} justification={feedbackData.scoringGrid.grammaticalRange?.justification} />
+        </div>
+      )}
+
+      {/* Vocabulary upgrades (compact) */}
+      {feedbackData.vocabularyUpgrades?.length > 0 && (
+        <div className="p-4 bg-secondary/30 rounded-xl border border-border/30">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">Vocabulary upgrades</h3>
+          <div className="space-y-2">
+            {feedbackData.vocabularyUpgrades.slice(0, 5).map((u: any, i: number) => (
+              <div key={i} className="flex items-center gap-2 text-sm flex-wrap">
+                <span className="text-foreground/50 text-xs">{u.function}</span>
+                <span className="text-destructive/80">"{u.original}"</span>
+                <ArrowRight className="w-3 h-3 text-foreground/40 shrink-0" />
+                <span className="text-green-400">"{u.upgrade}"</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Band 8+ rewrites */}
+      {feedbackData.band8Transformations?.length > 0 && (
+        <div className="p-4 bg-elite-gold/5 rounded-xl border border-elite-gold/20">
+          <h3 className="text-sm font-semibold text-elite-gold uppercase tracking-wide mb-3 flex items-center gap-2">
+            <Star className="w-3.5 h-3.5" /> Band 8+ rewrites
           </h3>
-          <p className="text-sm text-foreground/80">{feedbackData.actionableNextStep}</p>
+          <div className="space-y-4">
+            {feedbackData.band8Transformations.slice(0, 2).map((t: any, i: number) => (
+              <div key={i}>
+                <p className="text-sm text-destructive/70 italic mb-1">"{t.original}"</p>
+                <div className="flex items-start gap-1.5">
+                  <ArrowRight className="w-3.5 h-3.5 text-elite-gold shrink-0 mt-0.5" />
+                  <p className="text-sm text-green-400 italic">"{t.rewrite}"</p>
+                </div>
+                {t.explanation && <p className="text-sm text-foreground/60 mt-1">{t.explanation}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actionable next step */}
+      {feedbackData.actionableNextStep && (
+        <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/20">
+          <h3 className="text-sm font-semibold text-green-400 mb-1 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4" /> Next step
+          </h3>
+          <p className="text-sm text-foreground/85 leading-relaxed">{feedbackData.actionableNextStep}</p>
         </div>
       )}
     </div>

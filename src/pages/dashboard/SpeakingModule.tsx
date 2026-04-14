@@ -382,26 +382,51 @@ export default function SpeakingModule() {
       return;
     }
 
+    // Refresh session so the JWT is valid when invoking the edge function
+    let currentSession;
+    try {
+      const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+      currentSession = refreshed ?? (await supabase.auth.getSession()).data.session;
+    } catch (e) {
+      console.error("Session refresh error:", e);
+    }
+
+    if (!currentSession) {
+      toast({ title: "Authentication required", description: "Please sign in again.", variant: "destructive" });
+      return;
+    }
+
     generationStore.startGen('speaking-analysis');
 
     try {
       const currentQuestion = getCurrentQuestion();
-      const questionContext = currentPart === 'part2'
+      const rawContext = currentPart === 'part2'
         ? (currentQuestion as any).cueCard
         : currentPart === 'part3'
-        ? (currentQuestion as any).questions.join('\n')
-        : (currentQuestion as any).question;
+        ? (currentQuestion as any).questions?.join('\n') ?? ''
+        : (currentQuestion as any).question ?? '';
+
+      // Zod schema limits question to 2000 chars — truncate to be safe
+      const questionContext = typeof rawContext === 'string'
+        ? rawContext.slice(0, 1900)
+        : '';
 
       const { data, error } = await supabase.functions.invoke("ai-analyze", {
         body: {
           type: "speaking",
           content: finalTranscript,
           speakingPart: currentPart,
-          question: questionContext,
+          question: questionContext || undefined,
+        },
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Speaking analysis invoke error:", error);
+        throw error;
+      }
 
       // Unwrap response: supabase.functions.invoke returns {success, data} wrapper
       const unwrappedData = data?.success ? data.data : data;
