@@ -91,8 +91,11 @@ export type Database = {
           model_answer_band9: string | null
           question_image_url: string | null
           question_prompt: string
+          source_book: string | null
           target_keywords: string | null
+          task_part: string | null
           task_type: string
+          test_number: string | null
           title: string
           updated_at: string
         }
@@ -106,8 +109,11 @@ export type Database = {
           model_answer_band9?: string | null
           question_image_url?: string | null
           question_prompt: string
+          source_book?: string | null
           target_keywords?: string | null
+          task_part?: string | null
           task_type: string
+          test_number?: string | null
           title: string
           updated_at?: string
         }
@@ -121,8 +127,11 @@ export type Database = {
           model_answer_band9?: string | null
           question_image_url?: string | null
           question_prompt?: string
+          source_book?: string | null
           target_keywords?: string | null
+          task_part?: string | null
           task_type?: string
+          test_number?: string | null
           title?: string
           updated_at?: string
         }

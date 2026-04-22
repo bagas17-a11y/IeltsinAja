@@ -15,6 +15,7 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
 import { generationStore } from "@/stores/generationStore";
 import { useGenerationEntry } from "@/hooks/useGenerationEntry";
+import task2RubricData from "@/data/task2-rubric.json";
 
 interface IeltsQuestion {
   id: string;
@@ -27,6 +28,9 @@ interface IeltsQuestion {
   target_keywords: string | null;
   difficulty: string;
   is_active: boolean;
+  source_book?: string | null;
+  test_number?: string | null;
+  task_part?: string | null;
   // AI-generated questions only — raw data for chart/map rendering
   visual_type?: string;
   visual_data?: Record<string, unknown>;
@@ -70,33 +74,22 @@ const task1Rubric = [
   }
 ];
 
-// Grading Rubric for Task 2
-const task2Rubric = [
-  {
-    criterion: "Task Response",
-    description: "Clear thesis in introduction. Each paragraph needs topic sentence + support/examples.",
-    band9: "Fully addresses all parts; presents a fully developed position",
-    band5: "Addresses the task only partially; position unclear"
-  },
-  {
-    criterion: "Coherence & Cohesion",
-    description: "Logical progression. Use 'Consequently', 'Paradoxically', 'This suggests that...'",
-    band9: "Seamless cohesion; skillful paragraphing",
-    band5: "Some organization but lacks overall progression"
-  },
-  {
-    criterion: "Lexical Resource",
-    description: "Topic-specific vocabulary. Avoid informal language ('kids', 'stuff', 'bad').",
-    band9: "Wide range with sophisticated control of lexical features",
-    band5: "Limited range; repetitive; noticeable errors"
-  },
-  {
-    criterion: "Grammatical Range",
-    description: "Need 3+ complex sentence types (Conditional, Relative, Passive, Subordinate).",
-    band9: "Wide range of structures; full flexibility; rare minor errors",
-    band5: "Limited range; attempts complex sentences with limited accuracy"
-  }
-];
+function task2DimensionDisplayName(name: string): string {
+  const map: Record<string, string> = {
+    task_response: "Task Response",
+    coherence_cohesion: "Coherence and Cohesion",
+    lexical_resource: "Lexical Resource",
+    grammatical_range_accuracy: "Grammatical Range and Accuracy",
+  };
+  return map[name] || name;
+}
+
+const task2Rubric = task2RubricData.dimensions.map((d) => ({
+  criterion: task2DimensionDisplayName(d.name),
+  description: d.description,
+  band9: d.bands["9"] as string,
+  band5: d.bands["5"] as string,
+}));
 
 export default function WritingModule() {
   // useAuth MUST be called before any useState that references user?.id
@@ -429,6 +422,7 @@ export default function WritingModule() {
           taskType: activeTask,
           isRevision,
           questionId: selectedQuestion?.id || undefined,
+          questionPrompt: selectedQuestion?.question_prompt || undefined,
           secretContext: selectedQuestion?.ai_secret_context || undefined,
           modelAnswer: selectedQuestion?.model_answer_band9 || undefined,
           targetKeywords: selectedQuestion?.target_keywords || undefined,
@@ -942,6 +936,11 @@ export default function WritingModule() {
                                 <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
                                   {q.title}
                                 </h3>
+                                {(q.source_book || q.test_number || q.task_part) && (
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    {[q.source_book, q.test_number, q.task_part].filter(Boolean).join(" · ")}
+                                  </p>
+                                )}
                                 <p className="text-sm text-muted-foreground line-clamp-2">
                                   {q.question_prompt}
                                 </p>
@@ -1041,6 +1040,11 @@ export default function WritingModule() {
                               <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
                                 {q.title}
                               </h3>
+                              {(q.source_book || q.test_number || q.task_part) && (
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {[q.source_book, q.test_number, q.task_part].filter(Boolean).join(" · ")}
+                                </p>
+                              )}
                               <p className="text-sm text-muted-foreground line-clamp-2">
                                 {q.question_prompt}
                               </p>
@@ -1119,7 +1123,10 @@ export default function WritingModule() {
             {/* Rubric Section */}
             {showRubric && (
               <div className="glass-card p-6 mb-6">
-                <h2 className="text-lg font-light mb-4">Grading Rubric - {activeTask}</h2>
+                <h2 className="text-lg font-light mb-1">Grading Rubric - {activeTask}</h2>
+                {!isTask1 && (
+                  <p className="text-xs text-muted-foreground mb-4">{task2RubricData.rubric_name}</p>
+                )}
                 <div className="space-y-4">
                   {currentRubric.map((item, i) => (
                     <div key={i} className="p-4 bg-secondary/30 rounded-lg border border-border/30">

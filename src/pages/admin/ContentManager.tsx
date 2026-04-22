@@ -26,6 +26,9 @@ interface IeltsQuestion {
   target_keywords: string | null;
   difficulty: string;
   is_active: boolean;
+  source_book?: string | null;
+  test_number?: string | null;
+  task_part?: string | null;
 }
 
 export default function ContentManager() {
@@ -39,6 +42,8 @@ export default function ContentManager() {
   const [generating, setGenerating] = useState(false);
   const [testing, setTesting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [bulkJsonText, setBulkJsonText] = useState("");
+  const [bulkImporting, setBulkImporting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [testEssay, setTestEssay] = useState("");
   const [selectedQuestion, setSelectedQuestion] = useState<IeltsQuestion | null>(null);
@@ -54,6 +59,9 @@ export default function ContentManager() {
     target_keywords: "",
     difficulty: "medium",
     is_active: true,
+    source_book: "",
+    test_number: "",
+    task_part: "",
   });
 
   useEffect(() => {
@@ -148,6 +156,7 @@ export default function ContentManager() {
           content: testEssay,
           taskType: formData.task_type.startsWith("Task 1") ? "Task 1" : "Task 2",
           questionId: selectedQuestion?.id,
+          questionPrompt: formData.question_prompt || undefined,
           secretContext: formData.ai_secret_context,
           modelAnswer: formData.model_answer_band9,
           targetKeywords: formData.target_keywords,
@@ -252,6 +261,9 @@ export default function ContentManager() {
         target_keywords: formData.target_keywords || null,
         difficulty: formData.difficulty,
         is_active: formData.is_active,
+        source_book: formData.source_book.trim() || null,
+        test_number: formData.test_number.trim() || null,
+        task_part: formData.task_part.trim() || null,
       };
 
       if (formMode === "edit" && selectedQuestion) {
@@ -308,6 +320,92 @@ export default function ContentManager() {
     }
   };
 
+  const handleBulkImportTask2 = async () => {
+    let rows: unknown;
+    try {
+      rows = JSON.parse(bulkJsonText);
+    } catch {
+      toast({
+        title: "Invalid JSON",
+        description: "Paste a valid JSON array of Task 2 objects.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!Array.isArray(rows) || rows.length === 0) {
+      toast({
+        title: "Invalid format",
+        description: "Expected a non-empty JSON array.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    type RowIn = {
+      title?: string;
+      question_prompt?: string;
+      question_image_url?: string | null;
+      model_answer_band9?: string | null;
+      ai_secret_context?: string | null;
+      target_keywords?: string | null;
+      difficulty?: string;
+      is_active?: boolean;
+      source_book?: string | null;
+      test_number?: string | null;
+      task_part?: string | null;
+    };
+
+    const inserts = (rows as RowIn[])
+      .map((r) => ({
+        task_type: "Task 2" as const,
+        title: (r.title && String(r.title).trim()) || "Untitled Task 2",
+        question_prompt: (r.question_prompt && String(r.question_prompt).trim()) || "",
+        question_image_url: r.question_image_url ?? null,
+        model_answer_band9: r.model_answer_band9 ?? null,
+        ai_secret_context: r.ai_secret_context ?? null,
+        target_keywords: r.target_keywords ?? null,
+        difficulty: ["easy", "medium", "hard"].includes(String(r.difficulty))
+          ? String(r.difficulty)
+          : "medium",
+        is_active: r.is_active !== false,
+        source_book: r.source_book != null && String(r.source_book).trim() ? String(r.source_book).trim() : null,
+        test_number: r.test_number != null && String(r.test_number).trim() ? String(r.test_number).trim() : null,
+        task_part: r.task_part != null && String(r.task_part).trim() ? String(r.task_part).trim() : null,
+        created_by: user?.id ?? null,
+      }))
+      .filter((x) => x.question_prompt.length > 0);
+
+    if (inserts.length === 0) {
+      toast({
+        title: "Nothing to import",
+        description: "Each item needs a non-empty question_prompt.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBulkImporting(true);
+    try {
+      const { error } = await supabase.from("ielts_library").insert(inserts);
+      if (error) throw error;
+      toast({
+        title: "Import complete",
+        description: `Inserted ${inserts.length} Task 2 question(s).`,
+      });
+      setBulkJsonText("");
+      fetchQuestions();
+    } catch (error) {
+      console.error("Bulk import error:", error);
+      toast({
+        title: "Import failed",
+        description: error instanceof Error ? error.message : "Check JSON and DB columns (run migrations).",
+        variant: "destructive",
+      });
+    } finally {
+      setBulkImporting(false);
+    }
+  };
+
   const handleEdit = (question: IeltsQuestion) => {
     setSelectedQuestion(question);
     setFormData({
@@ -320,6 +418,9 @@ export default function ContentManager() {
       target_keywords: question.target_keywords || "",
       difficulty: question.difficulty,
       is_active: question.is_active,
+      source_book: question.source_book || "",
+      test_number: question.test_number || "",
+      task_part: question.task_part || "",
     });
     setFormMode("edit");
     setTestResult(null);
@@ -337,6 +438,9 @@ export default function ContentManager() {
       target_keywords: "",
       difficulty: "medium",
       is_active: true,
+      source_book: "",
+      test_number: "",
+      task_part: "",
     });
     setSelectedQuestion(null);
     setFormMode("list");
@@ -374,6 +478,29 @@ export default function ContentManager() {
         {/* List View */}
         {formMode === "list" && (
           <div className="space-y-4">
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-base font-medium">Bulk import — Task 2 only</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  JSON array of objects: title, question_prompt (required); optional model_answer_band9,
+                  ai_secret_context, target_keywords, difficulty (easy|medium|hard), is_active, source_book,
+                  test_number, task_part, question_image_url.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Textarea
+                  value={bulkJsonText}
+                  onChange={(e) => setBulkJsonText(e.target.value)}
+                  placeholder={`[\n  {\n    "title": "Cambridge 18 Test 2",\n    "question_prompt": "Some people believe...",\n    "source_book": "Cambridge IELTS 18",\n    "test_number": "Test 2"\n  }\n]`}
+                  className="min-h-[140px] font-mono text-xs"
+                />
+                <Button onClick={handleBulkImportTask2} disabled={bulkImporting || !bulkJsonText.trim()} className="gap-2">
+                  {bulkImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  Import Task 2 questions
+                </Button>
+              </CardContent>
+            </Card>
+
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -419,6 +546,11 @@ export default function ContentManager() {
                           )}
                         </div>
                         <h3 className="font-medium text-foreground mb-1">{q.title}</h3>
+                        {(q.source_book || q.test_number || q.task_part) && (
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {[q.source_book, q.test_number, q.task_part].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {q.question_prompt}
                         </p>
@@ -530,6 +662,36 @@ export default function ContentManager() {
                     placeholder="e.g., Housing Tenure in England and Wales"
                     className="mt-1"
                   />
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm">Source book (optional)</Label>
+                    <Input
+                      value={formData.source_book}
+                      onChange={(e) => setFormData(prev => ({ ...prev, source_book: e.target.value }))}
+                      placeholder="e.g. Cambridge IELTS 18"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm">Test number (optional)</Label>
+                    <Input
+                      value={formData.test_number}
+                      onChange={(e) => setFormData(prev => ({ ...prev, test_number: e.target.value }))}
+                      placeholder="e.g. Test 2"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm">Task part (optional)</Label>
+                    <Input
+                      value={formData.task_part}
+                      onChange={(e) => setFormData(prev => ({ ...prev, task_part: e.target.value }))}
+                      placeholder="e.g. Writing Task 2"
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
 
                 <div>

@@ -15,8 +15,10 @@ export const AIAnalyzeSchema = z.object({
   taskType: z.string().optional(),
   isRevision: z.boolean().optional(),
   questionId: z.string().optional(),
+  /** Full task wording; server prefers ielts_library when questionId is a UUID. */
+  questionPrompt: z.string().max(12000).optional(),
   secretContext: z.string().max(5000).optional(),
-  modelAnswer: z.string().max(5000).optional(),
+  modelAnswer: z.string().max(8000).optional(),
   targetKeywords: z.string().max(1000).optional(),
   prompt: z.string().max(5000).optional(),
   speakingPart: z.string().optional(),
