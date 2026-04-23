@@ -243,6 +243,13 @@ export default function WritingModule() {
   };
 
   const generateQuestion = async () => {
+    if (activeTask === "Task 2") {
+      toast({
+        title: "Task 2 uses library questions",
+        description: "Upload Task 2 prompts from Content Manager to practice them here.",
+      });
+      return;
+    }
     if (isGatingLoading) return;
     if (!canAccess("writing")) {
       setShowUpgradeModal(true);
@@ -885,31 +892,37 @@ export default function WritingModule() {
                           <BookOpen className="w-12 h-12 text-muted-foreground" />
                           <div className="text-center">
                             <p className="text-muted-foreground mb-1">No questions available for {activeTask}</p>
-                            <p className="text-sm text-muted-foreground">Generate one with AI now.</p>
+                            <p className="text-sm text-muted-foreground">
+                              {activeTask === "Task 2"
+                                ? "Upload Task 2 title and prompt in Content Manager."
+                                : "Generate one with AI now."}
+                            </p>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <select
-                              value={generateDifficulty}
-                              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
-                              className="bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
-                            >
-                              <option value="easy">Easy</option>
-                              <option value="medium">Medium</option>
-                              <option value="hard">Hard</option>
-                            </select>
-                            <Button
-                              onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
-                              disabled={(genEntry.isGenerating && genEntry.config?.task === activeTask)}
-                              className="gap-2"
-                            >
-                              {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Zap className="w-4 h-4" />
-                              )}
-                              {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? "Generating in background..." : "Generate AI Question"}
-                            </Button>
-                          </div>
+                          {activeTask !== "Task 2" && (
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={generateDifficulty}
+                                onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+                                className="bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+                              >
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                              </select>
+                              <Button
+                                onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
+                                disabled={(genEntry.isGenerating && genEntry.config?.task === activeTask)}
+                                className="gap-2"
+                              >
+                                {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Zap className="w-4 h-4" />
+                                )}
+                                {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? "Generating in background..." : "Generate AI Question"}
+                              </Button>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     ) : (
@@ -989,31 +1002,37 @@ export default function WritingModule() {
                         <BookOpen className="w-12 h-12 text-muted-foreground" />
                         <div className="text-center">
                           <p className="text-muted-foreground mb-1">No questions available for {activeTask}</p>
-                          <p className="text-sm text-muted-foreground">Generate one with AI now.</p>
+                          <p className="text-sm text-muted-foreground">
+                            {activeTask === "Task 2"
+                              ? "Upload Task 2 title and prompt in Content Manager."
+                              : "Generate one with AI now."}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={generateDifficulty}
-                            onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
-                            className="bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
-                          >
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                          </select>
-                          <Button
-                            onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
-                            disabled={(genEntry.isGenerating && genEntry.config?.task === activeTask)}
-                            className="gap-2"
-                          >
-                            {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Zap className="w-4 h-4" />
-                            )}
-                            {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? "Generating in background..." : "Generate AI Question"}
-                          </Button>
-                        </div>
+                        {activeTask !== "Task 2" && (
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={generateDifficulty}
+                              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+                              className="bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+                            >
+                              <option value="easy">Easy</option>
+                              <option value="medium">Medium</option>
+                              <option value="hard">Hard</option>
+                            </select>
+                            <Button
+                              onClick={() => !canAccess("writing") ? setShowUpgradeModal(true) : generateQuestion()}
+                              disabled={(genEntry.isGenerating && genEntry.config?.task === activeTask)}
+                              className="gap-2"
+                            >
+                              {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Zap className="w-4 h-4" />
+                              )}
+                              {(genEntry.isGenerating && genEntry.config?.task === activeTask) ? "Generating in background..." : "Generate AI Question"}
+                            </Button>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ) : (

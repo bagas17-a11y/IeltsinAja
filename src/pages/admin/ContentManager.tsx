@@ -50,7 +50,7 @@ export default function ContentManager() {
   const [formMode, setFormMode] = useState<"list" | "create" | "edit">("list");
 
   const [formData, setFormData] = useState({
-    task_type: "Task 1 Academic",
+    task_type: "Task 2",
     title: "",
     question_prompt: "",
     question_image_url: "",
@@ -429,7 +429,7 @@ export default function ContentManager() {
 
   const resetForm = () => {
     setFormData({
-      task_type: "Task 1 Academic",
+      task_type: "Task 2",
       title: "",
       question_prompt: "",
       question_image_url: "",
@@ -623,9 +623,14 @@ export default function ContentManager() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Task 1 Academic">Task 1 Academic</SelectItem>
-                        <SelectItem value="Task 1 General">Task 1 General</SelectItem>
-                        <SelectItem value="Task 2">Task 2</SelectItem>
+                        <SelectItem value="Task 1 Academic">Writing Task 1 Academic</SelectItem>
+                        <SelectItem value="Task 1 General">Writing Task 1 General</SelectItem>
+                        <SelectItem value="Task 2">Writing Task 2</SelectItem>
+                        <SelectItem value="Speaking Part 1">Speaking Part 1</SelectItem>
+                        <SelectItem value="Speaking Part 2">Speaking Part 2</SelectItem>
+                        <SelectItem value="Speaking Part 3">Speaking Part 3</SelectItem>
+                        <SelectItem value="Listening">Listening</SelectItem>
+                        <SelectItem value="Reading">Reading</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
