@@ -704,6 +704,32 @@ Provide your response in this EXACT JSON format:
     "lexicalResource": { "score": 0.0, "justification": "One sentence" },
     "grammaticalRange": { "score": 0.0, "justification": "One sentence" }
   },
+  "structuralGrade": {
+    "paragraph1_introduction": {
+      "status": "executed/partial/missing",
+      "paraphrased": true,
+      "hasThesis": true,
+      "feedback": "One sentence fix if not fully executed, else empty string"
+    },
+    "paragraph2_body1": {
+      "status": "executed/partial/missing",
+      "hasTopicSentence": true,
+      "hasExample": true,
+      "feedback": "Brief feedback on first argument"
+    },
+    "paragraph3_body2": {
+      "status": "executed/partial/missing",
+      "hasTopicSentence": true,
+      "developedOrCounterArg": true,
+      "feedback": "Brief feedback on second argument"
+    },
+    "paragraph4_conclusion": {
+      "status": "executed/partial/missing",
+      "summarized": true,
+      "noNewIdeas": true,
+      "feedback": "Brief feedback on conclusion"
+    }
+  },
   "vocabularyUpgrades": [
     {
       "original": "simple word/phrase from essay",
@@ -721,7 +747,6 @@ Provide your response in this EXACT JSON format:
   "criticalFixes": ["Most important fix", "Second most important fix", "Third fix if applicable"],
   "actionableNextStep": "One specific, practical thing to do before next attempt"
 }
-You may include optional "warningFlags" as an array from the rubric warning_flags list.
 IMPORTANT: overallBand must equal the mathematically averaged and IELTS-rounded result of your 4 scoringGrid scores. Do not set it arbitrarily.`;
       }
     } else if (type === "speaking") {
