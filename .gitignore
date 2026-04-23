@@ -12,11 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Root env (Vite / secrets) — never commit real keys
-.env
-.env.local
-.env.*.local
-
 # Supabase local env (contains API keys)
 supabase/.env
 

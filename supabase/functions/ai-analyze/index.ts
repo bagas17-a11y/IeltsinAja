@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { validateRequest, AIAnalyzeSchema, isValidUUID } from "../shared/validation.ts";
+import { validateRequest, AIAnalyzeSchema } from "../shared/validation.ts";
 import {
   corsHeaders,
   handleCorsPreflightRequest,
@@ -12,7 +11,6 @@ import {
   internalError
 } from "../shared/errors.ts";
 import { extractJsonObject } from "../shared/json-utils.ts";
-import task2RubricJson from "./task2-rubric.json" with { type: "json" };
 
 // Band Examples for Calibration
 const BAND_EXAMPLES = {
@@ -40,59 +38,6 @@ But some people think building more roads is better. They think more roads means
 In conclusion, I think governments should spend more money on public transportation instead of roads. Public transport helps reduce traffic and pollution and helps poor people. This is better for the future of cities and for the next generation. We need clean air and less traffic.`
   }
 };
-
-type LibraryQuestionRow = {
-  question_prompt: string;
-  title: string | null;
-  task_type: string | null;
-};
-
-async function fetchIeltsLibraryQuestion(questionId: string): Promise<LibraryQuestionRow | null> {
-  if (!isValidUUID(questionId)) return null;
-  const url = Deno.env.get("SUPABASE_URL");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !key) {
-    console.warn("fetchIeltsLibraryQuestion: missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-    return null;
-  }
-  const supabase = createClient(url, key);
-  const { data, error } = await supabase
-    .from("ielts_library")
-    .select("question_prompt, title, task_type")
-    .eq("id", questionId)
-    .maybeSingle();
-  if (error) {
-    console.warn("ielts_library fetch error:", error.message);
-    return null;
-  }
-  return data as LibraryQuestionRow | null;
-}
-
-/** IELTS-style rounding to nearest 0.5 from the mean of four criterion scores. */
-function ieltsRoundHalfBand(avg: number): number {
-  return Math.round(avg * 2) / 2;
-}
-
-function normalizeWritingOverallFromGrid(parsed: Record<string, unknown>): void {
-  const grid = parsed.scoringGrid as
-    | {
-        taskResponse?: { score?: unknown };
-        coherenceCohesion?: { score?: unknown };
-        lexicalResource?: { score?: unknown };
-        grammaticalRange?: { score?: unknown };
-      }
-    | undefined;
-  if (!grid) return;
-  const scores = [
-    grid.taskResponse?.score,
-    grid.coherenceCohesion?.score,
-    grid.lexicalResource?.score,
-    grid.grammaticalRange?.score,
-  ].map((x) => (typeof x === "number" ? x : Number(x)));
-  if (scores.some((n) => Number.isNaN(n))) return;
-  const avg = scores.reduce((a, b) => a + b, 0) / 4;
-  parsed.overallBand = ieltsRoundHalfBand(avg);
-}
 
 // Build grading prompt with optional injected training
 const buildGradingPrompt = (taskType: string, secretContext?: string, modelAnswer?: string, targetKeywords?: string) => {
@@ -150,23 +95,70 @@ ${BAND_EXAMPLES.task1.band5}
 - Band 7: Some paragraphs partially executed, adequate vocabulary
 - Band 6: Missing or weak overview, limited vocabulary range
 - Band 5: Weak/missing structure, basic vocabulary, simple grammar` 
-  : `You are an IELTS Academic Writing Task 2 examiner. Score the essay using ONLY the rubric below plus the hard_rules and warning_flags. Do not invent extra criteria.
+  : `You are a Senior IELTS Examiner with 15+ years of experience grading Task 2 essays.
 
-=== TASK 2 RUBRIC (JSON — authoritative) ===
-${JSON.stringify(task2RubricJson)}
+=== STEP-BY-STEP STRUCTURAL AUDIT FRAMEWORK ===
 
-=== HOW TO APPLY THE RUBRIC ===
-- For each of the four dimensions in the JSON, assign a band from 1–9 in 0.5 steps by matching the essay to the printed descriptors (use the closest matching band statements).
-- Map JSON dimension names to scoringGrid keys: task_response → taskResponse; coherence_cohesion → coherenceCohesion; lexical_resource → lexicalResource; grammatical_range_accuracy → grammaticalRange.
-- Essay types differ (opinion, discussion, advantages/disadvantages, two-part questions). Evaluate organisation and development flexibly: reward a clear position where required, logical progression, paragraphing, idea extension, cohesion, vocabulary and grammar per the rubric—not a fixed number of paragraphs.
-- Apply hard_rules strictly when relevant (e.g. underlength, off-topic, memorised, incomplete).
-- If the task wording was not provided, note that limitation briefly in taskResponse justification and score conservatively on relevance.
+You MUST evaluate the student's submission against this MANDATORY 4-PARAGRAPH STRUCTURE:
 
-=== BAND 5 CALIBRATION EXAMPLE (style reference only — not a template to copy) ===
+**Paragraph 1 (Introduction):**
+- Did they paraphrase the prompt accurately?
+- Did they provide a clear Thesis Statement (their opinion/position)?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+**Paragraph 2 (Body 1 - First Argument):**
+- Did they start with a clear Topic Sentence?
+- Did they support it with explanation AND a specific example?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+**Paragraph 3 (Body 2 - Second Argument):**
+- Did they start with a Topic Sentence?
+- Did they develop the idea further or provide a counter-argument/concession?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+**Paragraph 4 (Conclusion):**
+- Did they summarize the main points?
+- Did they restate their final opinion WITHOUT adding new ideas?
+- Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
+
+=== KEY HIGHLIGHTS FOR BAND 9 (Secret Context) ===
+
+**The "Hedging" Technique:**
+- Reward cautious language like "This could potentially lead to..." instead of "This will lead to..."
+- Band 9 writers avoid over-generalizing
+
+**Cohesive Progression:**
+- Check if ideas flow LOGICALLY from one sentence to the next
+- Not just transition words as a list, but actual logical connection
+
+**Fully Developed Ideas:**
+- A Band 9 response takes 2 reasons and explains them DEEPLY
+- Not just listing 10 reasons superficially
+
+=== ACADEMIC VOCABULARY UPGRADES ===
+Suggest replacing simple words with these academic alternatives:
+
+Function | Band 5-6 (Simple) | Band 8-9 (Advanced)
+Agreeing | "I think it's true" | "It is widely acknowledged that..."
+Disputing | "Many people disagree" | "This perspective is often contested..."
+Showing Cause | "This leads to bad things" | "This precipitates detrimental consequences..."
+Emphasizing | "This is a big problem" | "This represents a pressing societal challenge..."
+Proving | "For example" | "To illustrate this point, consider..."
+
+=== BAND 5 CALIBRATION EXAMPLE ===
 ${BAND_EXAMPLES.task2.band5}
 
-=== VOCABULARY SUGGESTIONS (for feedback JSON only) ===
-In vocabularyUpgrades, you may suggest academic alternatives where the rubric flags weak lexical resource.`;
+=== PENALTIES ===
+- If < 250 words, cap Task Response at 5.0
+- Unclear thesis or changing position: cap at 6.0
+- Off-topic: Max score = 4.0
+
+=== SCORING GUIDE ===
+- Band 9: All 4 paragraphs executed, hedging used, cohesive flow, deep development
+- Band 8: Minor structural issues, good vocabulary upgrades
+- Band 7: Some paragraphs partially executed, adequate development
+- Band 6: Missing thesis or weak structure
+- Band 5: Poor structure, simple vocabulary, undeveloped ideas`;
 
   // Inject training from admin CMS
   if (modelAnswer || secretContext || targetKeywords) {
@@ -527,8 +519,7 @@ serve(async (req) => {
       );
     }
 
-    const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt, speakingPart, question, questionPrompt } =
-      validation.data;
+    const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt, speakingPart, question } = validation.data;
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
@@ -591,38 +582,20 @@ Write only the model answer, formatted as a proper IELTS response.`;
       return successResponse({ modelAnswer: modelAnswerText }, 200, corsHeaders);
     }
     
-    let gradingTemperature = 0.3;
-
     if (type === "writing") {
       const wordCount = content.split(/\s+/).filter(Boolean).length;
       const isTask1 = taskType === "Task 1" || taskType?.startsWith("Task 1");
       const minWords = isTask1 ? 150 : 250;
-
-      let taskWording = (questionPrompt && String(questionPrompt).trim()) || "";
-      let taskTitle = "";
-      if (questionId) {
-        const row = await fetchIeltsLibraryQuestion(questionId);
-        if (row?.question_prompt) {
-          taskWording = row.question_prompt;
-          taskTitle = row.title || "";
-        }
-      }
-      const taskContextBlock =
-        taskWording.length > 0
-          ? `OFFICIAL TASK (use for relevance, off-topic checks, and part coverage):\nTitle: ${taskTitle || "(none)"}\nWording:\n${taskWording}\n\n`
-          : `OFFICIAL TASK: (wording not available — score Task Response conservatively on relevance.)\n\n`;
-
-      if (!isTask1) gradingTemperature = 0.2;
-
+      
       // Build grading prompt with injected training
       systemPrompt = buildGradingPrompt(taskType, secretContext, modelAnswer, targetKeywords);
-
+      
       const revisionNote = isRevision ? `
 ⚠️ THIS IS A REVISED ESSAY - The student has already received feedback and has revised their work. 
 Be encouraging about progress while still being objective about remaining issues. If they've improved, acknowledge it positively.` : '';
       
       if (isTask1) {
-        userPrompt = `${taskContextBlock}Analyze this IELTS Task 1 Academic report using the STEP-BY-STEP STRUCTURAL AUDIT.
+        userPrompt = `Analyze this IELTS Task 1 Academic report using the STEP-BY-STEP STRUCTURAL AUDIT.
 ${revisionNote}
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
@@ -684,7 +657,7 @@ Provide your response in this EXACT JSON format:
 }
 IMPORTANT: overallBand must equal the mathematically averaged and IELTS-rounded result of your 4 scoringGrid scores. Do not set it arbitrarily.`;
       } else {
-        userPrompt = `${taskContextBlock}Analyze this IELTS Task 2 essay using the rubric in the system instructions.
+        userPrompt = `Analyze this IELTS Task 2 essay using the STEP-BY-STEP STRUCTURAL AUDIT.
 ${revisionNote}
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
@@ -840,10 +813,10 @@ Provide your response in this JSON format:
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
-        body: JSON.stringify({
+      body: JSON.stringify({
         model: analysisModel,
         max_tokens: maxTokens,
-        temperature: gradingTemperature,
+        temperature: 0.3,
         messages: [
           { role: "user", content: `${systemPrompt}\n\n${userPrompt}` },
         ],
@@ -875,10 +848,6 @@ Provide your response in this JSON format:
       console.warn("Could not parse Claude response as JSON, falling back to mock for:", type);
       const mockResponse = getMockResponse(type, content, speakingPart, taskType);
       return successResponse(mockResponse, 200, corsHeaders);
-    }
-
-    if (type === "writing" && parsedResponse && typeof parsedResponse === "object") {
-      normalizeWritingOverallFromGrid(parsedResponse as Record<string, unknown>);
     }
 
     return successResponse(parsedResponse, 200, corsHeaders);
