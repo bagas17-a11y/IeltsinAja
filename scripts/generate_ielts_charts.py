@@ -308,6 +308,268 @@ def chart_fonton_map():
     return path
 
 
+# ── New TABLE chart helpers ──────────────────────────────────────────────────
+
+def make_styled_table(ax, title, row_labels, col_labels, data, col_widths_ratio=None):
+    """Render a styled matplotlib table onto ax (which should have axis off)."""
+    ax.axis("off")
+    ax.set_title(title, fontsize=12, fontweight="bold", pad=14)
+    tbl = ax.table(
+        cellText=data, rowLabels=row_labels, colLabels=col_labels,
+        cellLoc="center", loc="center",
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(10)
+    tbl.scale(1.3, 1.9)
+    for j in range(len(col_labels)):
+        tbl[0, j].set_facecolor("#1f77b4")
+        tbl[0, j].set_text_props(color="white", fontweight="bold")
+    for i in range(1, len(row_labels) + 1):
+        tbl[i, -1].set_facecolor("#e8f0fe")
+        tbl[i, -1].set_text_props(fontweight="bold")
+
+
+def chart_consumer_expenditure():
+    rows = ["Ireland", "Italy", "Spain", "Sweden", "Turkey"]
+    cols = ["Food & Drinks", "Clothing & Footwear", "Leisure & Edu."]
+    data = [
+        ["28.9%", "6.4%", "3.7%"],
+        ["33.9%", "9.0%", "3.4%"],
+        ["29.4%", "8.5%", "1.8%"],
+        ["15.8%", "5.4%", "3.2%"],
+        ["32.1%", "6.7%", "4.1%"],
+    ]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    make_styled_table(
+        ax,
+        "Percentage of Household Income on Selected Categories in Five Countries (2002)",
+        rows, cols, data,
+    )
+    fig.tight_layout()
+    path = f"{OUTPUT_DIR}/consumer_expenditure.png"
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"✓ {path}")
+    return path
+
+
+def chart_indian_students():
+    rows = ["Coventry", "Greenwich", "BPP", "Sheffield", "Leicester", "Anglia Ruskin"]
+    cols = ["2020/21", "2021/22", "Change", "% Change"]
+    data = [
+        ["2,385", "5,290", "+2,905", "+121.8%"],
+        ["1,430", "2,165", "+735",   "+51.4%"],
+        ["1,075", "1,580", "+505",   "+46.8%"],
+        ["1,250", "2,345", "+1,095", "+87.6%"],
+        ["895",   "1,675", "+780",   "+87.1%"],
+        ["1,560", "2,180", "+620",   "+39.7%"],
+    ]
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    ax.axis("off")
+    ax.set_title("Full-time Indian Students at Six British Universities (2020/21 vs 2021/22)",
+                 fontsize=12, fontweight="bold", pad=14)
+    tbl = ax.table(
+        cellText=data, rowLabels=rows, colLabels=cols,
+        cellLoc="center", loc="center",
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(10)
+    tbl.scale(1.3, 1.9)
+    for j in range(len(cols)):
+        tbl[0, j].set_facecolor("#1f77b4")
+        tbl[0, j].set_text_props(color="white", fontweight="bold")
+    # Highlight Coventry row (most dramatic)
+    for j in range(-1, len(cols)):
+        tbl[1, j].set_facecolor("#fff3cd")
+    # Highlight % Change column
+    for i in range(1, len(rows) + 1):
+        tbl[i, 3].set_facecolor("#e8f0fe")
+        tbl[i, 3].set_text_props(fontweight="bold")
+    fig.tight_layout()
+    path = f"{OUTPUT_DIR}/indian_students.png"
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"✓ {path}")
+    return path
+
+
+def chart_tourist_arrivals():
+    regions = ["Europe", "Americas", "Asia & Pacific", "Middle East", "Africa", "South Asia"]
+    cols = ["2000", "2005", "2010"]
+    data = [
+        ["395", "440", "475"],
+        ["128", "133", "150"],
+        ["110", "154", "204"],
+        ["24",  "37",  "54"],
+        ["27",  "35",  "49"],
+        ["6",   "9",   "12"],
+    ]
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.axis("off")
+    ax.set_title("International Tourist Arrivals by World Region (millions)",
+                 fontsize=12, fontweight="bold", pad=14)
+    tbl = ax.table(
+        cellText=data, rowLabels=regions, colLabels=cols,
+        cellLoc="center", loc="center",
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(11)
+    tbl.scale(1.5, 2.0)
+    for j in range(len(cols)):
+        tbl[0, j].set_facecolor("#1f77b4")
+        tbl[0, j].set_text_props(color="white", fontweight="bold")
+    # Highlight Europe (largest) and Asia-Pacific (fastest growth)
+    for j in range(-1, len(cols)):
+        tbl[1, j].set_facecolor("#e8f0fe")  # Europe
+        tbl[3, j].set_facecolor("#fff3cd")  # Asia & Pacific
+    fig.tight_layout()
+    path = f"{OUTPUT_DIR}/tourist_arrivals.png"
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"✓ {path}")
+    return path
+
+
+def chart_uk_museums():
+    museums = [
+        "British Museum", "National Gallery", "Tate Modern",
+        "Natural History Museum", "V&A Museum", "Science Museum",
+    ]
+    cols = ["2009 (thousands)", "2014 (thousands)", "% Change"]
+    data = [
+        ["5,569", "6,697", "+20.3%"],
+        ["4,726", "5,908", "+25.0%"],
+        ["2,844", "4,884", "+71.7%"],
+        ["3,749", "5,256", "+40.2%"],
+        ["2,272", "3,432", "+51.1%"],
+        ["2,718", "3,361", "+23.7%"],
+    ]
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    ax.axis("off")
+    ax.set_title("Visits to Six Major Free UK Museums (thousands)", fontsize=12, fontweight="bold", pad=14)
+    tbl = ax.table(
+        cellText=data, rowLabels=museums, colLabels=cols,
+        cellLoc="center", loc="center",
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(10)
+    tbl.scale(1.3, 1.9)
+    for j in range(len(cols)):
+        tbl[0, j].set_facecolor("#1f77b4")
+        tbl[0, j].set_text_props(color="white", fontweight="bold")
+    # Highlight Tate Modern (highest growth)
+    for j in range(-1, len(cols)):
+        tbl[3, j].set_facecolor("#fff3cd")
+    # Highlight % Change column
+    for i in range(1, len(museums) + 1):
+        tbl[i, 2].set_facecolor("#e8f0fe")
+        tbl[i, 2].set_text_props(fontweight="bold")
+    fig.tight_layout()
+    path = f"{OUTPUT_DIR}/uk_museums.png"
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"✓ {path}")
+    return path
+
+
+# ── New PIE CHART helpers ────────────────────────────────────────────────────
+
+PIE_COLORS = ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948"]
+
+
+def make_double_pie(filename, title, chart1_label, chart1_data,
+                    chart2_label, chart2_data):
+    """Render two side-by-side pie charts."""
+    labels1 = list(chart1_data.keys())
+    sizes1  = list(chart1_data.values())
+    labels2 = list(chart2_data.keys())
+    sizes2  = list(chart2_data.values())
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 6))
+    fig.suptitle(title, fontsize=13, fontweight="bold", y=1.01)
+
+    wedge_props = {"edgecolor": "white", "linewidth": 1.5}
+    for ax, sizes, labels, label in [
+        (ax1, sizes1, labels1, chart1_label),
+        (ax2, sizes2, labels2, chart2_label),
+    ]:
+        wedges, texts, autotexts = ax.pie(
+            sizes, labels=None, autopct="%1.1f%%",
+            colors=PIE_COLORS[:len(sizes)],
+            startangle=90, wedgeprops=wedge_props,
+            pctdistance=0.75,
+        )
+        for at in autotexts:
+            at.set_fontsize(9)
+            at.set_color("white")
+            at.set_fontweight("bold")
+        ax.set_title(label, fontsize=11, fontweight="bold", pad=10)
+        ax.legend(
+            wedges, [f"{l} ({s}%)" for l, s in zip(labels, sizes)],
+            loc="lower center", bbox_to_anchor=(0.5, -0.22),
+            ncol=2, fontsize=8.5, framealpha=0.8,
+        )
+
+    fig.tight_layout()
+    path = f"{OUTPUT_DIR}/{filename}"
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"✓ {path}")
+    return path
+
+
+def chart_household_expenditure():
+    return make_double_pie(
+        "household_expenditure.png",
+        "Proportion of Household Income Spent on Different Categories in the UK",
+        "2001",
+        {"Housing": 32, "Food & Drink": 22, "Transport": 16,
+         "Recreation": 13, "Clothing": 9, "Other": 8},
+        "2011",
+        {"Housing": 38, "Food & Drink": 20, "Transport": 14,
+         "Recreation": 15, "Clothing": 6, "Other": 7},
+    )
+
+
+def chart_study_abroad():
+    return make_double_pie(
+        "study_abroad.png",
+        "Main Reasons for Choosing to Study Abroad",
+        "Undergraduates",
+        {"Cultural experience": 35, "Career prospects": 28, "Academic reputation": 20,
+         "Language learning": 12, "Other": 5},
+        "Postgraduates",
+        {"Career prospects": 42, "Academic reputation": 30, "Cultural experience": 15,
+         "Language learning": 8, "Other": 5},
+    )
+
+
+def chart_transport_commute():
+    return make_double_pie(
+        "transport_commute.png",
+        "Modes of Transport Used to Commute to Work in a European City",
+        "1995",
+        {"Private car": 55, "Public transport": 25, "Cycling": 10,
+         "Walking": 8, "Other": 2},
+        "2015",
+        {"Private car": 38, "Public transport": 32, "Cycling": 18,
+         "Walking": 10, "Other": 2},
+    )
+
+
+def chart_waste_composition():
+    return make_double_pie(
+        "waste_composition.png",
+        "Composition of Municipal Waste in a City",
+        "2000",
+        {"Food waste": 38, "Paper & Cardboard": 32, "Plastic": 14,
+         "Metal": 8, "Glass": 6, "Other": 2},
+        "2020",
+        {"Food waste": 30, "Paper & Cardboard": 22, "Plastic": 26,
+         "Metal": 7, "Glass": 5, "Other": 10},
+    )
+
+
 # ── Upload & update DB ───────────────────────────────────────────────────────
 CHARTS = [
     ("further_education.png",  "Further Education in Britain by Gender (1970–1990)"),
@@ -317,6 +579,15 @@ CHARTS = [
     ("electricity.png",        "Electricity Production from Different Sources (1980 and 2000)"),
     ("water_table.png",        "Water Consumption by Country (2000)"),
     ("fonton_map.png",         "Changes to Fonton: A Seaside Town (1990 to Present)"),
+    # New questions
+    ("consumer_expenditure.png", "Consumer Expenditure in Five Countries (2002)"),
+    ("indian_students.png",      "Indian Students at British Universities (2020–2022)"),
+    ("tourist_arrivals.png",     "International Tourist Arrivals by World Region (2000–2010)"),
+    ("uk_museums.png",           "Visits to UK Free Museums (2009 and 2014)"),
+    ("household_expenditure.png","Household Expenditure in the UK (2001 vs 2011)"),
+    ("study_abroad.png",         "Reasons Students Choose to Study Abroad: Undergraduates vs Postgraduates"),
+    ("transport_commute.png",    "Transport Used to Commute to Work in a European City (1995 vs 2015)"),
+    ("waste_composition.png",    "Waste Composition in a City (2000 vs 2020)"),
 ]
 
 
@@ -388,6 +659,15 @@ if __name__ == "__main__":
     chart_electricity()
     chart_water_table()
     chart_fonton_map()
+    # New questions
+    chart_consumer_expenditure()
+    chart_indian_students()
+    chart_tourist_arrivals()
+    chart_uk_museums()
+    chart_household_expenditure()
+    chart_study_abroad()
+    chart_transport_commute()
+    chart_waste_composition()
 
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not key:
