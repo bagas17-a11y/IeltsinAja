@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Loader2, Play, Square, Volume2, RefreshCw, ChevronRight } from "lucide-react";
+import { Mic, MicOff, Loader2, Play, Square, Volume2, RefreshCw, ChevronRight, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -177,6 +177,14 @@ export default function SpeakingModule() {
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
+  const [speakingDuration, setSpeakingDuration] = useState<number | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [activeComparison, setActiveComparison] = useState<'naturalness' | 'enhanced' | null>(null);
+  const [showDiffs, setShowDiffs] = useState<{ naturalness: boolean; enhanced: boolean }>({ naturalness: false, enhanced: false });
+  const [tooltipWord, setTooltipWord] = useState<{ word: string; feedback: string } | null>(null);
+  const recordingStartRef = useRef<number | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -338,6 +346,11 @@ export default function SpeakingModule() {
   const handleRestartPractice = () => {
     resetTranscript();
     setFeedback(null);
+    setSpeakingDuration(null);
+    setAudioUrl(null);
+    setActiveComparison(null);
+    setShowDiffs({ naturalness: false, enhanced: false });
+    setTooltipWord(null);
   };
 
   const handlePartChange = (part: SpeakingPart) => {
@@ -347,7 +360,7 @@ export default function SpeakingModule() {
     setFeedback(null);
   };
 
-  const handleStartRecording = () => {
+  const handleStartRecording = async () => {
     if (!isSupported) {
       toast({
         title: "Browser not supported",
@@ -358,11 +371,42 @@ export default function SpeakingModule() {
     }
     resetTranscript();
     setFeedback(null);
+    setAudioUrl(null);
+    setSpeakingDuration(null);
+    setActiveComparison(null);
+    recordingStartRef.current = Date.now();
+    recordedChunksRef.current = [];
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+    } catch {
+      // MediaRecorder not available — proceed without audio recording
+    }
+
     startListening();
   };
 
   const handleStopRecording = () => {
     stopListening();
+    if (recordingStartRef.current) {
+      setSpeakingDuration(Math.round((Date.now() - recordingStartRef.current) / 1000));
+      recordingStartRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
   };
 
   const analyzeTranscript = async () => {
@@ -505,16 +549,194 @@ export default function SpeakingModule() {
     }
   }, [feedback]);
 
+  useEffect(() => {
+    return () => { if (audioUrl) URL.revokeObjectURL(audioUrl); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Generate waveform bars based on audio level
   const waveformBars = Array.from({ length: 12 }, (_, i) => {
     const baseHeight = 8;
     const maxHeight = 40;
     const variation = Math.sin((i + Date.now() / 100) * 0.5) * 0.3 + 0.7;
-    const height = isListening 
+    const height = isListening
       ? baseHeight + (maxHeight - baseHeight) * audioLevel * variation
       : baseHeight;
     return height;
   });
+
+  // ── Utility: Web Speech TTS ────────────────────────────────────────────────
+  const speakText = (text: string, gender: 'male' | 'female') => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.95;
+    const voices = window.speechSynthesis.getVoices();
+    const enVoices = voices.filter(v => v.lang.startsWith('en'));
+    if (gender === 'male') {
+      utterance.voice = enVoices.find(v => /david|guy|aaron|james|male/i.test(v.name)) ?? enVoices[0] ?? null;
+    } else {
+      utterance.voice = enVoices.find(v => /samantha|aria|zira|female|google us english/i.test(v.name)) ?? enVoices[1] ?? null;
+    }
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // ── Utility: Word diff ────────────────────────────────────────────────────
+  const computeDiff = (original: string, improved: string): Array<{ word: string; isNew: boolean }> => {
+    const origSet = new Set(original.toLowerCase().split(/\s+/).map(w => w.replace(/[^a-z]/g, '')));
+    return improved.split(/\s+/).filter(Boolean).map(word => ({
+      word,
+      isNew: !origSet.has(word.toLowerCase().replace(/[^a-z]/g, '')),
+    }));
+  };
+
+  // ── Utility: Export result ────────────────────────────────────────────────
+  const exportResult = () => {
+    if (!feedback) return;
+    const q = getCurrentQuestion();
+    const question = (q as any).question ?? (q as any).cueCard ?? '';
+    const lines = [
+      'IELTS Speaking Practice — Analysis Report',
+      '==========================================',
+      '',
+      `Question: ${question}`,
+      `Speaking Part: ${currentPart.toUpperCase()}`,
+      speakingDuration ? `Speaking Time: ${speakingDuration}s` : '',
+      '',
+      `OVERALL BAND SCORE: ${feedback.overallBand} (${feedback.bandScoreRange ?? '+/- 0.5'})`,
+      `Accuracy: ${feedback.accuracyScore ?? '—'}%`,
+      '',
+      '--- CRITERION SCORES ---',
+      `Pronunciation:              ${feedback.pronunciation?.score ?? '—'}`,
+      `Task Response:              ${feedback.taskResponse?.score ?? '—'}`,
+      `Fluency & Coherence:        ${feedback.fluencyCoherence?.score ?? '—'}`,
+      `Lexical Resource:           ${feedback.lexicalResource?.score ?? '—'}`,
+      `Grammatical Range & Acc.:   ${feedback.grammaticalRange?.score ?? '—'}`,
+      '',
+      '--- POLISHED TRANSCRIPT ---',
+      feedback.polishedTranscript ?? '',
+      '',
+      '--- IMPROVED NATURALNESS ---',
+      feedback.improvedNaturalness ?? '',
+      '',
+      '--- ENHANCED SPEECH ---',
+      feedback.enhancedSpeech ?? '',
+      '',
+      '--- IMPROVEMENTS TO FOCUS ON ---',
+      ...(feedback.improvements ?? []).map((s: string, i: number) => `${i + 1}. ${s}`),
+    ].filter(l => l !== undefined).join('\n');
+
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ielts-speaking-${currentPart}-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ── Utility: confidence color ─────────────────────────────────────────────
+  const getConfidenceColor = (score: number): string => {
+    if (score >= 90) return '#22c55e';
+    if (score >= 75) return '#f59e0b';
+    if (score >= 55) return '#f97316';
+    return '#ef4444';
+  };
+
+  const getScoreColor = (score: number | undefined): string => {
+    if (!score) return 'text-muted-foreground';
+    if (score >= 7) return 'text-green-500';
+    if (score >= 5.5) return 'text-elite-gold';
+    return 'text-destructive';
+  };
+
+  // ── Inline component: Accuracy Circle ────────────────────────────────────
+  const AccuracyCircle = ({ score }: { score: number }) => {
+    const r = 42;
+    const circ = 2 * Math.PI * r;
+    const offset = circ - (score / 100) * circ;
+    const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+    return (
+      <svg width={100} height={100} viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7" />
+        <circle
+          cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="7"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          transform="rotate(-90 50 50)"
+          style={{ transition: 'stroke-dashoffset 1s ease' }}
+        />
+        <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" fontSize="17" fontWeight="300" fill={color}>
+          {score}%
+        </text>
+      </svg>
+    );
+  };
+
+  // ── Inline component: Comparison Panel ───────────────────────────────────
+  const ComparisonPanel = ({
+    title, improvedLabel, original, improved, showDiff, onToggleDiff,
+  }: {
+    title: string; improvedLabel: string;
+    original: string; improved: string;
+    showDiff: boolean; onToggleDiff: () => void;
+  }) => {
+    const diffWords = computeDiff(original, improved);
+    const origCount = original.trim().split(/\s+/).filter(Boolean).length;
+    const imprCount = improved.trim().split(/\s+/).filter(Boolean).length;
+    return (
+      <div className="mt-6">
+        <h4 className="text-sm font-semibold mb-3">{title}</h4>
+        <button
+          onClick={onToggleDiff}
+          className={`mb-4 px-4 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            showDiff ? 'bg-teal-600/20 border-teal-500 text-teal-400' : 'border-border text-muted-foreground hover:border-teal-500 hover:text-teal-400'
+          }`}
+        >
+          Highlight Important Differences
+        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-4 rounded-xl bg-secondary/20 border border-border">
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+              <span className="text-xs font-medium text-muted-foreground">Original Speech</span>
+              <div className="flex gap-2">
+                <button onClick={() => speakText(original, 'male')} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <Volume2 className="w-3 h-3" /> Male
+                </button>
+                <button onClick={() => speakText(original, 'female')} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <Volume2 className="w-3 h-3" /> Female
+                </button>
+              </div>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">{original}</p>
+            <p className="text-xs text-muted-foreground mt-2">Word Count: {origCount}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-secondary/20 border border-border">
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+              <span className="text-xs font-medium text-muted-foreground">{improvedLabel}</span>
+              <div className="flex gap-2">
+                <button onClick={() => speakText(improved, 'male')} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <Volume2 className="w-3 h-3" /> Male
+                </button>
+                <button onClick={() => speakText(improved, 'female')} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <Volume2 className="w-3 h-3" /> Female
+                </button>
+              </div>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              {showDiff
+                ? diffWords.map((dw, i) => (
+                    <span key={i} className={dw.isNew ? 'bg-yellow-500/25 text-yellow-300 rounded px-0.5' : ''}>
+                      {dw.word}{' '}
+                    </span>
+                  ))
+                : improved}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">Word Count: {imprCount}</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <DashboardLayout>
@@ -717,46 +939,130 @@ export default function SpeakingModule() {
         {/* AI Feedback */}
         {feedback && (
           <div ref={feedbackRef} className="space-y-4">
-            {/* Header */}
-            <div className="glass-card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-lg font-medium">Your Results</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Based on your response above</p>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleRestartPractice}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  New Response
-                </Button>
-              </div>
 
-              {/* Score Row */}
-              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-2xl bg-accent/10 flex flex-col items-center justify-center shrink-0">
-                  <span className="text-4xl font-light text-accent">{feedback.overallBand ?? "—"}</span>
-                  <span className="text-xs text-muted-foreground mt-0.5">Band Score</span>
+            {/* ── 1. Accuracy + Band Score ───────────────────────────── */}
+            <div className="glass-card p-6">
+              <div className="flex flex-wrap items-center justify-between gap-6">
+                <div className="flex flex-col items-center gap-1">
+                  <AccuracyCircle score={feedback.accuracyScore ?? 72} />
+                  <span className="text-xs text-muted-foreground">Accuracy</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 flex-1">
-                  {[
-                    { label: "Fluency", score: feedback.fluencyCoherence?.score },
-                    { label: "Vocabulary", score: feedback.lexicalResource?.score },
-                    { label: "Grammar", score: feedback.grammaticalRange?.score },
-                    { label: "Pronunciation", score: feedback.pronunciation?.score },
-                  ].map((item) => {
-                    const s = item.score;
-                    const color = !s ? "text-muted-foreground" : s >= 7 ? "text-green-500" : s >= 5.5 ? "text-elite-gold" : "text-destructive";
-                    return (
-                      <div key={item.label} className="flex items-center gap-2">
-                        <span className={`text-xl font-light ${color}`}>{s ?? "—"}</span>
-                        <span className="text-xs text-muted-foreground">{item.label}</span>
-                      </div>
-                    );
-                  })}
+                <div className="flex flex-col items-center flex-1 min-w-[120px]">
+                  <p className="text-xs text-muted-foreground mb-1">Overall Band Score</p>
+                  <span className="text-6xl font-light text-elite-gold leading-none">
+                    {feedback.overallBand?.toFixed(1) ?? "—"}
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    ({feedback.bandScoreRange ?? "+/- 0.5"})
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 items-end">
+                  <Button variant="outline" size="sm" onClick={exportResult}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Result to Word
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={handleRestartPractice}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    New Response
+                  </Button>
                 </div>
               </div>
             </div>
 
-            {/* Priority Actions — most important section */}
+            {/* ── 2. Polished Transcript ─────────────────────────────── */}
+            {feedback.polishedTranscript && (
+              <div className="glass-card p-6">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <span className="text-sm font-semibold">Polished transcript:</span>
+                  <button
+                    onClick={() => speakText(feedback.polishedTranscript, 'male')}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/40 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Volume2 className="w-3 h-3" /> Male
+                  </button>
+                  <button
+                    onClick={() => speakText(feedback.polishedTranscript, 'female')}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/40 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Volume2 className="w-3 h-3" /> Female
+                  </button>
+                </div>
+                <p className="text-sm text-foreground/80 leading-relaxed">{feedback.polishedTranscript}</p>
+              </div>
+            )}
+
+            {/* ── 3. Word Confidence Display ────────────────────────── */}
+            {feedback.wordConfidences && feedback.wordConfidences.length > 0 && (
+              <div className="glass-card p-6">
+                <p className="text-xs text-muted-foreground mb-4">
+                  Actual audio transcript (What native speakers are likely to hear):
+                </p>
+                <div className="flex flex-wrap gap-x-3 gap-y-4">
+                  {feedback.wordConfidences.map((wc: { word: string; confidence: number; feedback: string }, i: number) => (
+                    <div
+                      key={i}
+                      className="flex flex-col items-center cursor-pointer"
+                      onClick={() => setTooltipWord(tooltipWord?.word === wc.word + i ? null : { word: wc.word, feedback: wc.feedback })}
+                    >
+                      <span className="text-[10px] font-mono font-medium leading-none mb-1" style={{ color: getConfidenceColor(wc.confidence) }}>
+                        {wc.confidence}%
+                      </span>
+                      <span className="text-sm font-medium" style={{ color: getConfidenceColor(wc.confidence) }}>
+                        {wc.word}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {tooltipWord && (
+                  <div className="mt-4 p-3 rounded-lg bg-secondary/40 border border-border flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">"{tooltipWord.word}"</p>
+                      <p className="text-xs text-muted-foreground mt-1">{tooltipWord.feedback}</p>
+                    </div>
+                    <button onClick={() => setTooltipWord(null)} className="text-muted-foreground hover:text-foreground text-xs shrink-0">✕</button>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-4">Tips: Click on each word to see feedback.</p>
+              </div>
+            )}
+
+            {/* ── 4. Criterion Cards ────────────────────────────────── */}
+            {[
+              { label: "Pronunciation",              data: feedback.pronunciation },
+              { label: "Task Response",              data: feedback.taskResponse },
+              { label: "Fluency & Coherence",        data: feedback.fluencyCoherence },
+              { label: "Lexical Resource",           data: feedback.lexicalResource },
+              { label: "Grammatical Range & Accuracy", data: feedback.grammaticalRange },
+            ].filter(c => c.data).map(criterion => (
+              <div key={criterion.label} className="glass-card p-6 text-center">
+                <h3 className="text-base font-semibold mb-2">{criterion.label}</h3>
+                <p className={`text-4xl font-light mb-3 ${getScoreColor(criterion.data.score)}`}>
+                  {criterion.data.score?.toFixed(1) ?? "—"}
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto">
+                  {criterion.data.feedback}
+                </p>
+                {/* Extra detail for specific criteria */}
+                {criterion.label === "Lexical Resource" && criterion.data.suggestions?.length > 0 && (
+                  <div className="mt-3 flex flex-wrap justify-center gap-2">
+                    {criterion.data.suggestions.slice(0, 3).map((s: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs">{s}</span>
+                    ))}
+                  </div>
+                )}
+                {criterion.label === "Grammatical Range & Accuracy" && criterion.data.errorsFound?.length > 0 && (
+                  <ul className="mt-3 space-y-1">
+                    {criterion.data.errorsFound.slice(0, 3).map((e: string, i: number) => (
+                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5 text-left max-w-md mx-auto">
+                        <span className="text-destructive mt-0.5 shrink-0">×</span>{e}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+
+            {/* ── 5. Priority Actions ───────────────────────────────── */}
             {feedback.improvements && feedback.improvements.length > 0 && (
               <div className="glass-card p-6 border border-elite-gold/20">
                 <h3 className="text-sm font-semibold text-elite-gold uppercase tracking-wide mb-4">
@@ -775,154 +1081,63 @@ export default function SpeakingModule() {
               </div>
             )}
 
-            {/* Criterion Breakdown */}
-            <div className="space-y-3">
-              {/* Fluency & Coherence */}
-              {feedback.fluencyCoherence && (
-                <div className="glass-card p-5">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-medium">Fluency & Coherence</h3>
-                    <span className={`text-lg font-light ${
-                      (feedback.fluencyCoherence.score ?? 0) >= 7 ? "text-green-500"
-                      : (feedback.fluencyCoherence.score ?? 0) >= 5.5 ? "text-elite-gold"
-                      : "text-destructive"
-                    }`}>{feedback.fluencyCoherence.score ?? "—"}</span>
-                  </div>
-                  <ul className="space-y-1">
-                    {toBullets(feedback.fluencyCoherence.feedback).map((s, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                  {feedback.fillerWords?.count > 0 && (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="text-xs text-destructive font-medium">Filler words ({feedback.fillerWords.count}):</span>
-                      {feedback.fillerWords.examples?.slice(0, 5).map((w: string, i: number) => (
-                        <span key={i} className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs">"{w}"</span>
-                      ))}
-                    </div>
-                  )}
-                  {feedback.pauseAnalysis?.count > 0 && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {feedback.pauseAnalysis.count} long pause{feedback.pauseAnalysis.count !== 1 ? "s" : ""} detected
-                      {feedback.pauseAnalysis.impact ? ` — ${feedback.pauseAnalysis.impact}` : ""}
-                    </p>
-                  )}
+            {/* ── 6. Audio Playback + Naturalness / Enhanced Comparison */}
+            <div className="glass-card p-6">
+              {audioUrl && (
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground mb-2">Your recording:</p>
+                  <audio src={audioUrl} controls className="w-full h-10" />
                 </div>
               )}
+              {speakingDuration && (
+                <p className="text-sm text-muted-foreground mb-4">Speaking Time: {speakingDuration}s</p>
+              )}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setActiveComparison(prev => prev === 'naturalness' ? null : 'naturalness')}
+                  className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeComparison === 'naturalness'
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-secondary/40 text-foreground/70 hover:bg-secondary/60'
+                  }`}
+                >
+                  Improve Naturalness
+                </button>
+                <button
+                  onClick={() => setActiveComparison(prev => prev === 'enhanced' ? null : 'enhanced')}
+                  className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeComparison === 'enhanced'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-secondary/40 text-foreground/70 hover:bg-secondary/60'
+                  }`}
+                >
+                  Enhance Speech
+                </button>
+              </div>
 
-              {/* Lexical Resource */}
-              {feedback.lexicalResource && (
-                <div className="glass-card p-5">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-medium">Vocabulary (Lexical Resource)</h3>
-                    <span className={`text-lg font-light ${
-                      (feedback.lexicalResource.score ?? 0) >= 7 ? "text-green-500"
-                      : (feedback.lexicalResource.score ?? 0) >= 5.5 ? "text-elite-gold"
-                      : "text-destructive"
-                    }`}>{feedback.lexicalResource.score ?? "—"}</span>
-                  </div>
-                  <ul className="space-y-1">
-                    {toBullets(feedback.lexicalResource.feedback).map((s, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                  {feedback.lexicalResource.suggestions?.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-xs text-muted-foreground mb-1.5">Try using these instead:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {feedback.lexicalResource.suggestions.map((s: string, i: number) => (
-                          <span key={i} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs">{s}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {feedback.lexicalResource.idiomaticExpressions?.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-xs text-green-600 mb-1.5">Good expressions you used:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {feedback.lexicalResource.idiomaticExpressions.map((e: string, i: number) => (
-                          <span key={i} className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs">{e}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+              {activeComparison === 'naturalness' && feedback.improvedNaturalness && (
+                <ComparisonPanel
+                  title="Improved Naturalness Comparison"
+                  improvedLabel="Improved Speech"
+                  original={transcript}
+                  improved={feedback.improvedNaturalness}
+                  showDiff={showDiffs.naturalness}
+                  onToggleDiff={() => setShowDiffs(prev => ({ ...prev, naturalness: !prev.naturalness }))}
+                />
               )}
 
-              {/* Grammar */}
-              {feedback.grammaticalRange && (
-                <div className="glass-card p-5">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-medium">Grammar Range & Accuracy</h3>
-                    <span className={`text-lg font-light ${
-                      (feedback.grammaticalRange.score ?? 0) >= 7 ? "text-green-500"
-                      : (feedback.grammaticalRange.score ?? 0) >= 5.5 ? "text-elite-gold"
-                      : "text-destructive"
-                    }`}>{feedback.grammaticalRange.score ?? "—"}</span>
-                  </div>
-                  <ul className="space-y-1">
-                    {toBullets(feedback.grammaticalRange.feedback).map((s, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                  {feedback.grammarErrors?.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-xs text-destructive font-medium mb-1.5">Errors to correct:</p>
-                      <ul className="space-y-1">
-                        {feedback.grammarErrors.map((e: string, i: number) => (
-                          <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
-                            <span className="text-destructive mt-0.5">×</span>{e}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {feedback.grammaticalRange.complexStructures?.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-xs text-green-600 font-medium mb-1.5">Structures you used well:</p>
-                      <ul className="space-y-1">
-                        {feedback.grammaticalRange.complexStructures.map((s: string, i: number) => (
-                          <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
-                            <span className="text-green-500 mt-0.5">✓</span>{s}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Pronunciation */}
-              {feedback.pronunciation && (
-                <div className="glass-card p-5">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-medium">Pronunciation</h3>
-                    <span className={`text-lg font-light ${
-                      (feedback.pronunciation.score ?? 0) >= 7 ? "text-green-500"
-                      : (feedback.pronunciation.score ?? 0) >= 5.5 ? "text-elite-gold"
-                      : "text-destructive"
-                    }`}>{feedback.pronunciation.score ?? "—"}</span>
-                  </div>
-                  <ul className="space-y-1">
-                    {toBullets(feedback.pronunciation.feedback).map((s, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {activeComparison === 'enhanced' && feedback.enhancedSpeech && (
+                <ComparisonPanel
+                  title="Enhanced Speech Comparison"
+                  improvedLabel="Enhanced Speech"
+                  original={transcript}
+                  improved={feedback.enhancedSpeech}
+                  showDiff={showDiffs.enhanced}
+                  onToggleDiff={() => setShowDiffs(prev => ({ ...prev, enhanced: !prev.enhanced }))}
+                />
               )}
             </div>
+
           </div>
         )}
       </div>
