@@ -1101,7 +1101,7 @@ export default function SpeakingModule() {
                       : 'bg-secondary/40 text-foreground/70 hover:bg-secondary/60'
                   }`}
                 >
-                  Improve Naturalness
+                  Natural Transcript
                 </button>
                 <button
                   onClick={() => setActiveComparison(prev => prev === 'enhanced' ? null : 'enhanced')}
@@ -1111,14 +1111,14 @@ export default function SpeakingModule() {
                       : 'bg-secondary/40 text-foreground/70 hover:bg-secondary/60'
                   }`}
                 >
-                  Enhance Speech
+                  Band 9 Transcript
                 </button>
               </div>
 
               {activeComparison === 'naturalness' && feedback.improvedNaturalness && (
                 <ComparisonPanel
-                  title="Improved Naturalness Comparison"
-                  improvedLabel="Improved Speech"
+                  title="Natural Transcript Comparison"
+                  improvedLabel="Natural Version"
                   original={transcript}
                   improved={feedback.improvedNaturalness}
                   showDiff={showDiffs.naturalness}
@@ -1128,8 +1128,8 @@ export default function SpeakingModule() {
 
               {activeComparison === 'enhanced' && feedback.enhancedSpeech && (
                 <ComparisonPanel
-                  title="Enhanced Speech Comparison"
-                  improvedLabel="Enhanced Speech"
+                  title="Band 9 Transcript Comparison"
+                  improvedLabel="Band 9 Version"
                   original={transcript}
                   improved={feedback.enhancedSpeech}
                   showDiff={showDiffs.enhanced}

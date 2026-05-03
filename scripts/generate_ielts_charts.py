@@ -471,7 +471,6 @@ def chart_uk_museums():
     print(f"✓ {path}")
     return path
 
-
 # ── New PIE CHART helpers ────────────────────────────────────────────────────
 
 PIE_COLORS = ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948"]

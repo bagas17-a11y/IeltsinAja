@@ -370,14 +370,14 @@ function getMockResponse(type: string, content: string, speakingPart?: string, t
       bandScoreRange: "+/- 0.5",
       accuracyScore: 72,
       isMock: true,
-      polishedTranscript: "I believe that honesty, helpfulness, and being supportive are the most important qualities in a friend. A good friend is always there for you through the ups and downs of life.",
+      polishedTranscript: content.replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of)\b/gi, '').replace(/\s{2,}/g, ' ').trim(),
       wordConfidences: words.slice(0, 20).map((word: string, i: number) => ({
         word: word.replace(/[\[\]]/g, ''),
         confidence: Math.min(100, Math.max(30, 85 - (i % 5) * 8 + Math.floor(Math.random() * 20))),
         feedback: i % 4 === 0 ? "Clear and natural" : i % 4 === 1 ? "Good pronunciation" : i % 4 === 2 ? "Consider stress on this syllable" : "Natural liaison with surrounding words"
       })),
-      improvedNaturalness: "I think honesty, helpfulness, and being genuinely supportive are the most important qualities I look for in a friend. A true friend stands by you no matter what — through both the good times and the challenging ones.",
-      enhancedSpeech: "From my perspective, the most invaluable qualities in a close friend are unwavering honesty, a genuine willingness to help, and consistent emotional support. A truly meaningful friendship is one where both individuals can rely on each other unconditionally — whether celebrating successes or navigating life's inevitable difficulties together.",
+      improvedNaturalness: content.replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of)\b/gi, '').replace(/\s{2,}/g, ' ').trim(),
+      enhancedSpeech: content.replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of)\b/gi, '').replace(/\s{2,}/g, ' ').trim(),
       taskResponse: {
         score: 6.5,
         feedback: "The response addresses the question directly and provides relevant qualities. To further enhance the answer, consider elaborating on why these qualities matter personally and providing specific examples from your experience."
@@ -852,9 +852,9 @@ ${content}
 3. Estimate speech duration (assume ~150 words/minute)
 4. If filler frequency > 1 per 10 seconds, cap Fluency at 5.5
 5. Identify idiomatic expressions and complex grammar structures used
-6. Generate a polished transcript: a clean, natural, grammatically correct version of exactly what the student said (fix grammar/fillers but keep their ideas and approximate length)
-7. Generate an improvedNaturalness version: a more idiomatically natural version of the same response, roughly 30-50% longer, with smoother phrasing
-8. Generate an enhancedSpeech version: a Band 8-9 level rewrite with sophisticated vocabulary, complex structures, specific examples — roughly 2x the original length
+6. Generate a polishedTranscript: fix grammar errors and remove filler words from the student's actual response. Keep their EXACT SAME TOPIC, ideas, and content — do NOT change the subject matter.
+7. Generate an improvedNaturalness version: rewrite the student's actual response with more idiomatic phrasing, smoother flow, and better vocabulary. Keep the SAME TOPIC and ideas — this must be a natural version OF THEIR SPECIFIC ANSWER, roughly 30-50% longer.
+8. Generate an enhancedSpeech version: rewrite the student's actual response at Band 8-9 level with sophisticated vocabulary, complex structures, and specific details. This MUST be on the SAME TOPIC as the student's response — never switch to a different topic.
 9. Assign per-word confidence scores (0-100) to each word in the student's transcription indicating how clearly/accurately each word was likely pronounced or heard
 
 Provide your response in this EXACT JSON format:
@@ -862,13 +862,13 @@ Provide your response in this EXACT JSON format:
   "overallBand": 7.0,
   "bandScoreRange": "+/- 0.5",
   "accuracyScore": 73,
-  "polishedTranscript": "The clean native-speaker version of what the student said, fixing grammar and fillers",
+  "polishedTranscript": "The student's response with grammar fixed and fillers removed — SAME topic and ideas as their actual answer",
   "wordConfidences": [
     {"word": "Someone", "confidence": 95, "feedback": "Clear and natural pronunciation"},
     {"word": "who", "confidence": 89, "feedback": "Natural liaison with next word"}
   ],
-  "improvedNaturalness": "A more natural, idiomatic version maintaining the same ideas but with smoother flow and better word choice",
-  "enhancedSpeech": "A Band 8-9 level version with sophisticated vocabulary, complex sentence structures, and specific examples that demonstrate high-level language ability",
+  "improvedNaturalness": "A natural, idiomatic version of THE STUDENT'S ACTUAL RESPONSE — same topic, smoother phrasing, better vocabulary",
+  "enhancedSpeech": "A Band 8-9 rewrite of THE STUDENT'S ACTUAL RESPONSE — same topic, sophisticated vocabulary, complex structures",
   "taskResponse": {
     "score": 7.0,
     "feedback": "Specific analysis of how directly and fully the student addressed the question, with concrete evidence from their response"
