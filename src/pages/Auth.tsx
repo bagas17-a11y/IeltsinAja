@@ -63,7 +63,7 @@ export default function Auth() {
       return null;
     }
 
-    return profile.is_verified ? "/dashboard" : "/waiting-room";
+    return "/dashboard";
   };
 
   const validateForm = () => {

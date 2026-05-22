@@ -59,12 +59,13 @@ import {
   CreditCard,
   RefreshCw,
   CreditCard as CreditCardIcon,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInDays, isPast } from "date-fns";
-import { changeUserPlan, PLAN_DEFAULT_DAYS, type Tier } from "@/lib/subscription";
+import { changeUserPlan, adminDeleteUser, PLAN_DEFAULT_DAYS, type Tier } from "@/lib/subscription";
 
 interface UserProfile {
   id: string;
@@ -145,6 +146,9 @@ export default function UserManagement() {
   const [planTier, setPlanTier] = useState<Tier>("free");
   const [planDuration, setPlanDuration] = useState<string>("30");
   const [planSaving, setPlanSaving] = useState(false);
+
+  const [deleteDialogUser, setDeleteDialogUser] = useState<UserProfile | null>(null);
+  const [deleteSaving, setDeleteSaving] = useState(false);
 
   // Debounced search
   useEffect(() => {
@@ -369,9 +373,12 @@ export default function UserManagement() {
       });
 
       if (!result.success) {
+        const hint = result.errorMessage?.includes("change_user_plan")
+          ? " Apply the latest Supabase migrations (supabase db push), then try again."
+          : "";
         toast({
           title: "Could not change plan",
-          description: result.errorMessage ?? "Unknown error",
+          description: (result.errorMessage ?? "Unknown error") + hint,
           variant: "destructive",
         });
         return;
@@ -395,9 +402,42 @@ export default function UserManagement() {
     }
   };
 
-  // Note: `unlock_user` RPC is no longer surfaced here. The "Change plan"
-  // button is the single way to grant access — assigning any tier
-  // (including Free) sets is_verified=true via change_user_plan.
+  const handleDeleteUser = async () => {
+    if (!user || !deleteDialogUser) return;
+    setDeleteSaving(true);
+    try {
+      const result = await adminDeleteUser(deleteDialogUser.user_id, user.id);
+      if (!result.success) {
+        const hint = result.errorMessage?.includes("admin_delete_user")
+          ? " Apply the latest Supabase migrations (supabase db push), then try again."
+          : "";
+        toast({
+          title: "Could not delete user",
+          description: (result.errorMessage ?? "Unknown error") + hint,
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "User deleted",
+        description: `${deleteDialogUser.email ?? "Account"} was permanently removed.`,
+      });
+      setDeleteDialogUser(null);
+      if (selectedUser?.user_id === deleteDialogUser.user_id) {
+        setDrawerOpen(false);
+        setSelectedUser(null);
+      }
+      await fetchUsers();
+    } catch (err: unknown) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete user",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteSaving(false);
+    }
+  };
 
   const openUserDetail = async (u: UserProfile) => {
     setSelectedUser(u);
@@ -789,6 +829,21 @@ export default function UserManagement() {
                               >
                                 <CalendarPlus className="w-4 h-4" />
                               </Button>
+
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteDialogUser(u)}
+                                disabled={u.user_id === user?.id}
+                                title={
+                                  u.user_id === user?.id
+                                    ? "You cannot delete your own account"
+                                    : "Delete user permanently"
+                                }
+                                className="text-red-500 hover:text-red-400"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -1156,6 +1211,59 @@ export default function UserManagement() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete User Confirmation */}
+        <AlertDialog
+          open={!!deleteDialogUser}
+          onOpenChange={(open) => !open && !deleteSaving && setDeleteDialogUser(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <Trash2 className="w-5 h-5" />
+                Delete this user permanently?
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    This removes their login, profile, progress, and payment records.
+                    It cannot be undone.
+                  </p>
+                  {deleteDialogUser && (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                      <p>
+                        <span className="text-muted-foreground">Email:</span>{" "}
+                        {deleteDialogUser.email ?? "—"}
+                      </p>
+                      <p>
+                        <span className="text-muted-foreground">Name:</span>{" "}
+                        {deleteDialogUser.full_name ?? "—"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteSaving}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  void handleDeleteUser();
+                }}
+                disabled={deleteSaving}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {deleteSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
+                Delete permanently
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Change Plan Dialog */}
         <Dialog

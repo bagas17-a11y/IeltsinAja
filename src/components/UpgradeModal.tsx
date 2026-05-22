@@ -93,7 +93,7 @@ export function UpgradeModal({ isOpen, onClose, featureName }: UpgradeModalProps
           </Button>
         </div>
         <p className="text-[11px] text-muted-foreground text-center mt-2">
-          Pay by BCA transfer — we verify within 24 hours.
+          Pro &amp; Elite: continue on WhatsApp after you pick a plan.
         </p>
       </DialogContent>
     </Dialog>

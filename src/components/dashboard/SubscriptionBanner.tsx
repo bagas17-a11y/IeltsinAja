@@ -1,13 +1,78 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle, MessageCircle } from "lucide-react";
+import { buildWhatsAppLink, CONTACT_MESSAGES } from "@/lib/contact";
 
 export function SubscriptionBanner() {
   const navigate = useNavigate();
+  const { user, profile, isAdmin } = useAuth();
   const { tier, daysRemaining, isExpired, needsRenewal } = useSubscriptionStatus();
+  const [pendingPlan, setPendingPlan] = useState<string | null>(null);
 
-  // Only show for Pro users
+  useEffect(() => {
+    if (!user || isAdmin || profile?.is_verified) {
+      setPendingPlan(null);
+      return;
+    }
+
+    void supabase
+      .from("payment_verifications")
+      .select("plan_type")
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) {
+          setPendingPlan(null);
+          return;
+        }
+        const label =
+          data.plan_type === "road_to_8" || data.plan_type === "elite"
+            ? "Elite"
+            : data.plan_type === "pro"
+            ? "Pro"
+            : data.plan_type;
+        setPendingPlan(label);
+      });
+  }, [user, profile?.is_verified, isAdmin]);
+
+  if (pendingPlan && !profile?.is_verified) {
+    return (
+      <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <MessageCircle className="w-5 h-5 text-accent" />
+            <div>
+              <p className="font-medium text-foreground">
+                Waiting for {pendingPlan} activation
+              </p>
+              <p className="text-sm text-muted-foreground">
+                You have Free access while we confirm your payment on WhatsApp.
+                We&apos;ll unlock {pendingPlan} as soon as it&apos;s verified.
+              </p>
+            </div>
+          </div>
+          <a
+            href={buildWhatsAppLink(CONTACT_MESSAGES.paymentTransferred)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" size="sm">
+              Message us on WhatsApp
+            </Button>
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show renewal banners for Pro users
   if (tier !== "pro") {
     return null;
   }

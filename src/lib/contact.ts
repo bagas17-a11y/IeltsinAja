@@ -44,3 +44,19 @@ export const CONTACT_MESSAGES = {
   paymentTransferred:
     "Hi IELTSinAja team, I have just made a transfer and uploaded my receipt. Please confirm.",
 };
+
+/** Prefilled message when a user picks a paid plan after signup. */
+export function planSignupWhatsAppMessage(opts: {
+  email: string;
+  planName: string;
+  displayPrice: string;
+  fullName?: string | null;
+}): string {
+  const nameLine = opts.fullName ? `\nName: ${opts.fullName}` : "";
+  return (
+    `Hi IELTSinAja! I just signed up and want the *${opts.planName}* package.\n\n` +
+    `Email: ${opts.email}${nameLine}\n` +
+    `Package: ${opts.planName} (${opts.displayPrice})\n\n` +
+    `I'll send payment proof here on WhatsApp. Please activate my account when received.`
+  );
+}

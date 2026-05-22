@@ -59,6 +59,9 @@ interface PaymentVerification {
   };
 }
 
+const isWhatsAppRequest = (receiptUrl: string | null | undefined) =>
+  !receiptUrl || receiptUrl === "whatsapp";
+
 export default function PaymentVerification() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -276,12 +279,19 @@ export default function PaymentVerification() {
   };
 
   const viewReceipt = async (receiptPath: string) => {
+    if (isWhatsAppRequest(receiptPath)) {
+      toast.message("Payment proof is on WhatsApp — check your chat with this user.");
+      return;
+    }
+
     const { data } = await supabase.storage
       .from("payment-receipts")
       .createSignedUrl(receiptPath, 3600);
 
     if (data?.signedUrl) {
       setSelectedReceipt(data.signedUrl);
+    } else {
+      toast.error("Could not load receipt image.");
     }
   };
 
@@ -321,7 +331,8 @@ export default function PaymentVerification() {
             <div>
               <h1 className="text-2xl font-light text-foreground">Payment verification</h1>
               <p className="text-sm text-muted-foreground">
-                Review transfer proofs and unlock paid plans.
+                New signups appear here after they pick Pro/Elite. Confirm payment on
+                WhatsApp, then Approve to assign their plan.
               </p>
             </div>
           </div>
@@ -343,6 +354,7 @@ export default function PaymentVerification() {
                   <TableHead>User</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Amount</TableHead>
+                  <TableHead>Channel</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
@@ -367,20 +379,33 @@ export default function PaymentVerification() {
                         : "Pro"}
                     </TableCell>
                     <TableCell>IDR {payment.amount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      {isWhatsAppRequest(payment.receipt_url) ? (
+                        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                          WhatsApp
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Receipt upload
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell>{getStatusBadge(payment.status)}</TableCell>
                     <TableCell>
                       {new Date(payment.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => viewReceipt(payment.receipt_url)}
-                          title="View receipt"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                        {!isWhatsAppRequest(payment.receipt_url) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => viewReceipt(payment.receipt_url)}
+                            title="View receipt"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        )}
                         {showActions && payment.status === "pending" && (
                           <>
                             <Button
@@ -389,7 +414,7 @@ export default function PaymentVerification() {
                               onClick={() => setApprovingPayment(payment)}
                               disabled={processingId === payment.id}
                               className="text-green-500 hover:text-green-400"
-                              title="Approve payment"
+                              title="Assign plan after WhatsApp payment confirmed"
                             >
                               {processingId === payment.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -470,7 +495,8 @@ export default function PaymentVerification() {
                       Pending payments
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Approve to instantly upgrade the user and unlock paid features.
+                      Users arrive via WhatsApp after signup. Approve once you&apos;ve
+                      confirmed their transfer in chat.
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -540,11 +566,11 @@ export default function PaymentVerification() {
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-500" />
-                Approve this payment?
+                Assign plan after WhatsApp payment?
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-2">
-                  <p>You're about to grant paid access to:</p>
+                  <p>Confirm you received payment on WhatsApp, then assign:</p>
                   <div className="rounded-lg border border-border/60 bg-secondary/30 p-3 text-sm">
                     <p><span className="text-muted-foreground">User:</span> <span className="font-medium text-foreground">{approvingPayment?.profiles?.full_name || "Unknown"}</span></p>
                     <p><span className="text-muted-foreground">Email:</span> {approvingPayment?.profiles?.email || "—"}</p>

@@ -90,13 +90,19 @@ export default function WaitingRoom() {
 
           <div className="space-y-3">
             <h1 className="text-3xl font-light text-foreground">
-              Verifying your transfer
+              Waiting for activation
             </h1>
             <p className="text-muted-foreground leading-relaxed">
-              Terima kasih! We've received your receipt and the team is checking your
-              transfer manually. You'll be unlocked within{" "}
-              <span className="text-accent font-medium">24 hours</span> — usually much
-              faster during Jakarta business hours.
+              Terima kasih! We&apos;re confirming your plan on WhatsApp. You can still
+              use Free practice on the{" "}
+              <button
+                type="button"
+                className="text-accent underline"
+                onClick={() => navigate("/dashboard")}
+              >
+                dashboard
+              </button>{" "}
+              while you wait — usually within a few hours during Jakarta business hours.
             </p>
           </div>
 

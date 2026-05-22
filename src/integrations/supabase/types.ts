@@ -471,6 +471,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      admin_delete_user: {
+        Args: { target_user_id: string; admin_id: string }
+        Returns: Json
+      }
       reject_payment: {
         Args: {
           payment_id: string

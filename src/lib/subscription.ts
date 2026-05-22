@@ -123,6 +123,28 @@ export function selfServiceActivateFree(userId: string) {
   });
 }
 
+/** Permanently delete a user (admin only). Cascades profile and related rows. */
+export async function adminDeleteUser(
+  targetUserId: string,
+  adminId: string
+): Promise<{ success: boolean; errorMessage?: string }> {
+  const { data, error } = await supabase.rpc("admin_delete_user", {
+    target_user_id: targetUserId,
+    admin_id: adminId,
+  });
+
+  if (error) {
+    return { success: false, errorMessage: error.message };
+  }
+
+  const payload = data as { success?: boolean; error?: string } | null;
+  if (!payload?.success) {
+    return { success: false, errorMessage: payload?.error ?? "Delete failed" };
+  }
+
+  return { success: true };
+}
+
 /** Human-readable plan label. */
 export function planLabel(tier: Tier): string {
   switch (tier) {

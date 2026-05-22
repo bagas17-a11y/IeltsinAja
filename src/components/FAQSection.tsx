@@ -21,7 +21,7 @@ const faqs = [
   {
     question: "How does payment work?",
     answer:
-      "After you pick a plan we show you our bank account (BCA) and the exact IDR amount. You transfer the money, upload your receipt, and we'll verify it within 24 hours (usually much faster during Jakarta business hours). You'll keep limited access to Free features while you wait, and we'll email you the moment your account is activated.",
+      "Free starts instantly. For Pro or Elite, after signup you'll open WhatsApp with a pre-filled message (your email + package). Pay and send proof there — we activate your account once we confirm on WhatsApp, usually within a few hours during Jakarta business hours. While you wait, you still get Free-tier practice on the dashboard.",
   },
   {
     question: "Can I switch plans or cancel later?",

@@ -7,8 +7,8 @@ import {
   Tag,
   ArrowRight,
   ShieldCheck,
-  Building2,
-  Receipt,
+  MessageCircle,
+  UserPlus,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -230,35 +230,34 @@ export const PricingMatrix = () => {
           })}
         </div>
 
-        {/* How payment works */}
+        {/* How signup works */}
         <div className="max-w-4xl mx-auto mt-16 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="glass-card p-5 flex items-start gap-3">
-            <Building2 className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+            <UserPlus className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-foreground">Bank transfer (BCA)</p>
+              <p className="text-sm font-medium text-foreground">Sign up free</p>
               <p className="text-xs text-muted-foreground mt-1">
-                We're a pilot product, so we accept BCA transfer. You'll see the account
-                and the exact amount before you pay.
+                Create your account in under a minute. Free tier unlocks instantly.
               </p>
             </div>
           </div>
           <div className="glass-card p-5 flex items-start gap-3">
-            <Receipt className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+            <MessageCircle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-foreground">Upload receipt</p>
+              <p className="text-sm font-medium text-foreground">WhatsApp for Pro / Elite</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Snap a screenshot of your transfer confirmation. We'll review it within
-                24 hours — usually much faster.
+                Pick a paid plan and we open WhatsApp with your email and package.
+                Pay and send proof there — no checkout on this site.
               </p>
             </div>
           </div>
           <div className="glass-card p-5 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-foreground">Get full access</p>
+              <p className="text-sm font-medium text-foreground">We activate you</p>
               <p className="text-xs text-muted-foreground mt-1">
-                We email you the moment your account unlocks. Need help mid-flow? Ping us
-                on WhatsApp.
+                After we confirm payment on WhatsApp, your dashboard unlocks the full
+                plan — usually within a few hours.
               </p>
             </div>
           </div>

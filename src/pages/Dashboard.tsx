@@ -80,17 +80,12 @@ export default function Dashboard() {
     }
   };
 
-  // Redirect to waiting room if not verified (admins bypass this check)
   useEffect(() => {
     if (isLoading || isCheckingAdmin) return;
     if (!user) {
       navigate("/auth");
-      return;
     }
-    if (profile && !profile.is_verified && !isAdmin) {
-      navigate("/waiting-room");
-    }
-  }, [isLoading, isCheckingAdmin, user, profile, isAdmin, navigate]);
+  }, [isLoading, isCheckingAdmin, user, navigate]);
 
   return (
     <DashboardLayout>
