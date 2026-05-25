@@ -17,6 +17,10 @@ const mainNavItems = [{
   title: "Progress Stats",
   path: "/dashboard/stats",
   icon: BarChart3
+}, {
+  title: "Settings",
+  path: "/dashboard/settings",
+  icon: Settings
 }];
 const practiceItems = [{
   title: "Reading",
