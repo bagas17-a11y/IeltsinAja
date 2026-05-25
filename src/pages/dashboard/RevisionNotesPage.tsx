@@ -248,8 +248,7 @@ export default function RevisionNotesPage() {
                 </button>
               )}
               {/* Topics grouped by category + Test Formats */}
-              <div className="relative pl-5 mt-2 space-y-4">
-                <div className="absolute left-[11px] top-0 bottom-0 w-px bg-slate-600" aria-hidden />
+              <div className="pl-1 mt-2 space-y-4">
                 {REVISION_NOTE_CATEGORIES.map((category) => {
                   const topicsInCategory = REVISION_NOTE_TOPICS.filter(
                     (t) => t.category === category.id
@@ -274,24 +273,22 @@ export default function RevisionNotesPage() {
                         {category.label}
                       </button>
                       {catExpanded && (
-                        <div className="ml-4 mt-1 space-y-0.5 border-l border-slate-600/80 pl-3">
-                          {topicsInCategory.map((section, idx) => {
+                        <div className="ml-2 mt-1 space-y-0.5 pl-2">
+                          {topicsInCategory.map((section) => {
                             const isActive = !showFormatsView && currentTopic === section.id;
                             const progress = progressState[section.id];
                             return (
-                              <div key={section.id} className="relative flex items-center gap-2 py-1">
-                                <div className="absolute left-0 flex items-center justify-center -ml-5">
+                              <div key={section.id} className="flex items-center gap-2 py-0.5">
+                                <div className="flex items-center justify-center shrink-0 w-4">
                                   {progress === "complete" ? (
-                                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                                   ) : progress === "in_progress" ? (
                                     <div
                                       className="h-2.5 w-2.5 rounded-full ring-2 ring-[#3b82f6] ring-offset-2 ring-offset-[#0f172a]"
-                                      style={{
-                                        backgroundColor: isActive ? PRIMARY_GLOW : "transparent",
-                                      }}
+                                      style={{ backgroundColor: PRIMARY_GLOW }}
                                     />
                                   ) : (
-                                    <Circle className="h-3 w-3 shrink-0 text-slate-600" />
+                                    <Circle className="h-3 w-3 text-slate-600" />
                                   )}
                                 </div>
                                 <button
@@ -426,42 +423,49 @@ export default function RevisionNotesPage() {
                   <div className="rounded-lg border border-[#334155] bg-[#1e293b]/60 px-4 py-3 mb-8 text-sm text-slate-300">
                     <strong className="text-slate-200">Key terms:</strong> Task 1 = IELTS Writing visual report (150+ words, describe data); Task 2 = IELTS Writing essay (250+ words, present argument/opinion).
                   </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {REVISION_NOTE_TOPICS.map((section, i) => (
-                      <div
-                        key={section.id}
-                        className="rounded-xl border border-[#334155] bg-[#1e293b]/80 overflow-hidden"
-                      >
-                        <Accordion
-                          type="single"
-                          collapsible
-                          defaultValue={i === 0 ? section.id : undefined}
-                        >
-                          <AccordionItem value={section.id} className="border-none">
-                            <AccordionTrigger className="px-4 py-3 text-left text-white hover:no-underline hover:bg-white/5">
-                              {i + 1}. {section.title}
-                            </AccordionTrigger>
-                            <AccordionContent className="px-4 pb-3 text-slate-400 text-sm">
-                              <ul className="space-y-1">
-                                {section.subItems.map((sub) => (
-                                  <li key={sub.id}>{sub.label}</li>
-                                ))}
-                              </ul>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="mt-3 border-[#3b82f6] text-blue-300 hover:bg-[#3b82f6]/20"
-                                onClick={() =>
-                                  setTopic(section.id as RevisionNoteTopicId)
-                                }
+                  <div className="space-y-8">
+                    {REVISION_NOTE_CATEGORIES.map((cat) => {
+                      const topics = REVISION_NOTE_TOPICS.filter((t) => t.category === cat.id);
+                      if (topics.length === 0) return null;
+                      return (
+                        <div key={cat.id}>
+                          <h2 className="text-base font-semibold text-slate-200 uppercase tracking-wider mb-3 pb-2 border-b border-[#334155]">
+                            {cat.label}
+                          </h2>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {topics.map((section) => (
+                              <div
+                                key={section.id}
+                                className="rounded-xl border border-[#334155] bg-[#1e293b]/80 overflow-hidden"
                               >
-                                Open revision note
-                              </Button>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
-                      </div>
-                    ))}
+                                <Accordion type="single" collapsible>
+                                  <AccordionItem value={section.id} className="border-none">
+                                    <AccordionTrigger className="px-4 py-3 text-left text-white hover:no-underline hover:bg-white/5 text-sm">
+                                      {section.title}
+                                    </AccordionTrigger>
+                                    <AccordionContent className="px-4 pb-3 text-slate-400 text-sm">
+                                      <ul className="space-y-1">
+                                        {section.subItems.map((sub) => (
+                                          <li key={sub.id}>{sub.label}</li>
+                                        ))}
+                                      </ul>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-3 border-[#3b82f6] text-blue-300 hover:bg-[#3b82f6]/20"
+                                        onClick={() => setTopic(section.id as RevisionNoteTopicId)}
+                                      >
+                                        Open revision note
+                                      </Button>
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                </Accordion>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </>
               ) : showFormatsView ? (

@@ -216,7 +216,12 @@ export function TopicPartsOfSpeech() {
         title="Adjective practice"
         prompt={
           <>
-            Write 3-5 sentences describing the chart below. In your answer, try to include as many precise adjectives as possible, avoiding the use of common descriptors.
+            <p className="mb-3">Write 3-5 sentences describing the chart below. In your answer, try to include as many precise adjectives as possible, avoiding the use of common descriptors.</p>
+            <img
+              src="/assets/fast-food-chart.svg"
+              alt="Line graph: Consumption of Fast Food by Australian Teenagers, 1975–2000"
+              className="w-full max-w-lg rounded border border-slate-600 bg-white"
+            />
           </>
         }
         modelLabel="Model answer"
