@@ -862,7 +862,7 @@ ${content}
 5. Identify idiomatic expressions and complex grammar structures used
 6. Generate a polishedTranscript: fix grammar errors and remove filler words from the student's actual response. Keep their EXACT SAME TOPIC, ideas, and content — do NOT change the subject matter.
 7. Generate an improvedNaturalness version: rewrite the student's actual response with more idiomatic phrasing, smoother flow, and better vocabulary. Keep the SAME TOPIC and ideas — this must be a natural version OF THEIR SPECIFIC ANSWER, roughly 30-50% longer.
-8. Generate an enhancedSpeech version: rewrite the student's actual response at Band 8-9 level with sophisticated vocabulary, complex structures, and specific details. This MUST be on the SAME TOPIC as the student's response — never switch to a different topic.
+8. Generate an enhancedSpeech version: take the student's EXACT response and rewrite it sentence by sentence as a Band 9 IELTS speaker would say it. Upgrade their specific words to precise academic vocabulary, fix all grammar errors, add complexity to their exact ideas, and use sophisticated linking devices — but preserve their personal story, examples, and structure entirely. Do NOT invent new content, do NOT change the topic, do NOT write a generic Band 9 answer. This must read as if the student themselves suddenly gained Band 9 ability and said the same thing with upgraded language.
 9. Assign per-word confidence scores (0-100) to each word in the student's transcription indicating how clearly/accurately each word was likely pronounced or heard
 
 Provide your response in this EXACT JSON format:
@@ -876,7 +876,7 @@ Provide your response in this EXACT JSON format:
     {"word": "who", "confidence": 89, "feedback": "Natural liaison with next word"}
   ],
   "improvedNaturalness": "A natural, idiomatic version of THE STUDENT'S ACTUAL RESPONSE — same topic, smoother phrasing, better vocabulary",
-  "enhancedSpeech": "A Band 8-9 rewrite of THE STUDENT'S ACTUAL RESPONSE — same topic, sophisticated vocabulary, complex structures",
+  "enhancedSpeech": "A sentence-by-sentence Band 9 upgrade of the student's exact words — same personal story and ideas, but with Band 9 vocabulary, grammar, and precision. Must NOT be a generic answer.",
   "taskResponse": {
     "score": 7.0,
     "feedback": "Specific analysis of how directly and fully the student addressed the question, with concrete evidence from their response"

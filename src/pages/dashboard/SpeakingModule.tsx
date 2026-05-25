@@ -179,7 +179,7 @@ export default function SpeakingModule() {
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
   const [speakingDuration, setSpeakingDuration] = useState<number | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [activeComparison, setActiveComparison] = useState<'naturalness' | 'enhanced' | null>(null);
+  const [activeComparison, setActiveComparison] = useState<'enhanced' | null>(null);
   const [showDiffs, setShowDiffs] = useState<{ naturalness: boolean; enhanced: boolean }>({ naturalness: false, enhanced: false });
   const [tooltipWord, setTooltipWord] = useState<{ word: string; feedback: string } | null>(null);
   const recordingStartRef = useRef<number | null>(null);
@@ -240,6 +240,7 @@ export default function SpeakingModule() {
       generationStore.clearEntry('speaking-analysis');
       if (isMountedRef.current) {
         setFeedback(feedbackData);
+        setActiveComparison('enhanced');
       }
     } else if (analysisEntry.error) {
       generationStore.clearEntry('speaking-analysis');
@@ -512,6 +513,7 @@ export default function SpeakingModule() {
       if (isMountedRef.current) {
         generationStore.clearEntry('speaking-analysis');
         setFeedback(unwrappedData);
+        setActiveComparison('enhanced');
       } else {
         // Component unmounted — store result for remount to apply
         generationStore.finishGen('speaking-analysis', { feedbackData: unwrappedData });
@@ -1108,43 +1110,9 @@ export default function SpeakingModule() {
               {speakingDuration && (
                 <p className="text-sm text-muted-foreground mb-4">Speaking Time: {speakingDuration}s</p>
               )}
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setActiveComparison(prev => prev === 'naturalness' ? null : 'naturalness')}
-                  className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeComparison === 'naturalness'
-                      ? 'bg-teal-600 text-white'
-                      : 'bg-secondary/40 text-foreground/70 hover:bg-secondary/60'
-                  }`}
-                >
-                  Natural Transcript
-                </button>
-                <button
-                  onClick={() => setActiveComparison(prev => prev === 'enhanced' ? null : 'enhanced')}
-                  className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeComparison === 'enhanced'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-secondary/40 text-foreground/70 hover:bg-secondary/60'
-                  }`}
-                >
-                  Band 9 Transcript
-                </button>
-              </div>
-
-              {activeComparison === 'naturalness' && feedback.improvedNaturalness && (
+              {feedback.enhancedSpeech && (
                 <ComparisonPanel
-                  title="Natural Transcript Comparison"
-                  improvedLabel="Natural Version"
-                  original={transcript}
-                  improved={feedback.improvedNaturalness}
-                  showDiff={showDiffs.naturalness}
-                  onToggleDiff={() => setShowDiffs(prev => ({ ...prev, naturalness: !prev.naturalness }))}
-                />
-              )}
-
-              {activeComparison === 'enhanced' && feedback.enhancedSpeech && (
-                <ComparisonPanel
-                  title="Band 9 Transcript Comparison"
+                  title="Band 9 Transcript"
                   improvedLabel="Band 9 Version"
                   original={transcript}
                   improved={feedback.enhancedSpeech}
