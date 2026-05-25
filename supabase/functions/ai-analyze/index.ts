@@ -922,7 +922,7 @@ Provide your response in this JSON format:
 
     // Writing & Speaking use Sonnet for quality; Reading uses Haiku for speed
     const analysisModel = type === "reading" ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6";
-    const maxTokens = type === "writing" ? 3000 : type === "speaking" ? 5500 : 800;
+    const maxTokens = type === "writing" ? 3000 : type === "speaking" ? 7500 : 800;
 
     console.log("Calling Claude API with type:", type, "model:", analysisModel, "taskType:", taskType, "isRevision:", isRevision);
 
