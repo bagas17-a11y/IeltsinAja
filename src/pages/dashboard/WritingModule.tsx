@@ -870,6 +870,20 @@ export default function WritingModule() {
           <p className="text-sm text-foreground/85 leading-relaxed">{feedbackData.actionableNextStep}</p>
         </div>
       )}
+
+      {/* +1 Band model answer */}
+      {feedbackData.nextBandModelAnswer && (
+        <div className="p-4 bg-blue-500/5 rounded-xl border border-blue-500/20">
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wide">How it looks at</h3>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-medium">
+              Band {Math.min(9, (feedbackData.overallBand ?? 6) + 1).toFixed(1)}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">Same question — written one band above your score</p>
+          <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-line">{feedbackData.nextBandModelAnswer}</p>
+        </div>
+      )}
     </div>
   );
 

@@ -757,7 +757,8 @@ Provide your response in this EXACT JSON format:
     }
   ],
   "criticalFixes": ["Most impactful fix based on the rubric", "Second fix", "Third fix if applicable"],
-  "actionableNextStep": "One specific, concrete practice task to do before next attempt"
+  "actionableNextStep": "One specific, concrete practice task to do before next attempt",
+  "nextBandModelAnswer": "A complete Task 1 report written at exactly one band above the student's overallBand. Same data and topic, but elevated to that band level. Must be a full report with intro, overview, and two body paragraphs — not a fragment."
 }
 IMPORTANT: overallBand MUST equal the mathematically averaged and IELTS-rounded result of your 4 scoringGrid scores. It is NOT subjective — calculate it precisely.`;
       } else {
@@ -829,7 +830,8 @@ Provide your response in this EXACT JSON format:
     }
   ],
   "criticalFixes": ["Most impactful fix tied to the lowest-scoring rubric criterion", "Second fix", "Third fix if applicable"],
-  "actionableNextStep": "One specific, concrete practice task to do before next attempt"
+  "actionableNextStep": "One specific, concrete practice task to do before next attempt",
+  "nextBandModelAnswer": "A complete Task 2 essay written at exactly one band above the student's overallBand. Same question and position, but elevated to that band level. Must be a full essay with intro, two body paragraphs, and conclusion — not a fragment."
 }
 IMPORTANT: overallBand MUST equal the mathematically averaged and IELTS-rounded result of your 4 scoringGrid scores. It is NOT subjective — calculate it precisely.`;
       }
@@ -922,7 +924,7 @@ Provide your response in this JSON format:
 
     // Writing & Speaking use Sonnet for quality; Reading uses Haiku for speed
     const analysisModel = type === "reading" ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6";
-    const maxTokens = type === "writing" ? 3000 : type === "speaking" ? 7500 : 800;
+    const maxTokens = type === "writing" ? 5000 : type === "speaking" ? 7500 : 800;
 
     console.log("Calling Claude API with type:", type, "model:", analysisModel, "taskType:", taskType, "isRevision:", isRevision);
 
