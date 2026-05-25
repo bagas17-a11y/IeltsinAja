@@ -861,22 +861,7 @@ ${content}
 4. If filler frequency > 1 per 10 seconds, cap Fluency at 5.5
 5. Identify idiomatic expressions and complex grammar structures used
 6. Generate a polishedTranscript: fix grammar errors and remove filler words from the student's actual response. Keep their EXACT SAME TOPIC, ideas, and content — do NOT change the subject matter.
-7. Generate an improvedNaturalness version: rewrite the student's actual response with more idiomatic phrasing, smoother flow, and better vocabulary. Keep the SAME TOPIC and ideas — this must be a natural version OF THEIR SPECIFIC ANSWER, roughly 30-50% longer.
-8. Generate an enhancedSpeech version. This is a COMPLETE REWRITE of the student's response at Band 9 level. STRICT RULES:
-   - Remove ALL [pause] markers — a Band 9 speaker has no long silences
-   - Remove ALL filler words (um, uh, like, sort of, you know, basically)
-   - Fix EVERY grammar error — do not carry over any errors from the original
-   - Replace weak/simple vocabulary with precise, sophisticated alternatives
-   - Restructure sentences to show grammatical range (relative clauses, conditionals, passive voice where natural, participle phrases)
-   - Keep the student's personal topic, story, and ideas — just say them the way a Band 9 speaker would
-   - The result should feel like the same person speaking, but fluently and eloquently
-
-   EXAMPLE of what this means:
-   Student said: "i think uh like people should probably go outside more because its good for them and also you know like nature is very nice"
-   Band 9 version: "I firmly believe that people ought to spend considerably more time outdoors, not only because of the well-documented physical and mental health benefits, but also because immersing oneself in natural environments fosters a deeper sense of perspective and wellbeing."
-
-   Apply this same level of transformation to the student's actual response.
-9. Assign per-word confidence scores (0-100) to each word in the student's transcription indicating how clearly/accurately each word was likely pronounced or heard
+7. Assign per-word confidence scores (0-100) to each word in the student's transcription indicating how clearly/accurately each word was likely pronounced or heard
 
 Provide your response in this EXACT JSON format:
 {
@@ -888,8 +873,6 @@ Provide your response in this EXACT JSON format:
     {"word": "Someone", "confidence": 95, "feedback": "Clear and natural pronunciation"},
     {"word": "who", "confidence": 89, "feedback": "Natural liaison with next word"}
   ],
-  "improvedNaturalness": "A natural, idiomatic version of THE STUDENT'S ACTUAL RESPONSE — same topic, smoother phrasing, better vocabulary",
-  "enhancedSpeech": "A sentence-by-sentence Band 9 upgrade of the student's exact words — same personal story and ideas, but with Band 9 vocabulary, grammar, and precision. Must NOT be a generic answer.",
   "taskResponse": {
     "score": 7.0,
     "feedback": "Specific analysis of how directly and fully the student addressed the question, with concrete evidence from their response"
@@ -995,6 +978,59 @@ Provide your response in this JSON format:
       console.warn("Could not parse Claude response as JSON, falling back to mock for:", type);
       const mockResponse = getMockResponse(type, content, speakingPart, taskType);
       return successResponse(mockResponse, 200, corsHeaders);
+    }
+
+    // For speaking: generate Band 9 rewrite as a dedicated focused call
+    if (type === "speaking") {
+      try {
+        const band9UserPrompt = `QUESTION: ${question || "General speaking practice"}
+
+STUDENT'S SPOKEN RESPONSE:
+${content}
+
+Rewrite this as a Band 9 IELTS spoken response. Rules:
+- Remove every [pause] marker — no long silences in Band 9 speech
+- Remove every filler word: um, uh, like, you know, sort of, basically, right
+- Fix every grammar error (articles, verb tense, prepositions, subject-verb agreement)
+- Replace simple or imprecise vocabulary with natural, sophisticated alternatives
+- Restructure sentences to show grammatical range: relative clauses, participle phrases, conditionals
+- Keep the student's EXACT topic, personal story, and ideas — do not invent new content
+- Match approximately the same length as the original
+
+CRITICAL — DO NOT do any of these:
+- Do NOT start with "From an analytical standpoint" or any generic phrase
+- Do NOT end with "This perspective reflects a nuanced understanding" or any generic closing
+- Do NOT add ideas the student never mentioned
+- Do NOT write a model IELTS answer — rewrite THIS student's specific words
+
+Output ONLY the rewritten response. No labels, no explanations, no JSON.`;
+
+        const band9Resp = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-6",
+            max_tokens: 1000,
+            temperature: 0.4,
+            system: "You are an expert IELTS Band 9 speaking coach. Your only job is to take a student's spoken response and rewrite it exactly as a Band 9 speaker would say it — same topic, same ideas, but with perfect grammar, sophisticated vocabulary, and natural fluency. Never add generic IELTS phrases. Never change the subject matter.",
+            messages: [{ role: "user", content: band9UserPrompt }],
+          }),
+        });
+
+        if (band9Resp.ok) {
+          const band9Data = await band9Resp.json();
+          const band9Text = band9Data.content?.[0]?.text?.trim();
+          if (band9Text) {
+            parsedResponse.enhancedSpeech = band9Text;
+          }
+        }
+      } catch (e) {
+        console.warn("Band 9 rewrite call failed, skipping:", e);
+      }
     }
 
     return successResponse(parsedResponse, 200, corsHeaders);
