@@ -3,13 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { Clock, Mail, LogOut, MessageCircle } from "lucide-react";
 import { buildWhatsAppLink, CONTACT_MESSAGES } from "@/lib/contact";
 
 export default function WaitingRoom() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user, profile, signOut, isLoading, refreshProfile, isAdmin } = useAuth();
 
   useEffect(() => {
@@ -33,17 +31,8 @@ export default function WaitingRoom() {
       return;
     }
 
-    // Auth session exists but no profile row — sign them out with a clear message
-    if (profile === null) {
-      signOut().then(() => {
-        toast({
-          title: "No account found",
-          description: "This email isn't registered. Please sign up first.",
-          variant: "destructive",
-        });
-        navigate("/auth");
-      });
-    }
+    // If profile is null (no row yet), stay on this page — the 30-second poll
+    // will pick it up once the DB trigger finishes creating it.
   }, [user, profile, isLoading, navigate, isAdmin]);
 
   // Poll for verification status every 30 seconds
