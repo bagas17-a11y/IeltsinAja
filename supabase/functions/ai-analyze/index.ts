@@ -377,14 +377,18 @@ function getMockResponse(type: string, content: string, speakingPart?: string, t
         feedback: i % 4 === 0 ? "Clear and natural" : i % 4 === 1 ? "Good pronunciation" : i % 4 === 2 ? "Consider stress on this syllable" : "Natural liaison with surrounding words"
       })),
       improvedNaturalness: (() => {
-        const clean = content.replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of|right|okay)\b/gi, '').replace(/\s{2,}/g, ' ').trim();
-        const lc = clean.charAt(0).toLowerCase() + clean.slice(1);
-        return `Honestly, ${lc} It's something I feel quite strongly about, and I think it really shows in the way I approach things.`;
+        const clean = content
+          .replace(/\[pause\]/gi, '')
+          .replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of|right|okay)\b/gi, '')
+          .replace(/\s{2,}/g, ' ').trim();
+        return clean.charAt(0).toUpperCase() + clean.slice(1);
       })(),
       enhancedSpeech: (() => {
-        const clean = content.replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of|right|okay)\b/gi, '').replace(/\s{2,}/g, ' ').trim();
-        const lc = clean.charAt(0).toLowerCase() + clean.slice(1);
-        return `From an analytical standpoint, ${lc} This perspective reflects a nuanced understanding that is characteristic of sophisticated discourse, demonstrating both personal insight and broader contextual awareness.`;
+        const clean = content
+          .replace(/\[pause\]/gi, '')
+          .replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of|right|okay)\b/gi, '')
+          .replace(/\s{2,}/g, ' ').trim();
+        return clean.charAt(0).toUpperCase() + clean.slice(1);
       })(),
       taskResponse: {
         score: 6.5,
@@ -983,29 +987,33 @@ Provide your response in this JSON format:
     // For speaking: generate Band 9 rewrite as a dedicated focused call
     if (type === "speaking") {
       try {
+        // Derive the student's first real word (after removing fillers/pauses) to use as prefill.
+        // This forces the model to continue from the student's own opening — it physically cannot
+        // start with "From an analytical standpoint" or any other generic opener.
+        const cleanedForPrefill = content
+          .replace(/\[pause\]/gi, ' ')
+          .replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of|right|okay)\b/gi, ' ')
+          .replace(/\s{2,}/g, ' ').trim();
+        const firstWord = cleanedForPrefill.split(/\s+/)[0] ?? '';
+        const prefill = firstWord ? firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase() : '';
+
         const band9UserPrompt = `QUESTION: ${question || "General speaking practice"}
 
 STUDENT'S SPOKEN RESPONSE:
 ${content}
 
-Rewrite this as a Band 7.5 IELTS spoken response — clear, natural, and well-expressed, but NOT overly academic or advanced. Rules:
-- Remove every [pause] marker — smoother delivery, no long silences
-- Remove every filler word: um, uh, like, you know, sort of, basically, right
-- Fix grammar errors (articles, verb tense, prepositions, subject-verb agreement) — use everyday correct English, not textbook English
-- Swap out weak or imprecise words for better but still conversational alternatives (e.g. "good" → "enjoyable", "big" → "significant", NOT "propitious" or "magnanimous")
-- Improve sentence flow and linking (use "because", "which means", "what I mean is", "so", "as a result") — natural spoken connectors, not essay connectors
-- Keep the student's EXACT topic, personal story, and ideas — do not invent new content
-- The result should sound like a confident, fluent native-level speaker in a conversation — NOT like a written essay being read aloud
-- Match approximately the same length as the original
+Rewrite this as a Band 7.5 IELTS spoken response. Keep it natural and conversational — not academic or essay-like.
 
-CRITICAL — DO NOT do any of these:
-- Do NOT use overly academic vocabulary (no "furthermore", "moreover", "paradigm", "nuanced", "discourse")
-- Do NOT start with "From an analytical standpoint" or any stiff opener
-- Do NOT add a generic closing sentence about "broader contextual awareness" or similar
-- Do NOT add ideas the student never mentioned
-- Do NOT write a model IELTS answer — improve THIS student's specific words
+Rules:
+- Remove every [pause] marker
+- Remove every filler: um, uh, like, you know, sort of, basically, right
+- Fix grammar errors using everyday correct English
+- Swap weak words for better conversational alternatives (e.g. "good" → "enjoyable", NOT "propitious")
+- Improve flow with natural spoken connectors: "because", "which means", "so", "as a result"
+- Keep the student's exact topic, story, and ideas — no new content
+- Sound like a confident fluent speaker in conversation, not a written essay
 
-Output ONLY the rewritten response. No labels, no explanations, no JSON.`;
+Output ONLY the rewritten response. No labels, no explanations.`;
 
         const band9Resp = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
@@ -1018,16 +1026,20 @@ Output ONLY the rewritten response. No labels, no explanations, no JSON.`;
             model: "claude-sonnet-4-6",
             max_tokens: 1000,
             temperature: 0.4,
-            system: "You are an IELTS speaking coach helping students reach Band 7.5. Your only job is to take a student's spoken response and rewrite it as a confident, fluent Band 7.5 speaker would say it — same topic, same ideas, but with better flow, cleaner grammar, and more precise but still natural vocabulary. The result must sound like real spoken English, not a written essay. Never add generic IELTS phrases. Never change the subject matter.",
-            messages: [{ role: "user", content: band9UserPrompt }],
+            system: "You are an IELTS speaking coach. Rewrite the student's spoken response at Band 7.5 — same topic, same ideas, but with better flow, cleaner grammar, and more natural vocabulary. Sound like real spoken English, not a written essay. Never change the subject matter.",
+            messages: [
+              { role: "user", content: band9UserPrompt },
+              ...(prefill ? [{ role: "assistant", content: prefill }] : []),
+            ],
           }),
         });
 
         if (band9Resp.ok) {
           const band9Data = await band9Resp.json();
-          const band9Text = band9Data.content?.[0]?.text?.trim();
-          if (band9Text) {
-            parsedResponse.enhancedSpeech = band9Text;
+          const band9Raw = band9Data.content?.[0]?.text?.trim();
+          if (band9Raw) {
+            // Reattach prefill since the API response continues from where prefill left off
+            parsedResponse.enhancedSpeech = prefill ? `${prefill}${band9Raw}` : band9Raw;
           }
         }
       } catch (e) {
