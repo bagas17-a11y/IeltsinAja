@@ -109,7 +109,7 @@
     --secondary-foreground: 220 40% 18%;
 
     --muted: 220 15% 90%;
-    --muted-foreground: 220 18% 42%;
+    --muted-foreground: 220 25% 25%;
 
     --accent: 200 72% 40%;
     --accent-foreground: 0 0% 100%;
@@ -337,4 +337,34 @@
 @keyframes pulse-glow {
   0%, 100% { box-shadow: var(--shadow-neumorphic); }
   50% { box-shadow: var(--shadow-neumorphic), var(--shadow-glow); }
+}
+
+/* ── Light theme: force readable text on dark-hardcoded pages ── */
+.light .text-white { color: hsl(var(--foreground)); }
+.light .text-slate-50,
+.light .text-slate-100,
+.light .text-slate-200 { color: hsl(220 40% 12%); }
+.light .text-slate-300 { color: hsl(220 35% 20%); }
+.light .text-slate-400 { color: hsl(220 30% 28%); }
+.light .text-slate-500 { color: hsl(220 25% 35%); }
+.light .text-slate-600 { color: hsl(220 20% 42%); }
+
+/* prose-invert forces white text — override for light theme */
+.light .prose-invert {
+  --tw-prose-body: hsl(var(--foreground) / 0.85);
+  --tw-prose-headings: hsl(var(--foreground));
+  --tw-prose-bold: hsl(var(--foreground));
+  --tw-prose-lead: hsl(var(--muted-foreground));
+  --tw-prose-links: hsl(var(--accent));
+  --tw-prose-counters: hsl(var(--muted-foreground));
+  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-hr: hsl(var(--border));
+  --tw-prose-quotes: hsl(var(--foreground));
+  --tw-prose-quote-borders: hsl(var(--border));
+  --tw-prose-captions: hsl(var(--muted-foreground));
+  --tw-prose-code: hsl(var(--foreground));
+  --tw-prose-pre-code: hsl(var(--foreground) / 0.9);
+  --tw-prose-pre-bg: hsl(var(--secondary));
+  --tw-prose-th-borders: hsl(var(--border));
+  --tw-prose-td-borders: hsl(var(--border));
 }
