@@ -258,7 +258,8 @@ export function TopicVerbTenses() {
       <SectionTitle number={7} title="Mini Practice with Answer Explanations" />
       <div className="space-y-6">
         <MiniPractice
-          title="Q1 – Task 1 (past chart)"\n          inputMode="none"
+          title="Q1 – Task 1 (past chart)"
+          inputMode="none"
           prompt={
             <>
               <p className="mb-2">Original: &quot;From 2000 to 2010, the number of tourists <strong className="text-red-400">is increasing</strong> steadily.&quot;</p>
@@ -271,6 +272,7 @@ export function TopicVerbTenses() {
         />
         <MiniPractice
           title="Q2 – Task 1 (future projection)"
+          inputMode="none"
           prompt={
             <>
               <p className="mb-2">Original: &quot;By 2030, the population <strong className="text-red-400">increases</strong> to ten million.&quot;</p>
@@ -283,6 +285,7 @@ export function TopicVerbTenses() {
         />
         <MiniPractice
           title="Q3 – Task 2 (general truth)"
+          inputMode="none"
           prompt={
             <>
               <p className="mb-2">Original: &quot;People <strong className="text-red-400">are depending</strong> on cars nowadays.&quot;</p>
@@ -295,6 +298,7 @@ export function TopicVerbTenses() {
         />
         <MiniPractice
           title="Q4 – Speaking (life experience)"
+          inputMode="none"
           prompt={
             <>
               <p className="mb-2">Original: &quot;I <strong className="text-red-400">live</strong> here for ten years.&quot;</p>
@@ -307,6 +311,7 @@ export function TopicVerbTenses() {
         />
         <MiniPractice
           title="Q5 – Task 1 (mixed tenses)"
+          inputMode="none"
           prompt={
             <>
               <p className="mb-2">Original: &quot;The chart shows that car use <strong className="text-red-400">was increasing</strong> between 1990 and 2000 and <strong className="text-red-400">increase</strong> again after 2010.&quot;</p>
