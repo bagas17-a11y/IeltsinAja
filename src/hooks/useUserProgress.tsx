@@ -156,9 +156,10 @@ export function useUserProgress() {
     const counts = { reading: 0, listening: 0, writing: 0, speaking: 0 };
 
     progress.forEach((p) => {
-      if (p.band_score) {
-        skills[p.exam_type] += p.band_score;
-        counts[p.exam_type]++;
+      if (p.band_score && p.exam_type !== "diagnostic") {
+        const skill = p.exam_type as keyof SkillBreakdown;
+        skills[skill] += p.band_score;
+        counts[skill]++;
       }
     });
 

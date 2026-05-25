@@ -42,6 +42,7 @@ const examTypeIcons = {
   listening: Headphones,
   writing: PenTool,
   speaking: Mic,
+  diagnostic: Target,
 };
 
 const examTypeColors = {
@@ -49,6 +50,7 @@ const examTypeColors = {
   listening: "text-purple-400",
   writing: "text-green-400",
   speaking: "text-orange-400",
+  diagnostic: "text-yellow-400",
 };
 
 export function ProgressOverview() {
