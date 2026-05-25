@@ -149,6 +149,7 @@ export default function WritingModule() {
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
+  const [diagramFilter, setDiagramFilter] = useState<string | null>(null);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
@@ -384,6 +385,24 @@ export default function WritingModule() {
     return q.task_type === "Task 2";
   });
 
+  const DIAGRAM_LABELS: Record<string, string> = {
+    bar_chart: "Bar Chart",
+    line_graph: "Line Graph",
+    pie_chart: "Pie Chart",
+    table: "Table",
+    map: "Map",
+    process_diagram: "Process Diagram",
+    bar_line_combo: "Bar & Line",
+  };
+
+  const availableDiagramTypes = activeTask === "Task 1"
+    ? [...new Set(filteredQuestions.map(q => q.visual_type).filter((t): t is string => Boolean(t)))]
+    : [];
+
+  const displayedQuestions = activeTask === "Task 1" && diagramFilter
+    ? filteredQuestions.filter(q => q.visual_type === diagramFilter)
+    : filteredQuestions;
+
   const handleStartPractice = (question: IeltsQuestion) => {
     setSelectedQuestion(question);
     setEssay("");
@@ -553,6 +572,7 @@ export default function WritingModule() {
   const handleTaskChange = (task: string) => {
     const newTask = task as "Task 1" | "Task 2";
     setActiveTask(newTask);
+    setDiagramFilter(null);
     try {
       if (user?.id) sessionStorage.setItem(`ielts-writing-active-task-${user.id}`, newTask);
     } catch { /* non-critical sessionStorage write */ }
@@ -898,18 +918,49 @@ export default function WritingModule() {
                     </TabsList>
                   </Tabs>
 
+                  {/* Diagram type filter pills — Task 1 only */}
+                  {activeTask === "Task 1" && availableDiagramTypes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <button
+                        onClick={() => setDiagramFilter(null)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                          diagramFilter === null
+                            ? "bg-accent text-accent-foreground border-accent"
+                            : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                        }`}
+                      >
+                        All Diagrams
+                      </button>
+                      {availableDiagramTypes.map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setDiagramFilter(diagramFilter === type ? null : type)}
+                          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                            diagramFilter === type
+                              ? "bg-accent text-accent-foreground border-accent"
+                              : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                          }`}
+                        >
+                          {DIAGRAM_LABELS[type] ?? type}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Question Library */}
                   <div className="space-y-4">
                     {loadingQuestions ? (
                       <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                       </div>
-                    ) : filteredQuestions.length === 0 ? (
+                    ) : displayedQuestions.length === 0 ? (
                       <Card className="border-dashed">
                         <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
                           <BookOpen className="w-12 h-12 text-muted-foreground" />
                           <div className="text-center">
-                            <p className="text-muted-foreground mb-1">No questions available for {activeTask}</p>
+                            <p className="text-muted-foreground mb-1">
+                              {diagramFilter ? `No ${DIAGRAM_LABELS[diagramFilter] ?? diagramFilter} questions yet` : `No questions available for ${activeTask}`}
+                            </p>
                             <p className="text-sm text-muted-foreground">Generate one with AI now.</p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -938,14 +989,14 @@ export default function WritingModule() {
                         </CardContent>
                       </Card>
                     ) : (
-                      filteredQuestions.map((q) => (
+                      displayedQuestions.map((q) => (
                         <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                               <div className="flex-1 pr-4">
                                 <div className="flex items-center gap-2 mb-3">
                                   <span className={`text-xs px-2 py-0.5 rounded ${
-                                    q.task_type === "Task 2" 
+                                    q.task_type === "Task 2"
                                       ? "bg-purple-500/20 text-purple-400"
                                       : q.task_type === "Task 1 General"
                                       ? "bg-teal-500/20 text-teal-400"
@@ -957,6 +1008,11 @@ export default function WritingModule() {
                                     <Zap className="w-3 h-3" />
                                     {q.difficulty}
                                   </span>
+                                  {q.visual_type && (
+                                    <span className="text-xs px-2 py-0.5 rounded bg-slate-500/20 text-slate-400">
+                                      {DIAGRAM_LABELS[q.visual_type] ?? q.visual_type}
+                                    </span>
+                                  )}
                                 </div>
                                 <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
                                   {q.title}
@@ -997,18 +1053,49 @@ export default function WritingModule() {
                   </TabsList>
                 </Tabs>
 
+                {/* Diagram type filter pills — Task 1 only */}
+                {activeTask === "Task 1" && availableDiagramTypes.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <button
+                      onClick={() => setDiagramFilter(null)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                        diagramFilter === null
+                          ? "bg-accent text-accent-foreground border-accent"
+                          : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                      }`}
+                    >
+                      All Diagrams
+                    </button>
+                    {availableDiagramTypes.map(type => (
+                      <button
+                        key={type}
+                        onClick={() => setDiagramFilter(diagramFilter === type ? null : type)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                          diagramFilter === type
+                            ? "bg-accent text-accent-foreground border-accent"
+                            : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                        }`}
+                      >
+                        {DIAGRAM_LABELS[type] ?? type}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Question Library */}
                 <div className="space-y-4">
                   {loadingQuestions ? (
                     <div className="flex items-center justify-center py-12">
                       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                     </div>
-                  ) : filteredQuestions.length === 0 ? (
+                  ) : displayedQuestions.length === 0 ? (
                     <Card className="border-dashed">
                       <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
                         <BookOpen className="w-12 h-12 text-muted-foreground" />
                         <div className="text-center">
-                          <p className="text-muted-foreground mb-1">No questions available for {activeTask}</p>
+                          <p className="text-muted-foreground mb-1">
+                            {diagramFilter ? `No ${DIAGRAM_LABELS[diagramFilter] ?? diagramFilter} questions yet` : `No questions available for ${activeTask}`}
+                          </p>
                           <p className="text-sm text-muted-foreground">Generate one with AI now.</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1037,14 +1124,14 @@ export default function WritingModule() {
                       </CardContent>
                     </Card>
                   ) : (
-                    filteredQuestions.map((q) => (
+                    displayedQuestions.map((q) => (
                       <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 pr-4">
                               <div className="flex items-center gap-2 mb-3">
                                 <span className={`text-xs px-2 py-0.5 rounded ${
-                                  q.task_type === "Task 2" 
+                                  q.task_type === "Task 2"
                                     ? "bg-purple-500/20 text-purple-400"
                                     : q.task_type === "Task 1 General"
                                     ? "bg-teal-500/20 text-teal-400"
@@ -1056,6 +1143,11 @@ export default function WritingModule() {
                                   <Zap className="w-3 h-3" />
                                   {q.difficulty}
                                 </span>
+                                {q.visual_type && (
+                                  <span className="text-xs px-2 py-0.5 rounded bg-slate-500/20 text-slate-400">
+                                    {DIAGRAM_LABELS[q.visual_type] ?? q.visual_type}
+                                  </span>
+                                )}
                               </div>
                               <h3 className="font-medium text-foreground mb-2 group-hover:text-accent transition-colors">
                                 {q.title}
