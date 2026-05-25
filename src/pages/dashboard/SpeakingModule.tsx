@@ -174,6 +174,7 @@ export default function SpeakingModule() {
   const isAnalyzing = analysisEntry.isGenerating;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [activeQuestions, setActiveQuestions] = useState(FALLBACK_SPEAKING_QUESTIONS);
+  const [dbQuestionsLoaded, setDbQuestionsLoaded] = useState(false);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
@@ -196,6 +197,54 @@ export default function SpeakingModule() {
       }
     } catch (err) { console.error("Cache load error:", err); }
   }, [user?.id]);
+
+  // Fetch pre-generated questions from the speaking_library table on mount
+  useEffect(() => {
+    const fetchDBQuestions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("speaking_library")
+          .select("part, topic, question, follow_up_questions, prep_time, speak_time")
+          .eq("is_active", true)
+          .order("topic", { ascending: true });
+
+        if (error || !data || data.length === 0) return;
+
+        const part1 = data
+          .filter((r) => r.part === 1)
+          .map((r) => ({ topic: r.topic, question: r.question }));
+
+        const part2 = data
+          .filter((r) => r.part === 2)
+          .map((r) => ({
+            topic: r.topic,
+            cueCard: r.question,
+            prepTime: r.prep_time ?? "1 minute",
+            speakTime: r.speak_time ?? "1-2 minutes",
+          }));
+
+        const part3 = data
+          .filter((r) => r.part === 3)
+          .map((r) => ({
+            topic: r.topic,
+            questions: Array.isArray(r.follow_up_questions) ? (r.follow_up_questions as string[]) : [],
+          }));
+
+        const merged = {
+          part1: part1.length > 0 ? part1 : FALLBACK_SPEAKING_QUESTIONS.part1,
+          part2: part2.length > 0 ? part2 : FALLBACK_SPEAKING_QUESTIONS.part2,
+          part3: part3.length > 0 ? part3 : FALLBACK_SPEAKING_QUESTIONS.part3,
+        };
+
+        setActiveQuestions(merged as typeof FALLBACK_SPEAKING_QUESTIONS);
+        setDbQuestionsLoaded(true);
+      } catch (err) {
+        console.error("Failed to load speaking questions from DB:", err);
+      }
+    };
+
+    fetchDBQuestions();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user?.id) return;
@@ -268,76 +317,16 @@ export default function SpeakingModule() {
     }
   };
 
-  const generateNewQuestion = async () => {
-    if (isGatingLoading) return;
+  const generateNewQuestion = () => {
     if (!canAccess("speaking")) {
       setShowUpgradeModal(true);
       return;
     }
 
-    let currentSession;
-    try {
-      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
-      currentSession = refreshedSession || (await supabase.auth.getSession()).data.session;
-    } catch (e) {
-      console.error(e);
-    }
-    
-    if (!currentSession) {
-      toast({ title: "Authentication required", description: "You must be logged in.", variant: "destructive" });
-      return;
-    }
-
     resetTranscript();
     setFeedback(null);
-    generationStore.startGen('speaking');
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-speaking", {
-        body: { difficulty: "medium" },
-        headers: {
-          Authorization: `Bearer ${currentSession.access_token}`,
-        },
-      });
-      if (error) throw error;
-      const aiData: AISpeakingTest = data?.success ? data.data : data;
-      if (aiData?.part1 && aiData?.part2 && aiData?.part3) {
-        const mapped = mapAIToLegacy(aiData) as typeof FALLBACK_SPEAKING_QUESTIONS;
-
-        // Always persist to sessionStorage (survives component unmount)
-        try {
-          if (user?.id) {
-            const newCache: CachedSpeakingState = { activeQuestions: mapped, currentPart: "part1", currentQuestionIndex: 0, feedback: null };
-            sessionStorage.setItem(`ielts-speaking-cache-${user.id}`, JSON.stringify(newCache));
-            sessionStorage.setItem(`ielts-speaking-active-part-${user.id}`, "part1");
-          }
-        } catch (e) {
-          console.error("Failed to save generation to cache:", e);
-        }
-
-        if (isMountedRef.current) {
-          generationStore.clearEntry('speaking');
-          setActiveQuestions(mapped);
-          setCurrentPart('part1');
-          setCurrentQuestionIndex(0);
-          toast({ title: "Test Generated", description: "Your AI speaking practice is ready!" });
-        } else {
-          // Component unmounted — store result for remount to apply
-          generationStore.finishGen('speaking', { mapped });
-        }
-      } else {
-        throw new Error("Incomplete AI response");
-      }
-    } catch (err: any) {
-      console.error("Failed to generate AI speaking questions, using fallback:", err);
-      if (isMountedRef.current) {
-        generationStore.clearEntry('speaking');
-        // Cycle through fallback questions instead
-        const maxIndex = FALLBACK_SPEAKING_QUESTIONS[currentPart].length;
-        setCurrentQuestionIndex((prev) => (prev + 1) % maxIndex);
-      } else {
-        generationStore.failGen('speaking', err?.message || "Generation failed");
-      }
-    }
+    const bank = activeQuestions[currentPart];
+    setCurrentQuestionIndex((prev) => (prev + 1) % bank.length);
   };
 
   const handleRestartPractice = () => {
@@ -695,11 +684,8 @@ export default function SpeakingModule() {
                 </span>
               )}
             </div>
-            <Button variant="ghost" size="sm" onClick={() => !canAccess("speaking") ? setShowUpgradeModal(true) : generateNewQuestion()} disabled={isGenerating}>
-              {isGenerating
-                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
-                : <><RefreshCw className="w-4 h-4 mr-2" />New Question</>
-              }
+            <Button variant="ghost" size="sm" onClick={generateNewQuestion}>
+              <RefreshCw className="w-4 h-4 mr-2" />Next Question
             </Button>
           </div>
           

@@ -24,6 +24,7 @@ import PricingSelection from "./pages/PricingSelection";
 import PaymentVerification from "./pages/admin/PaymentVerification";
 import ContentManager from "./pages/admin/ContentManager";
 import ListeningManager from "./pages/admin/ListeningManager";
+import SpeakingManager from "./pages/admin/SpeakingManager";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import WaitingRoom from "./pages/WaitingRoom";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/admin/content-manager" element={<ContentManager />} />
             <Route path="/admin/listening" element={<ListeningManager />} />
             <Route path="/admin/listening-manager" element={<ListeningManager />} />
+            <Route path="/admin/speaking" element={<SpeakingManager />} />
             <Route path="/admin/users" element={<UserManagement />} />
             {/* /admin/subscriptions is an alias for /admin/users (kept for old links) */}
             <Route path="/admin/subscriptions" element={<UserManagement />} />

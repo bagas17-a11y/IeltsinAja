@@ -21,6 +21,7 @@ import {
   RefreshCw,
   BookOpen,
   Headphones,
+  Mic,
   UserPlus,
   DollarSign,
   ArrowRight,
@@ -284,6 +285,13 @@ export default function AdminDashboard() {
       icon: <Headphones className="w-6 h-6" />,
       path: "/admin/listening",
       color: "text-blue-500",
+    },
+    {
+      title: "Speaking Manager",
+      description: "Manage speaking question bank",
+      icon: <Mic className="w-6 h-6" />,
+      path: "/admin/speaking",
+      color: "text-elite-gold",
     },
   ];
 
