@@ -258,7 +258,7 @@ export function TopicVerbTenses() {
       <SectionTitle number={7} title="Mini Practice with Answer Explanations" />
       <div className="space-y-6">
         <MiniPractice
-          title="Q1 – Task 1 (past chart)"
+          title="Q1 – Task 1 (past chart)"\n          inputMode="none"
           prompt={
             <>
               <p className="mb-2">Original: &quot;From 2000 to 2010, the number of tourists <strong className="text-red-400">is increasing</strong> steadily.&quot;</p>

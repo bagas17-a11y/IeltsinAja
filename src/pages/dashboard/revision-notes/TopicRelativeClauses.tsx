@@ -132,12 +132,20 @@ export function TopicRelativeClauses() {
         title="Mini practice"
         prompt={
           <>
-            <p className="mb-2">1. Join the two sentences with a relative clause:</p>
-            <p className="mb-2 text-slate-300">&quot;The university is famous. I graduated from it last year.&quot;</p>
-            <p className="mb-3">2. Add commas if needed:</p>
-            <p className="mb-2 text-slate-300">&quot;Jakarta which is the capital of Indonesia has very bad traffic.&quot;</p>
-            <p className="mb-2">3. Correct the mistake:</p>
-            <p className="text-slate-300">&quot;The country that the country I want to study in is Australia.&quot;</p>
+            <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-300">
+              <li>
+                <span className="text-slate-200">Join the two sentences with a relative clause:</span>
+                <p className="mt-1 italic">&quot;The university is famous. I graduated from it last year.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Add commas if needed:</span>
+                <p className="mt-1 italic">&quot;Jakarta which is the capital of Indonesia has very bad traffic.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Correct the mistake:</span>
+                <p className="mt-1 italic">&quot;The country that the country I want to study in is Australia.&quot;</p>
+              </li>
+            </ol>
           </>
         }
         modelLabel="Model answers"

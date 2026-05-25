@@ -117,6 +117,13 @@ export function TopicPartsOfSpeech() {
             Some people believe that technology has made learning easier, while others think it has created more problems. Discuss both views and give your own opinion. In your answer, use different tenses, lexical, and auxiliary verbs.
           </>
         }
+        modelLabel="Model answer"
+        model={
+          <>
+            <p className="mb-2">Technology <strong>has transformed</strong> (present perfect — lexical) the way people learn. While some <strong>argue</strong> (present simple — lexical) that digital tools <strong>have made</strong> study more accessible, others <strong>contend</strong> that they <strong>have created</strong> distractions. I <strong>believe</strong> that both views <strong>can be</strong> valid depending on how technology <strong>is used</strong> (passive — auxiliary).</p>
+            <p className="text-xs text-slate-400">Look for: at least one past tense, one present tense, a modal, a lexical verb, and an auxiliary verb.</p>
+          </>
+        }
       />
 
       <SectionTitle number={4} title="Pronouns" />
@@ -159,9 +166,20 @@ export function TopicPartsOfSpeech() {
         title="Pronoun practice"
         prompt={
           <>
-            Rewrite the sentences using better pronouns to improve coherence and grammar: (1) Technology is important. Technology helps students learn faster. (2) Many people live in cities. Many people face pollution problems. (3) Some solutions are ineffective. The solutions should be avoided.
+            <p className="mb-2">Rewrite the sentences using better pronouns to improve coherence and grammar:</p>
+            <ol className="list-decimal pl-5 space-y-1.5 text-sm text-slate-300">
+              <li>Technology is important. Technology helps students learn faster.</li>
+              <li>Many people live in cities. Many people face pollution problems.</li>
+              <li>Some solutions are ineffective. The solutions should be avoided.</li>
+            </ol>
           </>
         }
+        modelLabel="Model answers"
+        modelItems={[
+          <>Technology is important. <strong>It</strong> helps students learn faster.</>,
+          <>Many people live in cities. <strong>They</strong> face pollution problems.</>,
+          <>Some solutions are ineffective. <strong>They</strong> should be avoided.</>,
+        ]}
       />
 
       <SectionTitle number={5} title="Adjectives" />
@@ -199,6 +217,13 @@ export function TopicPartsOfSpeech() {
         prompt={
           <>
             Write 3-5 sentences describing the chart below. In your answer, try to include as many precise adjectives as possible, avoiding the use of common descriptors.
+          </>
+        }
+        modelLabel="Model answer"
+        model={
+          <>
+            <p className="mb-2">Example: &quot;The chart shows a <strong>gradual</strong> rise in renewable energy output between 2010 and 2020. The most <strong>notable</strong> increase occurred in solar energy, which saw a <strong>dramatic</strong> surge in 2018. By contrast, fossil fuel usage experienced a <strong>marginal</strong> decline over the same period.&quot;</p>
+            <p className="text-xs text-slate-400">Look for: precise adjectives (gradual, notable, dramatic, marginal) rather than vague ones (big, small, good).</p>
           </>
         }
       />
@@ -256,6 +281,13 @@ export function TopicPartsOfSpeech() {
             In many countries, governments provide public housing to help people who cannot afford private housing. To what extent do you think public housing is an effective solution to housing problems? What are the main advantages and disadvantages? In your answer, try to include at least one of each type of adverb described above.
           </>
         }
+        modelLabel="Model answer"
+        model={
+          <>
+            <p className="mb-2">&quot;<strong>Obviously</strong> [sentence adverb], housing affordability is a <strong>highly</strong> [modifying adjective] complex issue. Public housing programmes have <strong>significantly</strong> [modifying verb] reduced homelessness in countries like Singapore. However, these schemes are <strong>extremely</strong> [modifying adjective] costly and can <strong>rapidly</strong> [modifying verb] become overcrowded if not managed well.&quot;</p>
+            <p className="text-xs text-slate-400">Check you have: one sentence adverb, one degree adverb modifying an adjective, and one manner adverb modifying a verb.</p>
+          </>
+        }
       />
 
       <SectionTitle number={7} title="Imperatives" />
@@ -301,6 +333,13 @@ export function TopicPartsOfSpeech() {
             Imagine that a friend wants to improve their English speaking skills. Give advice on what they should do. In your monologue, try to use the techniques discussed to make your instructions sound more friendly and natural.
           </>
         }
+        modelLabel="Model answer"
+        model={
+          <>
+            <p className="mb-2">&quot;Let&apos;s think about a few simple habits you could build. <strong>Try to</strong> listen to English podcasts every morning — even 10 minutes helps. <strong>Consider</strong> joining a speaking club so you can practise with others. <strong>Focus on</strong> pronunciation first, so people can understand you clearly.&quot;</p>
+            <p className="text-xs text-slate-400">Look for: "Let's" (inclusive), "try to" / "consider" (softeners), and a reason clause (e.g. "so you can…").</p>
+          </>
+        }
       />
 
       <SectionTitle number={8} title="Mini Practice (Parts of Speech)" />
@@ -330,6 +369,13 @@ export function TopicPartsOfSpeech() {
         prompt={
           <>
             Some people believe that studying abroad is the best way to learn a language. To what extent do you agree? Answer in 5-6 sentences, including at least 1 of each of the parts of speech discussed in this section.
+          </>
+        }
+        modelLabel="Model answer"
+        model={
+          <>
+            <p className="mb-2">&quot;[Subject] Studying abroad offers significant exposure to a language in its natural context. [Lexical verb] Many learners acquire fluency more quickly because [relative pronoun] they are constantly surrounded by native speakers. [Adjective] This immersive environment is particularly beneficial for pronunciation. [Adverb] Nevertheless, it is not the only path — online resources have dramatically improved in recent years. [Imperative softened] Try to supplement any study abroad experience with structured grammar practice for best results.&quot;</p>
+            <p className="text-xs text-slate-400">Check: subject ✓ verb ✓ pronoun ✓ adjective ✓ adverb ✓ imperative (softened) ✓</p>
           </>
         }
       />

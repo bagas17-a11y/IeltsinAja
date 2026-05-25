@@ -93,7 +93,7 @@ export function MiniPractice({
   modelItems,
   collapsibleModel = true,
   defaultModelVisible = false,
-  inputMode = "none",
+  inputMode = "free",
   className,
 }: {
   title: string;

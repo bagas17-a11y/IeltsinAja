@@ -178,9 +178,21 @@ export function TopicLinkingWordsCoherence() {
         title="Mini practice"
         prompt={
           <>
-            <p className="mb-2">1. Choose the best linker: &quot;Public transport is cheap. _____, it helps reduce pollution.&quot; (Moreover / However / Therefore)</p>
-            <p className="mb-2">2. Replace the repeated noun with a pronoun: &quot;The government introduced new laws. The new laws were unpopular.&quot;</p>
-            <p className="mb-2">3. Underline the linkers in this sentence and check if any are repeated too often: &quot;Firstly, I think education is important. Firstly, it helps people find jobs. Firstly, it improves society.&quot;</p>
+            <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-300">
+              <li>
+                <span className="text-slate-200">Choose the best linker:</span>
+                <p className="mt-1 italic">&quot;Public transport is cheap. _____, it helps reduce pollution.&quot;</p>
+                <p className="mt-0.5 text-slate-400">(Moreover / However / Therefore)</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Replace the repeated noun with a pronoun:</span>
+                <p className="mt-1 italic">&quot;The government introduced new laws. The new laws were unpopular.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Underline the linkers and fix any that are repeated too often:</span>
+                <p className="mt-1 italic">&quot;Firstly, I think education is important. Firstly, it helps people find jobs. Firstly, it improves society.&quot;</p>
+              </li>
+            </ol>
           </>
         }
         modelLabel="Model answers"

@@ -84,10 +84,26 @@ export function TopicModalVerbs() {
         title="Mini practice"
         prompt={
           <>
-            <p className="mb-2">1. Choose the best modal: &quot;Governments ______ invest in renewable energy to reduce pollution.&quot; (should / must / might)</p>
-            <p className="mb-2">2. Rewrite using hedging: &quot;Technology will change the way we work.&quot;</p>
-            <p className="mb-2">3. Choose: &quot;You ______ use your phone during the exam.&quot; (mustn&apos;t / don&apos;t have to)</p>
-            <p className="mb-2">4. Fill the gap: &quot;Online education ______ become more popular in the future.&quot; (Use a cautious modal.)</p>
+            <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-300">
+              <li>
+                <span className="text-slate-200">Choose the best modal:</span>
+                <p className="mt-1 italic">&quot;Governments ______ invest in renewable energy to reduce pollution.&quot;</p>
+                <p className="mt-0.5 text-slate-400">(should / must / might)</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Rewrite using hedging:</span>
+                <p className="mt-1 italic">&quot;Technology will change the way we work.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Choose the correct modal:</span>
+                <p className="mt-1 italic">&quot;You ______ use your phone during the exam.&quot;</p>
+                <p className="mt-0.5 text-slate-400">(mustn&apos;t / don&apos;t have to)</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Fill the gap with a cautious modal:</span>
+                <p className="mt-1 italic">&quot;Online education ______ become more popular in the future.&quot;</p>
+              </li>
+            </ol>
           </>
         }
         modelLabel="Model answers"
