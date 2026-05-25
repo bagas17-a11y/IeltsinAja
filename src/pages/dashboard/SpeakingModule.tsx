@@ -1000,16 +1000,6 @@ export default function SpeakingModule() {
               </div>
             )}
 
-            {feedback.enhancedSpeechBand9 && (
-              <div className="glass-card p-6 border border-elite-gold/20">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-elite-gold uppercase tracking-wide">How you could say it</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-elite-gold/20 text-elite-gold">Band 9</span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">Your topic and story — elevated to the highest level</p>
-                <p className="text-sm text-foreground/80 leading-relaxed">{feedback.enhancedSpeechBand9}</p>
-              </div>
-            )}
 
           </div>
         )}

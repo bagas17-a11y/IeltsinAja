@@ -380,13 +380,6 @@ function getMockResponse(type: string, content: string, speakingPart?: string, t
           .replace(/\s{2,}/g, ' ').trim();
         return clean.charAt(0).toUpperCase() + clean.slice(1);
       })(),
-      enhancedSpeechBand9: (() => {
-        const clean = content
-          .replace(/\[pause\]/gi, '')
-          .replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of|right|okay)\b/gi, '')
-          .replace(/\s{2,}/g, ' ').trim();
-        return clean.charAt(0).toUpperCase() + clean.slice(1);
-      })(),
       taskResponse: {
         score: 6.5,
         feedback: ["The response addresses the question directly with relevant content.", "Some personal detail was included which strengthened the answer.", "Elaborate further and add a specific example to boost task coverage."]
@@ -861,9 +854,7 @@ ${content}
 3. If filler frequency > 1 per 10 seconds, cap Fluency at 5.5
 4. Identify idiomatic expressions and complex grammar structures used
 5. Generate a polishedTranscript: fix grammar errors and remove fillers. Keep the student's EXACT topic, ideas, and content.
-6. Generate TWO enhanced speech versions using the student's overallBand score:
-   - enhancedSpeechNextBand: rewrite the response targeting exactly one full band above the student's overallBand (e.g., if Band 5 → write at Band 6 level). Keep every one of the student's ideas and personal story. Make incremental, realistic improvements: smoother connectors, slightly better vocabulary, fewer fillers. Sound like a real person improving, not a textbook.
-   - enhancedSpeechBand9: rewrite the response at a perfect Band 9 level. Remove all [pause] markers and fillers. Sophisticated but still conversational vocabulary. Complex sentence structures. Keep the student's core topic and personal story — do not invent new content. Sound like a highly fluent, confident speaker.
+6. Generate an enhancedSpeechNextBand: rewrite the response targeting exactly one full band above the student's overallBand (e.g., if Band 5 → write at Band 6 level). Keep every one of the student's ideas and personal story. Make incremental, realistic improvements: smoother connectors, slightly better vocabulary, fewer fillers. Sound like a real person improving, not a textbook.
 
 Provide your response in this EXACT JSON format:
 {
@@ -872,7 +863,6 @@ Provide your response in this EXACT JSON format:
   "accuracyScore": 73,
   "polishedTranscript": "Grammar-fixed, filler-free version of student's actual words",
   "enhancedSpeechNextBand": "One-band-higher version — same ideas, incremental improvements in flow and word choice",
-  "enhancedSpeechBand9": "Perfect Band 9 version — same topic and personal story, fully fluent and sophisticated",
   "taskResponse": {
     "score": 7.0,
     "feedback": ["Key observation about task coverage", "What was done well", "One specific thing to improve"]
