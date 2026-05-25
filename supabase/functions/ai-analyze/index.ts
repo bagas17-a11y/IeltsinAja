@@ -861,29 +861,25 @@ ${content}
 === ANALYSIS INSTRUCTIONS ===
 1. Count all [pause] markers - these indicate hesitation
 2. Count all filler words (um, uh, like, you know, basically, etc.)
-3. Estimate speech duration (assume ~150 words/minute)
-4. If filler frequency > 1 per 10 seconds, cap Fluency at 5.5
-5. Identify idiomatic expressions and complex grammar structures used
-6. Generate a polishedTranscript: fix grammar errors and remove filler words from the student's actual response. Keep their EXACT SAME TOPIC, ideas, and content — do NOT change the subject matter.
-7. Assign per-word confidence scores (0-100) to each word in the student's transcription indicating how clearly/accurately each word was likely pronounced or heard
+3. If filler frequency > 1 per 10 seconds, cap Fluency at 5.5
+4. Identify idiomatic expressions and complex grammar structures used
+5. Generate a polishedTranscript: fix grammar errors and remove fillers. Keep the student's EXACT topic, ideas, and content.
+6. Generate an enhancedSpeech: rewrite the student's response so it flows better and uses stronger word choices — natural spoken English at around Band 7, not overly academic. Remove all [pause] markers and fillers. Fix all grammar errors. Replace weak words with better but still conversational alternatives. Keep every single one of the student's ideas and personal story — do not add or remove content. Sound like a confident fluent speaker, not an essay.
 
 Provide your response in this EXACT JSON format:
 {
   "overallBand": 7.0,
   "bandScoreRange": "+/- 0.5",
   "accuracyScore": 73,
-  "polishedTranscript": "The student's response with grammar fixed and fillers removed — SAME topic and ideas as their actual answer",
-  "wordConfidences": [
-    {"word": "Someone", "confidence": 95, "feedback": "Clear and natural pronunciation"},
-    {"word": "who", "confidence": 89, "feedback": "Natural liaison with next word"}
-  ],
+  "polishedTranscript": "Grammar-fixed, filler-free version of student's actual words",
+  "enhancedSpeech": "Improved version with better flow and word choice — same ideas, natural spoken English",
   "taskResponse": {
     "score": 7.0,
-    "feedback": "Specific analysis of how directly and fully the student addressed the question, with concrete evidence from their response"
+    "feedback": "Specific analysis of how directly and fully the student addressed the question"
   },
   "fluencyCoherence": {
     "score": 7.0,
-    "feedback": "Detailed analysis of flow, hesitation, coherence, and use of linking devices"
+    "feedback": "Detailed analysis of flow, hesitation, coherence, and linking devices"
   },
   "pauseAnalysis": {
     "count": 3,
@@ -982,69 +978,6 @@ Provide your response in this JSON format:
       console.warn("Could not parse Claude response as JSON, falling back to mock for:", type);
       const mockResponse = getMockResponse(type, content, speakingPart, taskType);
       return successResponse(mockResponse, 200, corsHeaders);
-    }
-
-    // For speaking: generate Band 9 rewrite as a dedicated focused call
-    if (type === "speaking") {
-      try {
-        // Derive the student's first real word (after removing fillers/pauses) to use as prefill.
-        // This forces the model to continue from the student's own opening — it physically cannot
-        // start with "From an analytical standpoint" or any other generic opener.
-        const cleanedForPrefill = content
-          .replace(/\[pause\]/gi, ' ')
-          .replace(/\b(um|uh|like|you know|basically|actually|I mean|kind of|sort of|right|okay)\b/gi, ' ')
-          .replace(/\s{2,}/g, ' ').trim();
-        const firstWord = cleanedForPrefill.split(/\s+/)[0] ?? '';
-        const prefill = firstWord ? firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase() : '';
-
-        const band9UserPrompt = `QUESTION: ${question || "General speaking practice"}
-
-STUDENT'S SPOKEN RESPONSE:
-${content}
-
-Rewrite this as a Band 7.5 IELTS spoken response. Keep it natural and conversational — not academic or essay-like.
-
-Rules:
-- Remove every [pause] marker
-- Remove every filler: um, uh, like, you know, sort of, basically, right
-- Fix grammar errors using everyday correct English
-- Swap weak words for better conversational alternatives (e.g. "good" → "enjoyable", NOT "propitious")
-- Improve flow with natural spoken connectors: "because", "which means", "so", "as a result"
-- Keep the student's exact topic, story, and ideas — no new content
-- Sound like a confident fluent speaker in conversation, not a written essay
-
-Output ONLY the rewritten response. No labels, no explanations.`;
-
-        const band9Resp = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 1000,
-            temperature: 0.4,
-            system: "You are an IELTS speaking coach. Rewrite the student's spoken response at Band 7.5 — same topic, same ideas, but with better flow, cleaner grammar, and more natural vocabulary. Sound like real spoken English, not a written essay. Never change the subject matter.",
-            messages: [
-              { role: "user", content: band9UserPrompt },
-              ...(prefill ? [{ role: "assistant", content: prefill }] : []),
-            ],
-          }),
-        });
-
-        if (band9Resp.ok) {
-          const band9Data = await band9Resp.json();
-          const band9Raw = band9Data.content?.[0]?.text?.trim();
-          if (band9Raw) {
-            // Reattach prefill since the API response continues from where prefill left off
-            parsedResponse.enhancedSpeech = prefill ? `${prefill}${band9Raw}` : band9Raw;
-          }
-        }
-      } catch (e) {
-        console.warn("Band 9 rewrite call failed, skipping:", e);
-      }
     }
 
     return successResponse(parsedResponse, 200, corsHeaders);

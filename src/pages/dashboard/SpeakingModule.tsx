@@ -179,7 +179,6 @@ export default function SpeakingModule() {
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
   const [speakingDuration, setSpeakingDuration] = useState<number | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [tooltipWord, setTooltipWord] = useState<{ word: string; feedback: string } | null>(null);
   const recordingStartRef = useRef<number | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
@@ -346,7 +345,6 @@ export default function SpeakingModule() {
     setFeedback(null);
     setSpeakingDuration(null);
     setAudioUrl(null);
-    setTooltipWord(null);
   };
 
   const handlePartChange = (part: SpeakingPart) => {
@@ -620,13 +618,6 @@ export default function SpeakingModule() {
   };
 
   // ── Utility: confidence color ─────────────────────────────────────────────
-  const getConfidenceColor = (score: number): string => {
-    if (score >= 90) return '#22c55e';
-    if (score >= 75) return '#f59e0b';
-    if (score >= 55) return '#f97316';
-    return '#ef4444';
-  };
-
   const getScoreColor = (score: number | undefined): string => {
     if (!score) return 'text-muted-foreground';
     if (score >= 7) return 'text-green-500';
@@ -924,40 +915,6 @@ export default function SpeakingModule() {
               </div>
             )}
 
-            {/* ── 3. Word Confidence Display ────────────────────────── */}
-            {feedback.wordConfidences && feedback.wordConfidences.length > 0 && (
-              <div className="glass-card p-6">
-                <p className="text-xs text-muted-foreground mb-4">
-                  Actual audio transcript (What native speakers are likely to hear):
-                </p>
-                <div className="flex flex-wrap gap-x-3 gap-y-4">
-                  {feedback.wordConfidences.map((wc: { word: string; confidence: number; feedback: string }, i: number) => (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center cursor-pointer"
-                      onClick={() => setTooltipWord(tooltipWord?.word === wc.word + i ? null : { word: wc.word, feedback: wc.feedback })}
-                    >
-                      <span className="text-[10px] font-mono font-medium leading-none mb-1" style={{ color: getConfidenceColor(wc.confidence) }}>
-                        {wc.confidence}%
-                      </span>
-                      <span className="text-sm font-medium" style={{ color: getConfidenceColor(wc.confidence) }}>
-                        {wc.word}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                {tooltipWord && (
-                  <div className="mt-4 p-3 rounded-lg bg-secondary/40 border border-border flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">"{tooltipWord.word}"</p>
-                      <p className="text-xs text-muted-foreground mt-1">{tooltipWord.feedback}</p>
-                    </div>
-                    <button onClick={() => setTooltipWord(null)} className="text-muted-foreground hover:text-foreground text-xs shrink-0">✕</button>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground mt-4">Tips: Click on each word to see feedback.</p>
-              </div>
-            )}
 
             {/* ── 4. Criterion Cards ────────────────────────────────── */}
             {[
