@@ -351,6 +351,9 @@ export default function SpeakingModule() {
 
     resetTranscript();
     setFeedback(null);
+    setSpeakingDuration(null);
+    setAudioUrl(null);
+    setSelectedSpeakingQuestion(null);
     const bank = activeQuestions[currentPart];
     setCurrentQuestionIndex((prev) => (prev + 1) % bank.length);
   };
@@ -365,8 +368,11 @@ export default function SpeakingModule() {
   const handlePartChange = (part: SpeakingPart) => {
     setCurrentPart(part);
     setCurrentQuestionIndex(0);
+    setSelectedSpeakingQuestion(null);
     resetTranscript();
     setFeedback(null);
+    setSpeakingDuration(null);
+    setAudioUrl(null);
   };
 
   const handleStartRecording = async () => {
@@ -520,7 +526,7 @@ export default function SpeakingModule() {
       if (isMountedRef.current) {
         generationStore.clearEntry('speaking-analysis');
         setFeedback(unwrappedData);
-        markSpeakingCompleted(currentPart, (currentQuestion as any).topic ?? "");
+        markSpeakingCompleted(currentPart, ((selectedSpeakingQuestion ?? currentQuestion) as any).topic ?? "");
       } else {
         // Component unmounted — store result for remount to apply
         generationStore.finishGen('speaking-analysis', { feedbackData: unwrappedData });
