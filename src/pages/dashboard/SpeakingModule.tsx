@@ -776,6 +776,7 @@ export default function SpeakingModule() {
   }
 
   // ── Practice view ─────────────────────────────────────────────────────────
+  const activeQ = selectedSpeakingQuestion ?? currentQuestion;
   return (
     <DashboardLayout>
       <div className="max-w-4xl">
@@ -820,9 +821,6 @@ export default function SpeakingModule() {
         </div>
 
         {/* Question Card */}
-        {(() => {
-          const activeQ = selectedSpeakingQuestion ?? currentQuestion;
-          return (
         <div className="glass-card p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 flex-wrap">
