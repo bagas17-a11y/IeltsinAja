@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,26 @@ import { useGenerationContext } from "@/hooks/useGenerationContext";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListeningCheatsheet } from "@/components/listening/ListeningCheatsheet";
+
+type Difficulty = "easy" | "medium" | "hard";
+
+const DIFFICULTY_BADGE: Record<string, "destructive" | "secondary" | "default"> = {
+  hard: "destructive",
+  easy: "secondary",
+};
+
+const NUMBER_WORDS: Record<string, string> = {
+  "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+  "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
+  "10": "ten", "11": "eleven", "12": "twelve", "13": "thirteen",
+  "14": "fourteen", "15": "fifteen", "16": "sixteen", "17": "seventeen",
+  "18": "eighteen", "19": "nineteen", "20": "twenty", "30": "thirty",
+  "40": "forty", "50": "fifty", "60": "sixty", "70": "seventy",
+  "80": "eighty", "90": "ninety", "100": "hundred",
+};
+const NUMBER_WORDS_REVERSE = Object.fromEntries(
+  Object.entries(NUMBER_WORDS).map(([k, v]) => [v, k])
+);
 
 interface QuestionItem {
   number: number;
@@ -104,13 +124,6 @@ export default function ListeningModule() {
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
 
-  // isMountedRef: tracks whether component is currently mounted
-  const isMountedRef = useRef(true);
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
-  }, []);
-
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [doneFilter, setDoneFilter] = useState<"all" | "done" | "not-done">("all");
 
@@ -125,6 +138,7 @@ export default function ListeningModule() {
   const markListeningCompleted = (testId: string) => {
     if (!user?.id) return;
     setCompletedIds((prev) => {
+      if (prev.has(testId)) return prev;
       const next = new Set(prev);
       next.add(testId);
       try { localStorage.setItem(`ielts-listening-completed-${user.id}`, JSON.stringify([...next])); } catch { }
@@ -135,8 +149,7 @@ export default function ListeningModule() {
   const [tests, setTests] = useState<ListeningTest[]>([]);
   const [currentTest, setCurrentTest] = useState<ListeningTest | null>(null);
   const genCtx = useGenerationContext();
-  const isLoading = genCtx.listening.status === "generating";
-  const isGenerating = isLoading;
+  const isGenerating = genCtx.listening.status === "generating";
   const stopGeneration = () => genCtx.resetListening();
   const [answers, setAnswers] = useState<UserAnswers>({});
   const [notes, setNotes] = useState("");
@@ -153,7 +166,7 @@ export default function ListeningModule() {
   const [score, setScore] = useState<number | null>(null);
   const [results, setResults] = useState<Record<string, { correct: boolean; correctAnswer: string }>>({});
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(() => {
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => {
     if (typeof window !== "undefined") {
       const stored = sessionStorage.getItem(`ielts-listening-active-diff-${user?.id || 'guest'}`);
       if (stored === "easy" || stored === "medium" || stored === "hard") return stored;
@@ -599,20 +612,8 @@ export default function ListeningModule() {
 
     if (normalizedUser === normalizedCorrect) return true;
 
-    const numberWords: Record<string, string> = {
-      "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
-      "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
-      "10": "ten", "11": "eleven", "12": "twelve", "13": "thirteen",
-      "14": "fourteen", "15": "fifteen", "16": "sixteen", "17": "seventeen",
-      "18": "eighteen", "19": "nineteen", "20": "twenty", "30": "thirty",
-      "40": "forty", "50": "fifty", "60": "sixty", "70": "seventy",
-      "80": "eighty", "90": "ninety", "100": "hundred",
-    };
-    if (numberWords[normalizedUser] === normalizedCorrect) return true;
-    const reverseMap = Object.fromEntries(
-      Object.entries(numberWords).map(([k, v]) => [v, k])
-    );
-    if (reverseMap[normalizedUser] === normalizedCorrect) return true;
+    if (NUMBER_WORDS[normalizedUser] === normalizedCorrect) return true;
+    if (NUMBER_WORDS_REVERSE[normalizedUser] === normalizedCorrect) return true;
 
     const digitsOnly = (s: string) => s.replace(/\D/g, '');
     const userDigits = digitsOnly(normalizedUser);
@@ -688,35 +689,35 @@ export default function ListeningModule() {
     setIsSubmitted(true);
     markListeningCompleted(currentTest.id);
 
-    // Save to database
     if (user) {
       try {
-        await supabase.from("listening_submissions").insert({
-          user_id: user.id,
-          listening_id: currentTest.id,
-          answers,
-          score: correctCount,
-          total_questions: totalQuestions,
-          band_score: bandScore,
-          completed_at: new Date().toISOString(),
-        });
-
-        await saveProgress({
-          exam_type: "listening",
-          score: correctCount,
-          band_score: bandScore,
-          total_questions: totalQuestions,
-          correct_answers: correctCount,
-          feedback: `Test: ${currentTest.title}. Difficulty: ${currentTest.difficulty}`,
-          completed_at: new Date().toISOString(),
-          time_taken: currentTest.durationMinutes * 60 - timeRemaining,
-          errors_log: [],
-          metadata: {
-            testId: currentTest.id,
-            testTitle: currentTest.title,
-            difficulty: currentTest.difficulty,
-          },
-        });
+        await Promise.all([
+          supabase.from("listening_submissions").insert({
+            user_id: user.id,
+            listening_id: currentTest.id,
+            answers,
+            score: correctCount,
+            total_questions: totalQuestions,
+            band_score: bandScore,
+            completed_at: new Date().toISOString(),
+          }),
+          saveProgress({
+            exam_type: "listening",
+            score: correctCount,
+            band_score: bandScore,
+            total_questions: totalQuestions,
+            correct_answers: correctCount,
+            feedback: `Test: ${currentTest.title}. Difficulty: ${currentTest.difficulty}`,
+            completed_at: new Date().toISOString(),
+            time_taken: currentTest.durationMinutes * 60 - timeRemaining,
+            errors_log: [],
+            metadata: {
+              testId: currentTest.id,
+              testTitle: currentTest.title,
+              difficulty: currentTest.difficulty,
+            },
+          }),
+        ]);
       } catch (error) {
         console.error("Error saving submission:", error);
       }
@@ -993,14 +994,17 @@ export default function ListeningModule() {
   };
 
   const currentPart = currentTest?.sections[activePart - 1];
-  const partProgress = currentPart ? {
-    total: currentPart.question_groups.reduce((sum, group) => sum + group.items.length, 0),
-    answered: currentPart.question_groups.reduce((sum, group) =>
-      sum + group.items.filter(item => answers[item.number.toString()]).length, 0
-    ),
-  } : { total: 0, answered: 0 };
+  const partCounts = useMemo(() => {
+    if (!currentTest) return [] as { answered: number; total: number }[];
+    return currentTest.sections.map(section => ({
+      answered: section.question_groups.reduce(
+        (sum, g) => sum + g.items.filter(item => answers[item.number.toString()]).length, 0
+      ),
+      total: section.question_groups.reduce((sum, g) => sum + g.items.length, 0),
+    }));
+  }, [currentTest, answers]);
 
-  if (isLoading) {
+  if (isGenerating) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-64 gap-4">
@@ -1022,18 +1026,16 @@ export default function ListeningModule() {
           No pre-built tests yet. Generate a fresh IELTS-style test with AI.
         </p>
         <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-          <div className="flex gap-2 w-full">
-            <select
-              value={difficulty}
-              disabled={isGenerating}
-              onChange={(e) => setDifficulty(e.target.value as "easy" | "medium" | "hard")}
-              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
+          <select
+            value={difficulty}
+            disabled={isGenerating}
+            onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+            className="w-full bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
           {isGenerating ? (
             <Button
               onClick={stopGeneration}
@@ -1095,10 +1097,7 @@ export default function ListeningModule() {
                     <Clock className="w-4 h-4" />
                     {test.durationMinutes} mins
                   </span>
-                  <Badge variant={
-                    test.difficulty === "hard" ? "destructive" :
-                    test.difficulty === "easy" ? "secondary" : "default"
-                  }>
+                  <Badge variant={DIFFICULTY_BADGE[test.difficulty] ?? "default"}>
                     {test.difficulty}
                   </Badge>
                   <span>{test.totalQuestions} questions</span>
@@ -1121,7 +1120,7 @@ export default function ListeningModule() {
             <span className="text-sm text-muted-foreground flex-1">Generate a new AI test</span>
             <select
               value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value as "easy" | "medium" | "hard")}
+              onChange={(e) => setDifficulty(e.target.value as Difficulty)}
               className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
             >
               <option value="easy">Easy</option>
@@ -1196,10 +1195,7 @@ export default function ListeningModule() {
             </div>
             <div>
               <h1 className="text-xl font-light">{currentTest.title}</h1>
-              <Badge variant={
-                currentTest.difficulty === "hard" ? "destructive" :
-                currentTest.difficulty === "easy" ? "secondary" : "default"
-              }>
+              <Badge variant={DIFFICULTY_BADGE[currentTest.difficulty] ?? "default"}>
                 {currentTest.difficulty}
               </Badge>
             </div>
@@ -1332,8 +1328,7 @@ export default function ListeningModule() {
                       Part {part}
                       {!isSubmitted && (
                         <span className="ml-1 text-xs text-muted-foreground">
-                          ({currentTest.sections[part - 1]?.question_groups.reduce((sum, g) => sum + g.items.filter(item => answers[item.number.toString()]).length, 0) || 0}/
-                          {currentTest.sections[part - 1]?.question_groups.reduce((sum, g) => sum + g.items.length, 0) || 0})
+                          ({partCounts[part - 1]?.answered ?? 0}/{partCounts[part - 1]?.total ?? 0})
                         </span>
                       )}
                     </TabsTrigger>
