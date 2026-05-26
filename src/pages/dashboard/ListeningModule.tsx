@@ -86,6 +86,26 @@ export default function ListeningModule() {
   const genEntry = useGenerationEntry('listening');
   const isGenerating = genEntry.isGenerating;
 
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const stored = localStorage.getItem(`ielts-listening-completed-${user.id}`);
+      if (stored) setCompletedIds(new Set(JSON.parse(stored)));
+    } catch { }
+  }, [user?.id]);
+
+  const markListeningCompleted = (testId: string) => {
+    if (!user?.id) return;
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      next.add(testId);
+      try { localStorage.setItem(`ielts-listening-completed-${user.id}`, JSON.stringify([...next])); } catch { }
+      return next;
+    });
+  };
+
   const [tests, setTests] = useState<ListeningTest[]>([]);
   const [currentTest, setCurrentTest] = useState<ListeningTest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -611,7 +631,8 @@ export default function ListeningModule() {
     setScore(correctCount);
     setResults(newResults);
     setIsSubmitted(true);
-    
+    markListeningCompleted(currentTest.id);
+
     // Save to database
     if (user) {
       try {
@@ -886,6 +907,12 @@ export default function ListeningModule() {
                     {test.difficulty}
                   </Badge>
                   <span>{test.questions.length} questions</span>
+                  {completedIds.has(test.id) && (
+                    <span className="flex items-center gap-1 text-green-500">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Done
+                    </span>
+                  )}
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />

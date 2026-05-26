@@ -121,6 +121,27 @@ export default function ReadingModule() {
     return () => { isMountedRef.current = false; };
   }, []);
 
+  // Completed test IDs
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const stored = localStorage.getItem(`ielts-reading-completed-${userId}`);
+      if (stored) setCompletedIds(new Set(JSON.parse(stored)));
+    } catch { }
+  }, [userId]);
+
+  const markReadingCompleted = (testId: string) => {
+    if (!userId) return;
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      next.add(testId);
+      try { localStorage.setItem(`ielts-reading-completed-${userId}`, JSON.stringify([...next])); } catch { }
+      return next;
+    });
+  };
+
   // Library browser state
   const [libraryTests, setLibraryTests] = useState<LibraryEntry[]>([]);
   const [isBrowserLoading, setIsBrowserLoading] = useState(true);
@@ -352,6 +373,8 @@ export default function ReadingModule() {
       ? Math.floor((Date.now() - testStartTime.getTime()) / 1000)
       : TEST_DURATION_SECONDS - timeRemaining;
 
+    markReadingCompleted(currentTest.id);
+
     try {
       await saveProgress({
         exam_type: "reading", score: correct, band_score: band,
@@ -516,9 +539,17 @@ export default function ReadingModule() {
                     <h3 className="text-sm font-semibold leading-snug group-hover:text-accent transition-colors">
                       {test.title}
                     </h3>
-                    <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", DIFFICULTY_COLOR[test.difficulty])}>
-                      {test.difficulty}
-                    </Badge>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {completedIds.has(test.id) && (
+                        <span className="text-xs px-2 py-0.5 rounded flex items-center gap-1 bg-green-500/15 text-green-500">
+                          <CheckCircle className="w-3 h-3" />
+                          Done
+                        </span>
+                      )}
+                      <Badge variant="outline" className={cn("text-[10px] capitalize", DIFFICULTY_COLOR[test.difficulty])}>
+                        {test.difficulty}
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
