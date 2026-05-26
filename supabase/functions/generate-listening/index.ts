@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { validateRequest, GenerateListeningSchema } from "../shared/validation.ts";
 import {
   corsHeaders,
@@ -7,7 +8,6 @@ import {
   validationError,
   unauthorizedError,
   rateLimitError,
-  aiServiceError,
   internalError,
 } from "../shared/errors.ts";
 import { verifyUser } from "../shared/auth.ts";
@@ -15,103 +15,69 @@ import { checkRateLimit } from "../shared/rate-limit.ts";
 import { getMockListeningTest } from "./mock-data.ts";
 
 // ============================================================
-// IELTS Listening Generator — System Prompt
-// Based on official IELTS 2023 Sample Task formats
+// Per-part system prompt — outputs in library-compatible format
 // ============================================================
-const LISTENING_SYSTEM_PROMPT = `You are a senior IELTS Listening test designer with 20+ years of experience creating official Cambridge IELTS materials. You have studied all official IELTS Listening sample task types:
-- Form/Note/Table Completion
-- Multiple Choice (A/B/C)
-- Short-answer Questions
-- Sentence Completion
-- Matching (speaker to opinion / feature to list)
-- Plan/Map/Diagram Labelling
+const PART_SYSTEM_PROMPT = `You are an expert IELTS Listening test designer. Generate ONE PART of an IELTS Listening test.
 
-=== TEST STRUCTURE ===
-Generate ONE complete Part of an IELTS Listening test (the part is specified in the request).
-
-Part 1: Two-person conversation in an everyday social/transactional context (e.g., booking, enquiry, registration). 8-10 questions. Types: Form Completion, Multiple Choice, Short-answer.
-
-Part 2: A monologue in an everyday social context (e.g., radio broadcast, tour guide, community talk). 10 questions. Types: Short-answer, Multiple Choice, Note Completion, Diagram Labelling.
-
-Part 3: A conversation between 2-4 speakers in an educational/training context (e.g., students discussing an assignment). 10 questions. Types: Matching, Multiple Choice, Sentence Completion.
-
-Part 4: An academic lecture or monologue. 10 questions. Types: Note Completion, Sentence Completion, Multiple Choice.
-
-=== TRANSCRIPT REQUIREMENTS ===
-- Write a complete, natural tapescript (250-400 words for Part 1/2, 400-600 words for Part 3/4)
-- Embed answers NATURALLY in the conversation — do not make them stand out
-- Use realistic names, places, and numbers
-- Include natural speech features: hesitation fillers (um, well, right), false starts, clarifications
-- Answers should test LISTENING COMPREHENSION, not reading
-
-=== QUESTION REQUIREMENTS ===
-- Use EXACTLY the question types and counts specified
-- Form Completion: blanks should be short (1-3 words or a number)
-- Multiple Choice: 3 options (A/B/C), only one correct
-- Short-answer: "NO MORE THAN THREE WORDS AND/OR A NUMBER"
-- Sentence Completion: "NO MORE THAN TWO WORDS"
-- Note Completion: "ONE WORD AND/OR A NUMBER"
-- Matching: pool has 2+ more options than questions (distractors)
-
-=== ANSWER KEY REQUIREMENTS ===
-For each answer:
-1. The exact correct answer
-2. The verbatim quote from the transcript where the answer appears
-3. For number/word equivalents, accept both (e.g. "7 / seven")
-
-=== STRICT JSON OUTPUT ===
+Return ONLY valid JSON in this exact structure (no markdown, no commentary):
 {
-  "part": "Part 1",
-  "context": "Short description of scenario",
-  "transcript": "Full tapescript text here...",
-  "sections": [
+  "part_number": <1|2|3|4>,
+  "context": "One sentence: who speaks and the situation",
+  "transcript": "Full tapescript 250-600 words. Label speakers as SPEAKERNAME: text on each line.",
+  "question_groups": [
     {
-      "type": "form_completion",
-      "title": "PACKHAM'S SHIPPING AGENCY – customer quotation form",
-      "instruction": "Complete the form below. Write NO MORE THAN THREE WORDS AND/OR A NUMBER for each answer.",
-      "questions": [
+      "type": "<form_completion|note_completion|sentence_completion|multiple_choice|matching>",
+      "title": "HEADING (form/note completion only, else omit)",
+      "instruction": "Complete the [form/notes/sentences]. Write NO MORE THAN [N] WORDS [AND/OR A NUMBER] for each answer.",
+      "question_range": [startNum, endNum],
+      "items": [
         {
-          "number": 1,
-          "label": "Name",
-          "answer": "Mkere",
-          "transcript_quote": "It's Jacob Mkere. Can you spell your surname? Yes, it's M-K-E-R-E.",
-          "accept_alternatives": []
+          "number": <int>,
+          "label": "Field label — form_completion and note_completion only",
+          "question": "Full question text — multiple_choice only",
+          "sentence": "Complete sentence with _______ — sentence_completion only",
+          "options": {"A": "...", "B": "...", "C": "..."} — multiple_choice only,
+          "answer": "exact answer or letter (A/B/C)",
+          "transcript_quote": "Verbatim phrase from transcript containing the answer",
+          "explanation": "Brief explanation of why this is correct"
         }
-      ]
-    },
-    {
-      "type": "multiple_choice",
-      "instruction": "Choose the correct letter, A, B or C.",
-      "questions": [
-        {
-          "number": 9,
-          "question": "Type of insurance chosen",
-          "options": {"A": "Economy", "B": "Standard", "C": "Premium"},
-          "answer": "C",
-          "transcript_quote": "I've been stung before with Economy insurance so I'll go for the highest.",
-          "explanation": "The highest tier is Premium."
-        }
-      ]
+      ],
+      "options_pool": {"A":"...","B":"...","C":"...","D":"...","E":"...","F":"...","G":"..."} — matching ONLY (7 options for 5 questions)
     }
-  ],
-  "answer_key": {
-    "1": "Mkere",
-    "9": "C"
-  },
-  "ai_secret_context": "If the answer is a number, allow both digits and words. Ignore capitalisation differences. For spelling-based answers, accept minor variants.",
-  "difficulty": "medium",
-  "duration_minutes": 30,
-  "topic": "Shipping enquiry"
-}`;
+  ]
+}
+
+PART RULES:
+Part 1 (Q1-10): Two-person everyday transactional conversation (booking, enquiry, registration)
+  Group 1 — form_completion: 8 questions (1-8), labels, answers ≤3 words or a number
+  Group 2 — multiple_choice: 2 questions (9-10), 3 options A/B/C
+
+Part 2 (Q11-20): Monologue, social context (tour, broadcast, talk)
+  Group 1 — multiple_choice: 3 questions (11-13), 3 options A/B/C
+  Group 2 — note_completion: 7 questions (14-20), labels, answers ≤2 words or a number
+
+Part 3 (Q21-30): 2-4 speaker academic/educational conversation
+  Group 1 — matching: 5 questions (21-25), options_pool of exactly 7 items A-G, items use "label" not "question"
+  Group 2 — sentence_completion: 5 questions (26-30), items use "sentence" with _______, answers ≤2 words
+
+Part 4 (Q31-40): Academic lecture / monologue
+  Group 1 — note_completion: 10 questions (31-40), labels, answers ≤1 word or a number
+
+QUALITY RULES:
+- ALL answers must appear verbatim in the transcript
+- Use realistic UK English (names, places, currency £)
+- transcript_quote must be exact wording from the transcript
+- options in multiple_choice must be plausible distractors
+- For matching, options_pool must have exactly 7 entries`;
 
 // ============================================================
-// Topic pools by part (varied to avoid repetition)
+// Topic pools by part
 // ============================================================
 const PART_TOPICS: Record<string, string[]> = {
   "Part 1": [
-    "Hotel room booking",
-    "Gym membership enquiry",
-    "Library card registration",
+    "Hotel room booking enquiry",
+    "Gym membership registration",
+    "Library card sign-up",
     "Dentist appointment scheduling",
     "Language course enrolment",
     "Bicycle rental service",
@@ -119,6 +85,8 @@ const PART_TOPICS: Record<string, string[]> = {
     "Property letting enquiry",
     "Phone plan upgrade",
     "Travel insurance query",
+    "Sports club membership",
+    "Car hire enquiry",
   ],
   "Part 2": [
     "Community centre facilities tour",
@@ -126,9 +94,9 @@ const PART_TOPICS: Record<string, string[]> = {
     "Guide talk at a nature reserve",
     "Induction talk for new employees",
     "Podcast about sustainable living",
-    "Public announcement about road works",
     "Museum audio guide for an exhibition",
     "Talk about volunteer opportunities",
+    "Public information about a new bus route",
   ],
   "Part 3": [
     "Two students discussing their research project",
@@ -141,14 +109,92 @@ const PART_TOPICS: Record<string, string[]> = {
   "Part 4": [
     "Lecture on animal migration patterns",
     "Talk on the history of the printing press",
-    "Academic lecture on urban heat islands",
-    "Lecture on coral reef ecosystems",
+    "Academic lecture on coral reef ecosystems",
     "Talk on the psychology of decision-making",
     "Lecture on ancient trade routes",
     "Academic talk on renewable energy innovations",
+    "Lecture on ocean plastic pollution",
+    "Talk on the history of urban planning",
   ],
 };
 
+// ============================================================
+// Generate one part via Claude API
+// ============================================================
+async function generateOnePart(
+  partLabel: string,
+  topic: string,
+  difficulty: string,
+  apiKey: string,
+): Promise<Record<string, unknown> | null> {
+  const difficultyNote =
+    difficulty === "easy"
+      ? "Answers should be explicitly stated, no paraphrasing, simple vocabulary."
+      : difficulty === "medium"
+      ? "Some paraphrasing, mild distractors, moderate vocabulary."
+      : "Heavy paraphrasing, strong distractors, academic vocabulary — answers are easy to miss.";
+
+  const userPrompt = `Generate IELTS Listening ${partLabel}.
+SCENARIO: ${topic}
+DIFFICULTY: ${difficulty} — ${difficultyNote}`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4096,
+        temperature: 0.8,
+        messages: [{ role: "user", content: `${PART_SYSTEM_PROMPT}\n\n${userPrompt}` }],
+      }),
+    });
+
+    if (!res.ok) {
+      console.warn(`AI call for ${partLabel} failed: ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const text: string = data.content?.[0]?.text ?? "";
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+
+    const parsed = JSON.parse(match[0]);
+
+    // Validate minimum structure
+    if (
+      typeof parsed.part_number !== "number" ||
+      !parsed.transcript ||
+      !Array.isArray(parsed.question_groups) ||
+      parsed.question_groups.length === 0
+    ) {
+      console.warn(`AI output for ${partLabel} missing required fields`);
+      return null;
+    }
+
+    // Ensure every question_group has items array
+    for (const g of parsed.question_groups) {
+      if (!Array.isArray(g.items) || g.items.length === 0) {
+        console.warn(`AI output for ${partLabel} has empty question group`);
+        return null;
+      }
+    }
+
+    return parsed;
+  } catch (e) {
+    console.warn(`AI call for ${partLabel} threw:`, e);
+    return null;
+  }
+}
+
+// ============================================================
+// Main handler
+// ============================================================
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return handleCorsPreflightRequest(req);
@@ -167,131 +213,121 @@ serve(async (req) => {
       return validationError(validation.error.message, validation.error.details, corsHeaders);
     }
 
-    const { difficulty, part } = validation.data;
+    const { difficulty, exclude_id } = validation.data;
 
-    // Verify user authentication before making any API call
     const auth = await verifyUser(req);
     if (!auth.success) {
       return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
     }
 
-    // Check per-user rate limit (5 requests per hour)
     const rateLimit = await checkRateLimit(auth.userId!, "generate-listening");
     if (!rateLimit.allowed) {
       return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
     }
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
+    const USE_MOCK_DATA =
+      Deno.env.get("USE_MOCK_DATA") === "true" ||
+      Deno.env.get("USE_MOCK_LISTENING_DATA") === "true";
 
-    // Global mock mode or missing API key — serve mock without hitting Claude
-    if (USE_MOCK_DATA || !ANTHROPIC_API_KEY) {
-      console.log("Mock mode active, skipping Claude API call");
-      const mockTest = getMockListeningTest(part, difficulty);
-      return successResponse({
+    // ============================================================
+    // PRIMARY: AI generation (4 parallel calls, one per part)
+    // ============================================================
+    if (ANTHROPIC_API_KEY && !USE_MOCK_DATA) {
+      const partLabels = ["Part 1", "Part 2", "Part 3", "Part 4"];
+      const topics = partLabels.map((p) => {
+        const pool = PART_TOPICS[p] ?? PART_TOPICS["Part 1"];
+        return pool[Math.floor(Math.random() * pool.length)];
+      });
+
+      console.log("Generating AI listening test:", { difficulty, topics });
+
+      const results = await Promise.all(
+        partLabels.map((p, i) => generateOnePart(p, topics[i], difficulty, ANTHROPIC_API_KEY)),
+      );
+
+      if (results.every((r) => r !== null)) {
+        const sections = results as Record<string, unknown>[];
+        const responseData = {
+          id: crypto.randomUUID(),
+          title: topics[0],
+          difficulty,
+          totalQuestions: 40,
+          durationMinutes: 30,
+          topicTags: topics,
+          sections,
+          generatedAt: new Date().toISOString(),
+          source: "ai",
+        };
+        console.log("Served AI-generated listening test");
+        return successResponse(responseData, 200, corsHeaders);
+      }
+
+      console.warn("One or more AI parts failed, falling back to library");
+    }
+
+    // ============================================================
+    // FALLBACK: library
+    // ============================================================
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (supabaseUrl && supabaseServiceKey) {
+      try {
+        const adminLibrary = createClient(supabaseUrl, supabaseServiceKey);
+        let query = adminLibrary
+          .from("listening_test_library")
+          .select("id, title, difficulty, total_questions, duration_minutes, sections, topic_tags")
+          .eq("difficulty", difficulty)
+          .eq("is_active", true);
+        if (exclude_id) query = query.neq("id", exclude_id);
+        const { data: tests, error: libErr } = await query;
+
+        if (!libErr && tests && tests.length > 0) {
+          const pick = tests[Math.floor(Math.random() * tests.length)];
+          const responseData = {
+            id: pick.id,
+            title: pick.title,
+            difficulty: pick.difficulty,
+            totalQuestions: pick.total_questions,
+            durationMinutes: pick.duration_minutes,
+            topicTags: pick.topic_tags ?? [],
+            sections: pick.sections.sections ?? pick.sections,
+            generatedAt: new Date().toISOString(),
+            source: "library",
+          };
+          console.log("Served listening test from library:", pick.title);
+          return successResponse(responseData, 200, corsHeaders);
+        }
+
+        if (libErr) console.warn("Library lookup failed:", libErr.message);
+        else console.warn("No library tests for difficulty:", difficulty);
+      } catch (e) {
+        console.warn("Library access threw:", e);
+      }
+    }
+
+    // ============================================================
+    // LAST RESORT: mock data
+    // ============================================================
+    console.log("All sources failed — serving mock data");
+    const mockTest = getMockListeningTest("Part 1", difficulty);
+    return successResponse(
+      {
         ...mockTest,
         generatedAt: new Date().toISOString(),
         id: crypto.randomUUID(),
-        isMock: true,
-      }, 200, corsHeaders);
-    }
-
-    // Pick a random topic for the requested part
-    const topicPool = PART_TOPICS[part] ?? PART_TOPICS["Part 1"];
-    const topic = topicPool[Math.floor(Math.random() * topicPool.length)];
-
-    // Determine question structure per part
-    const partConfig: Record<string, string> = {
-      "Part 1": `Generate ONE section of type 'form_completion' (8 questions) followed by ONE section of type 'multiple_choice' (2 questions). Total = 10 questions.`,
-      "Part 2": `Generate ONE section of type 'multiple_choice' (3 questions) followed by ONE section of type 'note_completion' (7 questions). Total = 10 questions.`,
-      "Part 3": `Generate ONE section of type 'matching' (5 questions, pool of 7 options) followed by ONE section of type 'sentence_completion' (5 questions). Total = 10 questions.`,
-      "Part 4": `Generate ONE section of type 'note_completion' (10 questions). Total = 10 questions.`,
-    };
-
-    const userPrompt = `Generate a complete IELTS Listening test ${part}.
-
-SCENARIO: ${topic}
-DIFFICULTY: ${difficulty}
-STRUCTURE: ${partConfig[part] ?? partConfig["Part 1"]}
-
-REQUIREMENTS:
-- Write a natural, complete tapescript (voices/speakers clearly labelled)
-- ALL answers must appear verbatim in the transcript
-- Question numbers start at 1 for Part 1, 11 for Part 2, 21 for Part 3, 31 for Part 4
-- Difficulty "${difficulty}": ${difficulty === "easy" ? "clear vocabulary, explicit answers, no distractors" : difficulty === "medium" ? "some paraphrasing, mild distractors, moderate vocabulary" : "heavy paraphrasing, strong distractors, academic vocabulary, answers easy to miss"}
-
-Return ONLY valid JSON matching the specified schema. No markdown, no commentary.`;
-
-    console.log("Generating listening test:", { part, topic, difficulty });
-
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
+        source: "mock",
       },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 4096,
-        temperature: 0.8,
-        messages: [
-          { role: "user", content: `${LISTENING_SYSTEM_PROMPT}\n\n${userPrompt}` },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Claude API error:", response.status, errorText);
-
-      if (response.status === 429) return rateLimitError(undefined, 60, corsHeaders);
-      if (response.status === 401) return unauthorizedError("Invalid API key", corsHeaders);
-      return aiServiceError("Failed to generate listening test", { status: response.status }, corsHeaders);
-    }
-
-    const data = await response.json();
-    const aiText = data.content?.[0]?.text;
-
-    let parsed;
-    try {
-      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("No JSON found");
-      parsed = JSON.parse(jsonMatch[0]);
-    } catch (e) {
-      console.error("JSON parse error:", e, aiText?.substring(0, 300));
-      return aiServiceError("Failed to parse AI response. Please try again.", {
-        error: String(e),
-        preview: aiText?.substring(0, 200),
-      }, corsHeaders);
-    }
-
-    // Validate minimum structure
-    if (!parsed.transcript || !parsed.sections || !parsed.answer_key) {
-      return aiServiceError("AI returned incomplete listening test data.", {
-        hasTranscript: !!parsed.transcript,
-        hasSections: !!parsed.sections,
-        hasAnswerKey: !!parsed.answer_key,
-      }, corsHeaders);
-    }
-
-    parsed.generatedAt = new Date().toISOString();
-    parsed.id = crypto.randomUUID();
-
-    console.log("Successfully generated listening test:", {
-      part: parsed.part,
-      topic,
-      sectionCount: parsed.sections?.length,
-      questionCount: Object.keys(parsed.answer_key || {}).length,
-    });
-
-    return successResponse(parsed, 200, corsHeaders);
+      200,
+      corsHeaders,
+    );
   } catch (error: unknown) {
     console.error("generate-listening error:", error);
     return internalError(
       error instanceof Error ? error.message : "Unknown error",
       { error: String(error) },
-      corsHeaders
+      corsHeaders,
     );
   }
 });
