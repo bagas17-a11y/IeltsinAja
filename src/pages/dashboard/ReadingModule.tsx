@@ -7,12 +7,14 @@ import {
   BookOpen, Loader2, Clock, CheckCircle, XCircle,
   ChevronRight, Lightbulb, Target, Lock, Play, Pause, ArrowLeft, FileText,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { useGenerationContext } from "@/hooks/useGenerationContext";
 import { cn } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -90,6 +92,29 @@ interface DifficultyCache {
 
 const TEST_DURATION_SECONDS = 60 * 60;
 
+// Official IELTS Academic Reading raw-score → band conversion
+function rawScoreToBand(correct: number, total: number): number {
+  const raw = total === 40 ? correct : Math.round((correct / total) * 40);
+  if (raw >= 39) return 9;
+  if (raw >= 37) return 8.5;
+  if (raw >= 35) return 8;
+  if (raw >= 33) return 7.5;
+  if (raw >= 30) return 7;
+  if (raw >= 27) return 6.5;
+  if (raw >= 23) return 6;
+  if (raw >= 19) return 5.5;
+  if (raw >= 15) return 5;
+  if (raw >= 13) return 4.5;
+  if (raw >= 10) return 4;
+  if (raw >= 8) return 3.5;
+  if (raw >= 6) return 3;
+  if (raw >= 4) return 2.5;
+  if (raw >= 3) return 2;
+  if (raw >= 2) return 1.5;
+  if (raw >= 1) return 1;
+  return 0;
+}
+
 const QUESTION_TYPE_LABEL: Record<string, string> = {
   tfng: "True / False / Not Given",
   ynng: "Yes / No / Not Given",
@@ -147,6 +172,9 @@ export default function ReadingModule() {
   const [isBrowserLoading, setIsBrowserLoading] = useState(true);
   const [libraryFilter, setLibraryFilter] = useState<"all" | "easy" | "medium" | "hard">("all");
   const [loadingTestId, setLoadingTestId] = useState<string | null>(null);
+  const genCtx = useGenerationContext();
+  const isAiGenerating = genCtx.reading.status === "generating";
+  const [aiDifficulty, setAiDifficulty] = useState<"easy" | "medium" | "hard">("medium");
 
   // Active test state
   const [currentTest, setCurrentTest] = useState<ReadingTest | null>(null);
@@ -171,6 +199,7 @@ export default function ReadingModule() {
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch library on mount
   useEffect(() => {
@@ -338,6 +367,52 @@ export default function ReadingModule() {
     }
   };
 
+  // ─── AI generation ────────────────────────────────────────────────────────
+  const generateAITest = () => {
+    if (isGatingLoading) return;
+    if (!canAccess("reading")) { setShowUpgradeModal(true); return; }
+    genCtx.startReadingGeneration(aiDifficulty);
+  };
+
+  // React to completed/failed generation (fires even when returning to this module)
+  useEffect(() => {
+    const { status, data, errorMessage, difficulty: genDiff } = genCtx.reading;
+    if (status === "done" && data) {
+      const resolved = data;
+      const usedDifficulty = (genDiff as "easy" | "medium" | "hard") ?? aiDifficulty;
+      const readingTest: ReadingTest = {
+        id: resolved.id ?? crypto.randomUUID(),
+        title: resolved.title ?? "AI Reading Test",
+        difficulty: resolved.difficulty ?? usedDifficulty,
+        totalQuestions: resolved.totalQuestions ?? 40,
+        durationMinutes: resolved.durationMinutes ?? 60,
+        topicTags: resolved.topicTags ?? [],
+        sections: resolved.sections,
+      };
+      genCtx.consumeReading();
+      const newTimerEndAt = Date.now() + TEST_DURATION_SECONDS * 1000;
+      setCurrentTest(readingTest);
+      setDifficulty(usedDifficulty);
+      setUserAnswers({});
+      setIsSubmitted(false);
+      setActiveSection(1);
+      setTimeRemaining(TEST_DURATION_SECONDS);
+      setTimerEndAt(newTimerEndAt);
+      setIsTimerActive(true);
+      setIsTimerPaused(false);
+      setTestStartTime(new Date());
+      setTestCache((prev) => ({
+        ...prev,
+        [usedDifficulty]: { test: readingTest, userAnswers: {}, isSubmitted: false, timeRemaining: TEST_DURATION_SECONDS, timerEndAt: newTimerEndAt },
+      }));
+      toast({ title: "AI test ready!", description: `${readingTest.title} — 60 minutes. Timer started.` });
+    } else if (status === "error" && errorMessage) {
+      genCtx.resetReading();
+      toast({ title: "Failed to generate AI test", description: errorMessage, variant: "destructive" });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [genCtx.reading.status]);
+
   // ─── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
     if (!currentTest || !user) return;
@@ -358,16 +433,7 @@ export default function ReadingModule() {
     });
 
     const total = allItems.length;
-    const pct = (correct / total) * 100;
-    let band = 4.0;
-    if (pct >= 90) band = 9.0;
-    else if (pct >= 80) band = 8.0;
-    else if (pct >= 70) band = 7.5;
-    else if (pct >= 60) band = 7.0;
-    else if (pct >= 50) band = 6.5;
-    else if (pct >= 40) band = 6.0;
-    else if (pct >= 30) band = 5.5;
-    else if (pct >= 20) band = 5.0;
+    const band = rawScoreToBand(correct, total);
 
     const timeTaken = testStartTime
       ? Math.floor((Date.now() - testStartTime.getTime()) / 1000)
@@ -474,20 +540,88 @@ export default function ReadingModule() {
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER: Library browser (no active test)
   // ─────────────────────────────────────────────────────────────────────────
+  if (isAiGenerating) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+          <p className="text-sm text-muted-foreground animate-pulse">
+            Generating your IELTS reading test — this may take a few seconds…
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (!currentTest) {
+    // Free plan lock — shown once the one free reading test has been used
+    if (!isGatingLoading && !canAccess("reading")) {
+      return (
+        <DashboardLayout>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-accent" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-light">Reading Practice</h1>
+                <p className="text-sm text-muted-foreground">IELTS Academic Reading</p>
+              </div>
+            </div>
+            <div className="glass-card p-12 text-center">
+              <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
+                <Lock className="w-10 h-10 text-accent" />
+              </div>
+              <h2 className="text-xl font-light mb-3">Free Practice Used</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                You've used your one free reading test. Upgrade for unlimited tests.
+              </p>
+              <Button onClick={() => navigate("/pricing-selection")} variant="neumorphicPrimary">
+                View Plans
+              </Button>
+            </div>
+          </div>
+          <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} featureName="Reading" />
+        </DashboardLayout>
+      );
+    }
+
     return (
       <DashboardLayout>
         <div className="space-y-6 max-w-5xl">
           {/* Header */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-              <BookOpen className="w-5 h-5 text-accent" />
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                <BookOpen className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <h1 className="text-xl font-light">Reading Practice</h1>
+                <p className="text-xs text-muted-foreground">
+                  IELTS Academic Reading — 3 passages · 40 questions · 60 minutes
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-light">Reading Practice</h1>
-              <p className="text-xs text-muted-foreground">
-                IELTS Academic Reading — 3 passages · 40 questions · 60 minutes
-              </p>
+            {/* AI Generate button */}
+            <div className="flex items-center gap-2">
+              <select
+                value={aiDifficulty}
+                onChange={(e) => setAiDifficulty(e.target.value as typeof aiDifficulty)}
+                className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+              <Button
+                onClick={generateAITest}
+                disabled={isAiGenerating || !!loadingTestId}
+                className="bg-accent hover:bg-accent/90 whitespace-nowrap"
+                size="sm"
+              >
+                {isAiGenerating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null}
+                Generate AI Test
+              </Button>
             </div>
           </div>
 
@@ -660,14 +794,7 @@ export default function ReadingModule() {
               <Badge variant="outline" className="text-accent border-accent">
                 Band {(() => {
                   const { correct, total } = calculateScore();
-                  const p = (correct / total) * 100;
-                  if (p >= 90) return "9.0";
-                  if (p >= 80) return "8.0";
-                  if (p >= 70) return "7.5";
-                  if (p >= 60) return "7.0";
-                  if (p >= 50) return "6.5";
-                  if (p >= 40) return "6.0";
-                  return "5.5";
+                  return rawScoreToBand(correct, total);
                 })()}
               </Badge>
             </div>

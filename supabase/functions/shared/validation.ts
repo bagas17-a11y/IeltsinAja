@@ -44,6 +44,7 @@ export const GenerateListeningSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
   part: z.enum(['Part 1', 'Part 2', 'Part 3', 'Part 4']).default('Part 1'),
   exclude_id: z.string().uuid().optional(),
+  exclude_topics: z.array(z.string()).max(20).optional(),
 });
 
 export type GenerateListeningInput = z.infer<typeof GenerateListeningSchema>;

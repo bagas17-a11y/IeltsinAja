@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useSessionStorage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
+import { useGenerationContext } from "@/hooks/useGenerationContext";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListeningCheatsheet } from "@/components/listening/ListeningCheatsheet";
@@ -100,40 +101,9 @@ export default function ListeningModule() {
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
 
-  // isMountedRef: tracks whether component is currently mounted
-  const isMountedRef = useRef(true);
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
-  }, []);
-
-  // Background generation store — survives component unmount/remount
-  const genEntry = useGenerationEntry('listening');
-  const isGenerating = genEntry.isGenerating;
-
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (!user?.id) return;
-    try {
-      const stored = localStorage.getItem(`ielts-listening-completed-${user.id}`);
-      if (stored) setCompletedIds(new Set(JSON.parse(stored)));
-    } catch { }
-  }, [user?.id]);
-
-  const markListeningCompleted = (testId: string) => {
-    if (!user?.id) return;
-    setCompletedIds((prev) => {
-      const next = new Set(prev);
-      next.add(testId);
-      try { localStorage.setItem(`ielts-listening-completed-${user.id}`, JSON.stringify([...next])); } catch { }
-      return next;
-    });
-  };
-
-  const [tests, setTests] = useState<ListeningTest[]>([]);
   const [currentTest, setCurrentTest] = useState<ListeningTest | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const genCtx = useGenerationContext();
+  const isLoading = genCtx.listening.status === "generating";
   const [answers, setAnswers] = useState<UserAnswers>({});
   const [notes, setNotes] = useState("");
   const [hasStarted, setHasStarted] = useState(false);
@@ -162,6 +132,7 @@ export default function ListeningModule() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const speechRef = useRef<any>(null);
   const lastTestIdRef = useRef<string | null>(null);
+  const usedTopicsRef = useRef<string[]>([]);
   const isPausedRef = useRef(false);
   const resumeCallbackRef = useRef<(() => void) | null>(null);
 
@@ -178,6 +149,14 @@ export default function ListeningModule() {
   useEffect(() => {
     if (user?.id) sessionStorage.setItem(`ielts-listening-active-diff-${user.id}`, difficulty);
   }, [difficulty, user?.id]);
+
+  useEffect(() => {
+    try {
+      const key = `ielts-listening-used-topics-${user?.id || 'guest'}`;
+      const stored = sessionStorage.getItem(key);
+      if (stored) usedTopicsRef.current = JSON.parse(stored);
+    } catch { }
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -265,71 +244,13 @@ export default function ListeningModule() {
     };
   }, [hasStarted, isSubmitted, timerEndAt]);
 
-  const generateTest = async () => {
+  const generateTest = () => {
     if (isGatingLoading) return;
     if (!canAccess("listening")) {
       setShowUpgradeModal(true);
       return;
     }
-
-    let currentSession;
-    try {
-      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
-      currentSession = refreshedSession || (await supabase.auth.getSession()).data.session;
-    } catch (e) {
-      console.error(e);
-    }
-
-    if (!currentSession) {
-      toast.error("Authentication required", { description: "You must be logged in." });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke("generate-listening", {
-        body: { difficulty, exclude_id: lastTestIdRef.current ?? undefined },
-        headers: {
-          Authorization: `Bearer ${currentSession.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      // successResponse wraps payload as { success: true, data: {...} }
-      const resolved = data?.success ? data.data : data;
-
-      if (!resolved?.sections || !Array.isArray(resolved.sections) || resolved.sections.length === 0) {
-        throw new Error("Invalid response from server — sections missing");
-      }
-
-      const validSections = resolved.sections.every(
-        (s: ListeningPart) =>
-          Array.isArray(s?.question_groups) &&
-          s.question_groups.length > 0 &&
-          s.question_groups.every((g) => Array.isArray(g.items) && g.items.length > 0)
-      );
-      if (!validSections) {
-        throw new Error("Invalid response from server — question groups missing or empty");
-      }
-
-      const test: ListeningTest = {
-        id: resolved.id ?? crypto.randomUUID(),
-        title: resolved.title ?? "Listening Test",
-        difficulty: resolved.difficulty ?? difficulty,
-        totalQuestions: resolved.totalQuestions ?? 40,
-        durationMinutes: resolved.durationMinutes ?? 30,
-        topicTags: resolved.topicTags ?? [],
-        sections: resolved.sections,
-      };
-
-      await startTest(test);
-    } catch (error: any) {
-      console.error("generate-listening error:", error);
-      toast.error(error.message || "Failed to generate test");
-    } finally {
-      setIsLoading(false);
-    }
+    genCtx.startListeningGeneration(difficulty, lastTestIdRef.current, usedTopicsRef.current);
   };
 
   const startTest = async (test: ListeningTest) => {
@@ -341,6 +262,14 @@ export default function ListeningModule() {
       window.speechSynthesis.cancel();
     }
     speechRef.current = null;
+
+    // Record used topics so next generation avoids repeats
+    if (test.topicTags?.length) {
+      const key = `ielts-listening-used-topics-${user?.id || 'guest'}`;
+      const updated = [...new Set([...usedTopicsRef.current, ...test.topicTags])].slice(-16);
+      usedTopicsRef.current = updated;
+      try { sessionStorage.setItem(key, JSON.stringify(updated)); } catch { }
+    }
 
     const newCache: CachedListeningState = {
       testId: test.id,
@@ -400,6 +329,42 @@ export default function ListeningModule() {
     }
   };
 
+  // React to completed/failed generation (fires even when returning to this module)
+  useEffect(() => {
+    const { status, data, errorMessage } = genCtx.listening;
+    if (status === "done" && data) {
+      const resolved = data;
+      const validSections = Array.isArray(resolved.sections) &&
+        resolved.sections.length > 0 &&
+        resolved.sections.every(
+          (s: ListeningPart) =>
+            Array.isArray(s?.question_groups) &&
+            s.question_groups.length > 0 &&
+            s.question_groups.every((g: QuestionGroup) => Array.isArray(g.items) && g.items.length > 0)
+        );
+      if (!validSections) {
+        genCtx.resetListening();
+        toast.error("Invalid test data received. Please try again.");
+        return;
+      }
+      const test: ListeningTest = {
+        id: resolved.id ?? crypto.randomUUID(),
+        title: resolved.title ?? "Listening Test",
+        difficulty: resolved.difficulty ?? difficulty,
+        totalQuestions: resolved.totalQuestions ?? 40,
+        durationMinutes: resolved.durationMinutes ?? 30,
+        topicTags: resolved.topicTags ?? [],
+        sections: resolved.sections,
+      };
+      genCtx.consumeListening();
+      startTest(test);
+    } else if (status === "error" && errorMessage) {
+      genCtx.resetListening();
+      toast.error(errorMessage);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [genCtx.listening.status]);
+
   const speakPart = useCallback((partNumber: number) => {
     if (!currentTest) return;
     const section = currentTest.sections[partNumber - 1];
@@ -433,24 +398,69 @@ export default function ListeningModule() {
 
     const doSpeak = () => {
       const voices = window.speechSynthesis.getVoices();
-      // Prefer British English; fall back to any English
-      const enGB = voices.filter(v => v.lang === "en-GB");
+
+      // Prefer high-quality named voices available in Chrome/Edge
+      const PREFERRED = [
+        "Google UK English Female",
+        "Google UK English Male",
+        "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "Microsoft Ryan Online (Natural) - English (United Kingdom)",
+        "Microsoft Libby Online (Natural) - English (United Kingdom)",
+        "Microsoft Hazel Desktop - English (Great Britain)",
+        "Google UK English",
+      ];
+      const preferred = PREFERRED
+        .map(n => voices.find(v => v.name === n))
+        .filter(Boolean) as SpeechSynthesisVoice[];
+      const preferredNames = new Set(preferred.map(v => v.name));
+      const enGB = voices.filter(v => v.lang === "en-GB" && !preferredNames.has(v.name));
       const enAU = voices.filter(v => v.lang === "en-AU");
       const enUS = voices.filter(v => v.lang === "en-US");
-      const pool = [...enGB, ...enAU, ...enUS, ...voices.filter(v => v.lang.startsWith("en-"))];
+      const pool = [...preferred, ...enGB, ...enAU, ...enUS, ...voices.filter(v => v.lang.startsWith("en-"))];
 
-      // Map unique speaker names to distinct voices
+      // Assign each speaker a distinct voice + natural rate/pitch variation
       const uniqueSpeakers = [...new Set(turns.map(t => t.speaker).filter(Boolean) as string[])];
-      const voiceMap: Record<string, SpeechSynthesisVoice | undefined> = {};
+      const RATES  = [0.87, 0.82, 0.91, 0.85];
+      const PITCHES = [1.10, 0.88, 1.05, 0.93];
+      const speakerCfg: Record<string, { voice?: SpeechSynthesisVoice; rate: number; pitch: number }> = {};
       uniqueSpeakers.forEach((sp, i) => {
-        voiceMap[sp] = pool[i % Math.max(pool.length, 1)];
+        speakerCfg[sp] = {
+          voice: pool[i % Math.max(pool.length, 1)],
+          rate: RATES[i % RATES.length],
+          pitch: PITCHES[i % PITCHES.length],
+        };
       });
+
+      // Break transcript into sentence-level chunks — shorter utterances sound
+      // significantly more natural because TTS applies better per-sentence prosody
+      const splitSentences = (text: string): string[] => {
+        const parts = text.match(/[^.!?]+(?:[.!?]+(?:\s|$)|$)/g);
+        return (parts ?? [text]).map(s => s.trim()).filter(Boolean);
+      };
+
+      interface Chunk { speaker: string | null; text: string; pauseAfter: number }
+      const chunks: Chunk[] = [];
+      for (let i = 0; i < turns.length; i++) {
+        const { speaker, text } = turns[i];
+        const nextSpeaker = turns[i + 1]?.speaker ?? null;
+        const sentences = splitSentences(text);
+        sentences.forEach((s, si) => {
+          const isLast = si === sentences.length - 1;
+          const speakerChanges = isLast && speaker !== nextSpeaker;
+          chunks.push({
+            speaker,
+            text: s,
+            // Speaker-change gap ≫ sentence-end gap ≫ mid-sentence continuation
+            pauseAfter: speakerChanges ? 650 : isLast ? 300 : 110,
+          });
+        });
+      }
 
       let idx = 0;
       const next = () => {
-        if (speechRef.current !== token) return; // Session cancelled
+        if (speechRef.current !== token) return;
         if (isPausedRef.current) { resumeCallbackRef.current = next; return; }
-        if (idx >= turns.length) {
+        if (idx >= chunks.length) {
           setIsPlaying(false);
           setIsPaused(false);
           setPlayingPart(null);
@@ -458,18 +468,17 @@ export default function ListeningModule() {
           speechRef.current = null;
           return;
         }
-        const { speaker, text } = turns[idx++];
+        const { speaker, text, pauseAfter } = chunks[idx++];
         const utt = new SpeechSynthesisUtterance(text);
-        utt.rate = 0.85;
         utt.lang = "en-GB";
-        // Alternate pitch for different speakers to help distinguish voices
-        utt.pitch = speaker ? (uniqueSpeakers.indexOf(speaker) % 2 === 0 ? 1.1 : 0.9) : 1.0;
-        const v = speaker ? voiceMap[speaker] : pool[0];
-        if (v) utt.voice = v;
+        const cfg = speaker ? speakerCfg[speaker] : null;
+        utt.rate  = cfg ? cfg.rate  : 0.88;
+        utt.pitch = cfg ? cfg.pitch : 1.0;
+        if (cfg?.voice) utt.voice = cfg.voice;
+        else if (pool[0]) utt.voice = pool[0];
         utt.onend = () => {
           if (speechRef.current !== token) return;
-          // Natural pause between speaker turns (longer between different speakers)
-          setTimeout(next, speaker ? 380 : 200);
+          setTimeout(next, pauseAfter);
         };
         utt.onerror = () => {
           if (speechRef.current !== token) return;
@@ -643,7 +652,6 @@ export default function ListeningModule() {
     setScore(correctCount);
     setResults(newResults);
     setIsSubmitted(true);
-    markListeningCompleted(currentTest.id);
 
     // Save to database
     if (user) {
@@ -960,145 +968,20 @@ export default function ListeningModule() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+          <p className="text-sm text-muted-foreground animate-pulse">
+            Generating your IELTS listening test — this may take a few seconds…
+          </p>
         </div>
       </DashboardLayout>
     );
   }
 
   if (!currentTest) {
-    const practiceContent = tests.length === 0 ? (
-      <div className="glass-card p-12 text-center">
-        <Headphones className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-        <h2 className="text-xl font-light mb-2">Generate an AI Listening Test</h2>
-        <p className="text-muted-foreground mb-6">
-          No pre-built tests yet. Generate a fresh IELTS-style test with AI.
-        </p>
-        <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-          <div className="flex gap-2 w-full">
-            <select
-              value={generatePart}
-              disabled={isGenerating}
-              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
-              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="Part 1">Part 1</option>
-              <option value="Part 2">Part 2</option>
-              <option value="Part 3">Part 3</option>
-              <option value="Part 4">Part 4</option>
-            </select>
-            <select
-              value={generateDifficulty}
-              disabled={isGenerating}
-              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
-              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
-          {isGenerating ? (
-            <Button
-              onClick={stopGeneration}
-              variant="destructive"
-              className="w-full"
-            >
-              <XCircle className="w-4 h-4 mr-2" />
-              Stop Generation
-            </Button>
-          ) : (
-            <Button
-              onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
-              className="w-full bg-accent hover:bg-accent/90"
-            >
-              <Wand2 className="w-4 h-4 mr-2" />
-              Generate AI Test
-            </Button>
-          )}
-        </div>
-      </div>
-    ) : (
-      <div className="grid gap-4">
-        {tests.map((test) => (
-          <button
-            key={test.id}
-            onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : startTest(test)}
-            className="glass-card p-6 text-left hover:scale-[1.01] transition-all group"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-light mb-1">{test.title}</h3>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {test.duration_minutes} mins
-                  </span>
-                  <Badge variant={
-                    test.difficulty === "hard" ? "destructive" :
-                    test.difficulty === "easy" ? "secondary" : "default"
-                  }>
-                    {test.difficulty}
-                  </Badge>
-                  <span>{test.questions.length} questions</span>
-                  {completedIds.has(test.id) && (
-                    <span className="flex items-center gap-1 text-green-500">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Done
-                    </span>
-                  )}
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
-            </div>
-          </button>
-        ))}
-        {/* AI Generation row */}
-        <div className="glass-card p-4 border-dashed">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Wand2 className="w-4 h-4 text-accent flex-shrink-0" />
-            <span className="text-sm text-muted-foreground flex-1">Generate a new AI test</span>
-            <select
-              value={generatePart}
-              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
-              className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
-            >
-              <option value="Part 1">Part 1</option>
-              <option value="Part 2">Part 2</option>
-              <option value="Part 3">Part 3</option>
-              <option value="Part 4">Part 4</option>
-            </select>
-            <select
-              value={generateDifficulty}
-              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
-              className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-            {isGenerating ? (
-              <Button size="sm" onClick={stopGeneration} variant="destructive">
-                <XCircle className="w-4 h-4 mr-1" /> Stop
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
-                className="bg-accent hover:bg-accent/90"
-              >
-                Generate
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-
     return (
       <DashboardLayout>
-        <div className="max-w-4xl">
+        <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
               <Headphones className="w-6 h-6 text-accent" />
@@ -1106,29 +989,67 @@ export default function ListeningModule() {
             <div>
               <h1 className="text-2xl font-light">Listening Practice</h1>
               <p className="text-sm text-muted-foreground">
-                {isElite ? "Select a test or explore MudahInAja" : "Select a test"}
+                {isElite ? "Select difficulty or explore MudahInAja" : "Select difficulty"}
               </p>
             </div>
           </div>
 
-          {isElite ? (
-            <Tabs defaultValue="practice" className="w-full">
-              <TabsList className="mb-6">
-                <TabsTrigger value="practice">Practice Tests</TabsTrigger>
-                <TabsTrigger value="cheatsheet">MudahInAja</TabsTrigger>
-              </TabsList>
-              <TabsContent value="practice" className="mt-0">
-                {practiceContent}
-              </TabsContent>
-              <TabsContent value="cheatsheet" className="mt-0">
-                <div className="glass-card p-6">
-                  <h2 className="text-lg font-semibold mb-4">Elite Cheatsheet & Hard Tips</h2>
-                  <ListeningCheatsheet />
-                </div>
-              </TabsContent>
-            </Tabs>
+          {!isGatingLoading && !canAccess("listening") ? (
+            <div className="glass-card p-12 text-center">
+              <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
+                <Lock className="w-10 h-10 text-accent" />
+              </div>
+              <h2 className="text-xl font-light mb-3">Free Practice Used</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                You've used your one free listening test. Upgrade for unlimited tests.
+              </p>
+              <Button onClick={() => navigate("/pricing-selection")} variant="neumorphicPrimary">
+                View Plans
+              </Button>
+            </div>
           ) : (
-            practiceContent
+            <div className="glass-card p-12 text-center">
+              <Headphones className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="text-xl font-light mb-2">Load an IELTS Listening Test</h2>
+              <p className="text-muted-foreground mb-6">
+                Choose a difficulty level and load a complete 4-part listening test.
+              </p>
+              <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value as typeof difficulty)}
+                  className="w-full bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+                <Button
+                  onClick={generateTest}
+                  disabled={isLoading}
+                  className="w-full bg-accent hover:bg-accent/90"
+                >
+                  {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Load Test
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {isElite && (
+            <div className="mt-8">
+              <Tabs defaultValue="cheatsheet" className="w-full">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="cheatsheet">Elite Cheatsheet</TabsTrigger>
+                </TabsList>
+                <TabsContent value="cheatsheet" className="mt-0">
+                  <div className="glass-card p-6">
+                    <h2 className="text-lg font-semibold mb-4">Listening Tips & Strategies</h2>
+                    <ListeningCheatsheet />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           )}
         </div>
       </DashboardLayout>

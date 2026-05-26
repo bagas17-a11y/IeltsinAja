@@ -119,13 +119,14 @@ const PART_TOPICS: Record<string, string[]> = {
 };
 
 // ============================================================
-// Generate one part via Claude API
+// Generate one part via Claude API (with up to maxAttempts retries)
 // ============================================================
 async function generateOnePart(
   partLabel: string,
   topic: string,
   difficulty: string,
   apiKey: string,
+  maxAttempts = 3,
 ): Promise<Record<string, unknown> | null> {
   const difficultyNote =
     difficulty === "easy"
@@ -138,58 +139,75 @@ async function generateOnePart(
 SCENARIO: ${topic}
 DIFFICULTY: ${difficulty} — ${difficultyNote}`;
 
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 4096,
-        temperature: 0.8,
-        messages: [{ role: "user", content: `${PART_SYSTEM_PROMPT}\n\n${userPrompt}` }],
-      }),
-    });
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 6000,
+          temperature: 0.8,
+          messages: [{ role: "user", content: `${PART_SYSTEM_PROMPT}\n\n${userPrompt}` }],
+        }),
+      });
 
-    if (!res.ok) {
-      console.warn(`AI call for ${partLabel} failed: ${res.status}`);
-      return null;
-    }
-
-    const data = await res.json();
-    const text: string = data.content?.[0]?.text ?? "";
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-
-    const parsed = JSON.parse(match[0]);
-
-    // Validate minimum structure
-    if (
-      typeof parsed.part_number !== "number" ||
-      !parsed.transcript ||
-      !Array.isArray(parsed.question_groups) ||
-      parsed.question_groups.length === 0
-    ) {
-      console.warn(`AI output for ${partLabel} missing required fields`);
-      return null;
-    }
-
-    // Ensure every question_group has items array
-    for (const g of parsed.question_groups) {
-      if (!Array.isArray(g.items) || g.items.length === 0) {
-        console.warn(`AI output for ${partLabel} has empty question group`);
-        return null;
+      if (!res.ok) {
+        console.warn(`AI call for ${partLabel} attempt ${attempt} failed: ${res.status}`);
+        continue;
       }
-    }
 
-    return parsed;
-  } catch (e) {
-    console.warn(`AI call for ${partLabel} threw:`, e);
-    return null;
+      const data = await res.json();
+      const text: string = data.content?.[0]?.text ?? "";
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) {
+        console.warn(`AI output for ${partLabel} attempt ${attempt} contained no JSON`);
+        continue;
+      }
+
+      let parsed: Record<string, unknown>;
+      try {
+        parsed = JSON.parse(match[0]);
+      } catch {
+        console.warn(`AI output for ${partLabel} attempt ${attempt} had invalid JSON`);
+        continue;
+      }
+
+      // Validate minimum structure
+      if (
+        typeof parsed.part_number !== "number" ||
+        !parsed.transcript ||
+        !Array.isArray(parsed.question_groups) ||
+        parsed.question_groups.length === 0
+      ) {
+        console.warn(`AI output for ${partLabel} attempt ${attempt} missing required fields`);
+        continue;
+      }
+
+      // Ensure every question_group has items array
+      let groupsOk = true;
+      for (const g of parsed.question_groups as Array<Record<string, unknown>>) {
+        if (!Array.isArray(g.items) || (g.items as unknown[]).length === 0) {
+          console.warn(`AI output for ${partLabel} attempt ${attempt} has empty question group`);
+          groupsOk = false;
+          break;
+        }
+      }
+      if (!groupsOk) continue;
+
+      console.log(`AI generated ${partLabel} on attempt ${attempt}`);
+      return parsed;
+    } catch (e) {
+      console.warn(`AI call for ${partLabel} attempt ${attempt} threw:`, e);
+    }
   }
+
+  console.error(`All ${maxAttempts} attempts failed for ${partLabel}`);
+  return null;
 }
 
 // ============================================================
@@ -213,7 +231,7 @@ serve(async (req) => {
       return validationError(validation.error.message, validation.error.details, corsHeaders);
     }
 
-    const { difficulty, exclude_id } = validation.data;
+    const { difficulty, exclude_id, exclude_topics = [] } = validation.data;
 
     const auth = await verifyUser(req);
     if (!auth.success) {
@@ -235,9 +253,12 @@ serve(async (req) => {
     // ============================================================
     if (ANTHROPIC_API_KEY && !USE_MOCK_DATA) {
       const partLabels = ["Part 1", "Part 2", "Part 3", "Part 4"];
+      const excludeSet = new Set((exclude_topics ?? []).map((t: string) => t.toLowerCase()));
       const topics = partLabels.map((p) => {
         const pool = PART_TOPICS[p] ?? PART_TOPICS["Part 1"];
-        return pool[Math.floor(Math.random() * pool.length)];
+        const available = pool.filter(t => !excludeSet.has(t.toLowerCase()));
+        const pick = available.length > 0 ? available : pool;
+        return pick[Math.floor(Math.random() * pick.length)];
       });
 
       console.log("Generating AI listening test:", { difficulty, topics });

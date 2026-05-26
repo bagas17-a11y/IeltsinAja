@@ -122,6 +122,7 @@ async function generateOneSection(
   topic: string,
   difficulty: string,
   apiKey: string,
+  maxAttempts = 3,
 ): Promise<Record<string, unknown> | null> {
   const difficultyNote =
     difficulty === "easy"
@@ -138,57 +139,73 @@ TOPIC: ${topic}
 DIFFICULTY: ${difficulty} — ${difficultyNote}
 Question numbers start at ${questionStart}.`;
 
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 4096,
-        temperature: 0.7,
-        messages: [{ role: "user", content: `${SECTION_SYSTEM_PROMPT}\n\n${userPrompt}` }],
-      }),
-    });
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 6000,
+          temperature: 0.7,
+          messages: [{ role: "user", content: `${SECTION_SYSTEM_PROMPT}\n\n${userPrompt}` }],
+        }),
+      });
 
-    if (!res.ok) {
-      console.warn(`AI call for Section ${sectionNumber} failed: ${res.status}`);
-      return null;
-    }
-
-    const data = await res.json();
-    const text: string = data.content?.[0]?.text ?? "";
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-
-    const parsed = JSON.parse(match[0]);
-
-    // Validate minimum structure
-    if (
-      typeof parsed.section_number !== "number" ||
-      !parsed.passage?.content ||
-      !Array.isArray(parsed.question_groups) ||
-      parsed.question_groups.length === 0
-    ) {
-      console.warn(`AI output for Section ${sectionNumber} missing required fields`);
-      return null;
-    }
-
-    for (const g of parsed.question_groups) {
-      if (!Array.isArray(g.items) || g.items.length === 0) {
-        console.warn(`AI output for Section ${sectionNumber} has empty question group`);
-        return null;
+      if (!res.ok) {
+        console.warn(`AI call for Section ${sectionNumber} attempt ${attempt} failed: ${res.status}`);
+        continue;
       }
-    }
 
-    return parsed;
-  } catch (e) {
-    console.warn(`AI call for Section ${sectionNumber} threw:`, e);
-    return null;
+      const data = await res.json();
+      const text: string = data.content?.[0]?.text ?? "";
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) {
+        console.warn(`AI output for Section ${sectionNumber} attempt ${attempt} contained no JSON`);
+        continue;
+      }
+
+      let parsed: Record<string, unknown>;
+      try {
+        parsed = JSON.parse(match[0]);
+      } catch {
+        console.warn(`AI output for Section ${sectionNumber} attempt ${attempt} had invalid JSON`);
+        continue;
+      }
+
+      if (
+        typeof parsed.section_number !== "number" ||
+        !parsed.passage?.content ||
+        !Array.isArray(parsed.question_groups) ||
+        parsed.question_groups.length === 0
+      ) {
+        console.warn(`AI output for Section ${sectionNumber} attempt ${attempt} missing required fields`);
+        continue;
+      }
+
+      let groupsOk = true;
+      for (const g of parsed.question_groups as Array<Record<string, unknown>>) {
+        if (!Array.isArray(g.items) || (g.items as unknown[]).length === 0) {
+          console.warn(`AI output for Section ${sectionNumber} attempt ${attempt} has empty question group`);
+          groupsOk = false;
+          break;
+        }
+      }
+      if (!groupsOk) continue;
+
+      console.log(`AI generated Section ${sectionNumber} on attempt ${attempt}`);
+      return parsed;
+    } catch (e) {
+      console.warn(`AI call for Section ${sectionNumber} attempt ${attempt} threw:`, e);
+    }
   }
+
+  console.error(`All ${maxAttempts} attempts failed for Section ${sectionNumber}`);
+  return null;
 }
 
 // ============================================================

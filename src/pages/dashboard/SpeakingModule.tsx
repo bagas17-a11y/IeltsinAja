@@ -662,7 +662,7 @@ export default function SpeakingModule() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-xl bg-elite-gold/10 flex items-center justify-center">
