@@ -18,6 +18,8 @@ import {
   RefreshCw,
   Loader2,
   Lock,
+  Wand2,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -684,6 +686,7 @@ export default function ListeningModule() {
     setScore(correctCount);
     setResults(newResults);
     setIsSubmitted(true);
+    markListeningCompleted(currentTest.id);
 
     // Save to database
     if (user) {
@@ -1021,20 +1024,9 @@ export default function ListeningModule() {
         <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
           <div className="flex gap-2 w-full">
             <select
-              value={generatePart}
+              value={difficulty}
               disabled={isGenerating}
-              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
-              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="Part 1">Part 1</option>
-              <option value="Part 2">Part 2</option>
-              <option value="Part 3">Part 3</option>
-              <option value="Part 4">Part 4</option>
-            </select>
-            <select
-              value={generateDifficulty}
-              disabled={isGenerating}
-              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+              onChange={(e) => setDifficulty(e.target.value as "easy" | "medium" | "hard")}
               className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="easy">Easy</option>
@@ -1101,7 +1093,7 @@ export default function ListeningModule() {
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {test.duration_minutes} mins
+                    {test.durationMinutes} mins
                   </span>
                   <Badge variant={
                     test.difficulty === "hard" ? "destructive" :
@@ -1109,7 +1101,7 @@ export default function ListeningModule() {
                   }>
                     {test.difficulty}
                   </Badge>
-                  <span>{test.questions.length} questions</span>
+                  <span>{test.totalQuestions} questions</span>
                   {completedIds.has(test.id) && (
                     <span className="flex items-center gap-1 text-green-500">
                       <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1128,18 +1120,8 @@ export default function ListeningModule() {
             <Wand2 className="w-4 h-4 text-accent flex-shrink-0" />
             <span className="text-sm text-muted-foreground flex-1">Generate a new AI test</span>
             <select
-              value={generatePart}
-              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
-              className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
-            >
-              <option value="Part 1">Part 1</option>
-              <option value="Part 2">Part 2</option>
-              <option value="Part 3">Part 3</option>
-              <option value="Part 4">Part 4</option>
-            </select>
-            <select
-              value={generateDifficulty}
-              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value as "easy" | "medium" | "hard")}
               className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
             >
               <option value="easy">Easy</option>
