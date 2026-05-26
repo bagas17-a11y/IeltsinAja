@@ -166,20 +166,15 @@ export const PricingMatrix = () => {
                   <h3 className="text-2xl font-light mb-2 text-foreground">{plan.name}</h3>
 
                   {isElite ? (
-                    <div className="relative mb-1">
-                      {/* Price is intentionally hidden — contact us for Elite pricing */}
-                      <div className="blur-xl select-none pointer-events-none opacity-60">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-4xl md:text-5xl font-light text-foreground">
-                            IDR ????
-                          </span>
-                          <span className="text-muted-foreground">one-time</span>
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs font-medium text-elite-gold bg-elite-gold/10 border border-elite-gold/30 px-3 py-1 rounded-full">
-                          Chat us for pricing →
-                        </span>
+                    <div className="mb-1 select-none">
+                      {/* Blurred strikethrough "original" price */}
+                      <p className="text-sm line-through blur-sm text-muted-foreground mb-0.5 pointer-events-none">
+                        IDR 6M
+                      </p>
+                      {/* Actual price shown as ??? */}
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl md:text-5xl font-light text-foreground">???</span>
+                        <span className="text-muted-foreground">one-time</span>
                       </div>
                     </div>
                   ) : (
