@@ -171,6 +171,7 @@ export default function ReadingModule() {
   const [libraryTests, setLibraryTests] = useState<LibraryEntry[]>([]);
   const [isBrowserLoading, setIsBrowserLoading] = useState(true);
   const [libraryFilter, setLibraryFilter] = useState<"all" | "easy" | "medium" | "hard">("all");
+  const [doneFilter, setDoneFilter] = useState<"all" | "done" | "not-done">("all");
   const [loadingTestId, setLoadingTestId] = useState<string | null>(null);
   const genCtx = useGenerationContext();
   const isAiGenerating = genCtx.reading.status === "generating";
@@ -535,7 +536,9 @@ export default function ReadingModule() {
   }, []);
 
   const currentSection = currentTest?.sections.find((s) => s.section_number === activeSection);
-  const filteredTests = libraryFilter === "all" ? libraryTests : libraryTests.filter((t) => t.difficulty === libraryFilter);
+  const filteredTests = libraryTests
+    .filter(t => libraryFilter === "all" || t.difficulty === libraryFilter)
+    .filter(t => doneFilter === "all" || (doneFilter === "done" ? completedIds.has(t.id) : !completedIds.has(t.id)));
 
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER: Library browser (no active test)
@@ -650,6 +653,24 @@ export default function ReadingModule() {
             )}
           </div>
 
+          {/* Done/Not-Done filter pills */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {(["all", "done", "not-done"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setDoneFilter(f)}
+                className={cn(
+                  "text-xs px-3 py-1.5 rounded-full border transition-colors capitalize",
+                  doneFilter === f
+                    ? "bg-accent text-accent-foreground border-accent"
+                    : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                )}
+              >
+                {f === "all" ? "All" : f === "done" ? "Done" : "Not Done"}
+              </button>
+            ))}
+          </div>
+
           {/* Grid */}
           {isBrowserLoading ? (
             <div className="flex justify-center py-24">
@@ -666,7 +687,10 @@ export default function ReadingModule() {
               {filteredTests.map((test) => (
                 <div
                   key={test.id}
-                  className="glass-card p-5 flex flex-col gap-3 border-border/50 hover:border-accent/40 transition-colors cursor-pointer group"
+                  className={cn(
+                    "glass-card p-5 flex flex-col gap-3 hover:border-accent/40 transition-colors cursor-pointer group",
+                    completedIds.has(test.id) ? "border-green-500/30 bg-green-500/5" : "border-border/50"
+                  )}
                   onClick={() => !loadingTestId && loadTestById(test)}
                 >
                   <div className="flex items-start justify-between gap-2">

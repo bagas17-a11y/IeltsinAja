@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Loader2, Play, Square, Volume2, RefreshCw, ChevronRight, Download, CheckCircle } from "lucide-react";
@@ -174,6 +175,10 @@ export default function SpeakingModule() {
   const isAnalyzing = analysisEntry.isGenerating;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(new Set());
+  const [speakingView, setSpeakingView] = useState<"library" | "practice">("library");
+  const [selectedSpeakingQuestion, setSelectedSpeakingQuestion] = useState<any>(null);
+  const [selectedSpeakingPart, setSelectedSpeakingPart] = useState<SpeakingPart>("part1");
+  const [doneFilter, setDoneFilter] = useState<"all" | "done" | "not-done">("all");
 
   useEffect(() => {
     if (!user?.id) return;
@@ -346,6 +351,9 @@ export default function SpeakingModule() {
 
     resetTranscript();
     setFeedback(null);
+    setSpeakingDuration(null);
+    setAudioUrl(null);
+    setSelectedSpeakingQuestion(null);
     const bank = activeQuestions[currentPart];
     setCurrentQuestionIndex((prev) => (prev + 1) % bank.length);
   };
@@ -360,8 +368,11 @@ export default function SpeakingModule() {
   const handlePartChange = (part: SpeakingPart) => {
     setCurrentPart(part);
     setCurrentQuestionIndex(0);
+    setSelectedSpeakingQuestion(null);
     resetTranscript();
     setFeedback(null);
+    setSpeakingDuration(null);
+    setAudioUrl(null);
   };
 
   const handleStartRecording = async () => {
@@ -515,7 +526,7 @@ export default function SpeakingModule() {
       if (isMountedRef.current) {
         generationStore.clearEntry('speaking-analysis');
         setFeedback(unwrappedData);
-        markSpeakingCompleted(currentPart, (currentQuestion as any).topic ?? "");
+        markSpeakingCompleted(currentPart, ((selectedSpeakingQuestion ?? currentQuestion) as any).topic ?? "");
       } else {
         // Component unmounted — store result for remount to apply
         generationStore.finishGen('speaking-analysis', { feedbackData: unwrappedData });
@@ -660,10 +671,127 @@ export default function SpeakingModule() {
 
   // ── Inline component: Comparison Panel ───────────────────────────────────
 
+  // ── Library view ──────────────────────────────────────────────────────────
+  if (speakingView === "library") {
+    const bankQuestions = activeQuestions[selectedSpeakingPart] as any[];
+    const filteredBank = bankQuestions.filter(q =>
+      doneFilter === "all" || (doneFilter === "done"
+        ? completedTopics.has(`${selectedSpeakingPart}-${q.topic}`)
+        : !completedTopics.has(`${selectedSpeakingPart}-${q.topic}`))
+    );
+    return (
+      <DashboardLayout>
+        <div className="max-w-4xl space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-elite-gold/10 flex items-center justify-center shrink-0">
+              <Mic className="w-5 h-5 text-elite-gold" />
+            </div>
+            <div>
+              <h1 className="text-xl font-light">Speaking Practice</h1>
+              <p className="text-xs text-muted-foreground">Real-time voice transcription with AI analysis</p>
+            </div>
+          </div>
+
+          {/* Part tabs */}
+          <div className="flex gap-2">
+            {(['part1', 'part2', 'part3'] as const).map(part => {
+              const partQs = activeQuestions[part] as Array<{topic: string}>;
+              const doneCount = partQs.filter(q => completedTopics.has(`${part}-${q.topic}`)).length;
+              return (
+                <Button key={part}
+                  variant={selectedSpeakingPart === part ? "default" : "outline"}
+                  onClick={() => setSelectedSpeakingPart(part)}
+                  className="flex-1">
+                  Part {part.slice(-1)}
+                  <span className="ml-1.5 text-xs opacity-70">
+                    {part === 'part1' ? 'Introduction' : part === 'part2' ? 'Cue Card' : 'Discussion'}
+                  </span>
+                  {doneCount > 0 && <span className="ml-1.5 text-xs text-green-400">· {doneCount} done</span>}
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* Done filter */}
+          <div className="flex items-center gap-2">
+            {(["all", "done", "not-done"] as const).map(f => (
+              <button key={f} onClick={() => setDoneFilter(f)}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  doneFilter === f ? "bg-accent text-accent-foreground border-accent" : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                }`}>
+                {f === "all" ? "All" : f === "done" ? "Done" : "Not Done"}
+              </button>
+            ))}
+            <span className="ml-auto text-sm text-muted-foreground">{filteredBank.length} questions</span>
+          </div>
+
+          {/* Question grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {filteredBank.map((q: any, i: number) => {
+              const isDone = completedTopics.has(`${selectedSpeakingPart}-${q.topic}`);
+              return (
+                <div key={i}
+                  onClick={() => {
+                    setSelectedSpeakingQuestion(q);
+                    setCurrentPart(selectedSpeakingPart);
+                    setCurrentQuestionIndex(bankQuestions.indexOf(q));
+                    resetTranscript();
+                    setFeedback(null);
+                    setSpeakingView("practice");
+                  }}
+                  className={cn(
+                    "glass-card p-5 flex flex-col gap-3 cursor-pointer hover:border-accent/40 transition-colors group border",
+                    isDone ? "border-green-500/30 bg-green-500/5" : "border-border/50"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-semibold group-hover:text-accent transition-colors">
+                      {q.topic}
+                    </span>
+                    {isDone && (
+                      <span className="text-xs px-2 py-0.5 rounded flex items-center gap-1 bg-green-500/15 text-green-500 shrink-0">
+                        <CheckCircle className="w-3 h-3" />
+                        Done
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-3">
+                    {selectedSpeakingPart === 'part1'
+                      ? q.question
+                      : selectedSpeakingPart === 'part2'
+                      ? q.cueCard
+                      : (q.questions as string[]).join(' · ')}
+                  </p>
+                  {selectedSpeakingPart === 'part2' && (
+                    <p className="text-[10px] text-muted-foreground/70">Prep: {q.prepTime} · Speak: {q.speakTime}</p>
+                  )}
+                  <Button variant="outline" size="sm" className="mt-auto w-full group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                    <Play className="w-3.5 h-3.5 mr-1.5" />
+                    Start Practice
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} featureName="Speaking" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // ── Practice view ─────────────────────────────────────────────────────────
+  const activeQ = selectedSpeakingQuestion ?? currentQuestion;
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+      <div className="max-w-4xl">
+        {/* Back button + Header */}
+        <div className="flex items-center gap-3 mb-8">
+          <Button variant="ghost" size="sm" onClick={() => { setSpeakingView("library"); resetTranscript(); setFeedback(null); }} className="gap-1.5 text-muted-foreground hover:text-foreground shrink-0">
+            ← Back to Questions
+          </Button>
+        </div>
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-xl bg-elite-gold/10 flex items-center justify-center">
             <Mic className="w-6 h-6 text-elite-gold" />
@@ -703,9 +831,9 @@ export default function SpeakingModule() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                {(currentQuestion as any).topic}
+                {(activeQ as any).topic}
               </span>
-              {completedTopics.has(`${currentPart}-${(currentQuestion as any).topic}`) && (
+              {completedTopics.has(`${currentPart}-${(activeQ as any).topic}`) && (
                 <span className="flex items-center gap-1 text-xs text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">
                   <CheckCircle className="w-3 h-3" />
                   Done
@@ -713,7 +841,7 @@ export default function SpeakingModule() {
               )}
               {currentPart === 'part2' && (
                 <span className="text-xs text-muted-foreground">
-                  Prep: {(currentQuestion as any).prepTime} | Speak: {(currentQuestion as any).speakTime}
+                  Prep: {(activeQ as any).prepTime} | Speak: {(activeQ as any).speakTime}
                 </span>
               )}
             </div>
@@ -721,24 +849,24 @@ export default function SpeakingModule() {
               <RefreshCw className="w-4 h-4 mr-2" />Next Question
             </Button>
           </div>
-          
+
           {currentPart === 'part1' && (
             <p className="text-foreground/80 leading-relaxed text-lg">
-              {(currentQuestion as any).question}
+              {(activeQ as any).question}
             </p>
           )}
-          
+
           {currentPart === 'part2' && (
             <div className="bg-secondary/30 rounded-xl p-4">
               <pre className="whitespace-pre-wrap text-foreground/80 leading-relaxed font-sans">
-                {(currentQuestion as any).cueCard}
+                {(activeQ as any).cueCard}
               </pre>
             </div>
           )}
-          
+
           {currentPart === 'part3' && (
             <div className="space-y-3">
-              {(currentQuestion as any).questions.map((q: string, i: number) => (
+              {(activeQ as any).questions.map((q: string, i: number) => (
                 <div key={i} className="flex items-start gap-2">
                   <ChevronRight className="w-4 h-4 text-primary mt-1 flex-shrink-0" />
                   <p className="text-foreground/80 leading-relaxed">{q}</p>
