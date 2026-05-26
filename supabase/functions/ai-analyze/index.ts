@@ -136,13 +136,14 @@ ${BAND_EXAMPLES.task1.band9}
 === BAND 5 CALIBRATION EXAMPLE (what to avoid) ===
 ${BAND_EXAMPLES.task1.band5}
 
-=== OFFICIAL SCORING PENALTIES (from Band Descriptors) ===
-- No overview paragraph → cap Task Achievement at 5.0 (mechanical recounting)
-- No data figures in body paragraphs → Task Achievement cannot exceed 6.0
-- Cohesion within/between sentences faulty or mechanical → cap CC at 6.0
-- Only simple sentences, no complex structures → cap GR at 5.0
-- Basic vocabulary, no academic/precise word choice → cap LR at 5.0
-- Under 150 words → cap Task Achievement at 4.0`
+=== SCORING TENDENCIES (from Band Descriptors) ===
+These are tendencies, not automatic rules — apply holistic judgement alongside them:
+- No overview paragraph → Task Achievement typically 4.5–5.5 (mechanical recounting descriptor)
+- No data figures in body → Task Achievement typically cannot exceed 6.0
+- Cohesion faulty or mechanical throughout → CC likely 5.5–6.0 range
+- Only simple sentences, no complex structures → GR likely 4.5–5.5 range
+- Basic vocabulary only, no academic word choice → LR likely 4.5–5.5 range
+- Under 150 words → Task Achievement likely 4.0 or lower`
   : `You are a Senior IELTS Examiner with 15+ years of experience grading Task 2 essays. You apply the official IELTS Writing Band Descriptors (May 2023).
 
 === OFFICIAL IELTS TASK 2 BAND DESCRIPTORS (May 2023) ===
@@ -232,14 +233,15 @@ ${BAND_EXAMPLES.task2.band9}
 === BAND 5 CALIBRATION EXAMPLE (what to avoid) ===
 ${BAND_EXAMPLES.task2.band5}
 
-=== OFFICIAL SCORING PENALTIES (from Band Descriptors) ===
-- Under 250 words → cap Task Response at 5.0
-- No clear position/thesis → cap Task Response at 6.0 maximum
-- Off-topic → Band 4 maximum
-- For "Discuss both views" essays: only one view discussed → cap TR at 5.0
-- Paragraphs missing or inadequate → cap CC at 5.0
-- Position changes throughout essay → cap TR at 5.0
-- Ideas not extended or supported → cannot exceed Band 6`;
+=== SCORING TENDENCIES (from Band Descriptors) ===
+These are tendencies, not automatic rules — apply holistic judgement alongside them:
+- Under 250 words → Task Response typically 5.0 or below
+- No clear position/thesis → Task Response likely 6.0 or below
+- Off-topic → Band 4 typical range
+- For "Discuss both views" essays: only one view discussed → TR likely capped at 5.0
+- Paragraphs missing or inadequate → CC typically 5.0 or below
+- Position inconsistent throughout → TR typically 5.0 or below
+- Ideas not extended or supported → typically cannot exceed Band 6`;
 
   // Inject training from admin CMS
   if (modelAnswer || secretContext || targetKeywords) {
@@ -288,7 +290,17 @@ The overall band score MUST follow the official IELTS formula:
 DO NOT assign overallBand subjectively — it must be the rounded average of your 4 criterion scores.
 
 === GRADING PHILOSOPHY ===
-Be honest and accurate. Do not inflate scores — a Band 6 essay should receive Band 6, not 7. Be encouraging but realistic. Acknowledge improvements in revisions.`;
+IELTS writing assessment is inherently HOLISTIC — examiners form a global impression of the writing, not a mechanical checklist score.
+
+1. REWARD STRENGTHS FIRST: Actively look for what the student does well. If vocabulary is sophisticated, ideas are clearly developed, or grammar is varied and accurate — reward this, even if one structural element is missing.
+
+2. PENALTIES ARE TENDENCIES, NOT ABSOLUTE RULES: The scoring tendencies above describe typical outcomes, not automatic caps. If an essay is otherwise strong, apply proportional judgement. A student who writes a brief overview is not the same as one who writes no overview at all.
+
+3. HOLISTIC IMPRESSION: Before assigning individual criterion scores, form an overall impression — does this writing communicate effectively? This impression should anchor your scoring.
+
+4. Do not penalise a student purely for not using a specific structure or phrase you expected. If they achieve the communicative purpose through different means, reward that.
+
+5. Be honest and accurate. Do not inflate scores — a Band 6 essay should receive Band 6, not 7. Be encouraging but realistic. Acknowledge improvements in revisions.`;
 
   return basePrompt;
 };
@@ -481,10 +493,10 @@ function getMockResponse(type: string, content: string, speakingPart?: string, t
           emphasis: ["Notably", "Significantly"]
         },
         scoringGrid: {
-          taskResponse: { score: bandScore, justification: wordCount < minWords ? "Under minimum word count" : "Adequate task coverage with room for improvement" },
-          coherenceCohesion: { score: 6.5, justification: "Logical organization but could use more cohesive devices" },
-          lexicalResource: { score: 6.5, justification: "Adequate vocabulary; try incorporating more academic collocations" },
-          grammaticalRange: { score: 6.5, justification: "Mix of simple and complex sentences; practice passive voice and comparatives" }
+          taskResponse: { score: bandScore, justification: wordCount < minWords ? ["Under minimum word count — this significantly impacts task achievement"] : ["Key features of the data are identified", "Some comparisons and data figures provided", "Include a clearer overview with 2–3 main trends to improve"] },
+          coherenceCohesion: { score: 6.5, justification: ["Logical organisation is generally evident", "Some cohesive devices are used appropriately", "Improve sentence-level linking and avoid repetitive connectors"] },
+          lexicalResource: { score: 6.5, justification: ["Adequate range of vocabulary for the task", "Some academic word choices attempted", "Incorporate more precise trend vocabulary (e.g. 'plummeted', 'levelled off')"] },
+          grammaticalRange: { score: 6.5, justification: ["A mix of simple and some complex structures used", "Passive voice attempted in places", "Practice more complex comparative and passive constructions"] }
         },
         band8Transformations: [
           {
@@ -552,10 +564,10 @@ function getMockResponse(type: string, content: string, speakingPart?: string, t
           { original: "For example", upgrade: "To illustrate this point, consider", function: "Proving" }
         ],
         scoringGrid: {
-          taskResponse: { score: bandScore, justification: wordCount < minWords ? "Under minimum word count" : "Addresses the task with room for deeper development" },
-          coherenceCohesion: { score: 6.5, justification: "Logical structure; improve transitions between paragraphs" },
-          lexicalResource: { score: 6.5, justification: "Adequate range; incorporate more academic vocabulary" },
-          grammaticalRange: { score: 6.5, justification: "Some complex structures; practice conditionals and passive voice" }
+          taskResponse: { score: bandScore, justification: wordCount < minWords ? ["Under minimum word count — this significantly impacts task response score"] : ["The main task is addressed with a recognisable position", "Some development of ideas is present", "Extend ideas further with specific examples or evidence"] },
+          coherenceCohesion: { score: 6.5, justification: ["Logical paragraph structure is maintained", "Some cohesive devices link ideas between paragraphs", "Improve sentence-to-sentence flow and vary linking expressions"] },
+          lexicalResource: { score: 6.5, justification: ["Adequate vocabulary range for the topic", "Some topic-specific and academic word choices attempted", "Incorporate more precise and less common vocabulary for next band"] },
+          grammaticalRange: { score: 6.5, justification: ["A variety of sentence structures used", "Some complex sentences attempted with reasonable accuracy", "Practice conditionals, relative clauses and passive voice for more range"] }
         },
         band8Transformations: [
           {
@@ -714,10 +726,10 @@ Provide your response in this EXACT JSON format:
   "overallBand": 0.0,
   "isRevision": ${isRevision || false},
   "scoringGrid": {
-    "taskResponse": { "score": 0.0, "justification": "Task Achievement: one sentence referencing specific band descriptor evidence from the essay" },
-    "coherenceCohesion": { "score": 0.0, "justification": "One sentence referencing specific evidence" },
-    "lexicalResource": { "score": 0.0, "justification": "One sentence referencing specific vocabulary evidence" },
-    "grammaticalRange": { "score": 0.0, "justification": "One sentence referencing specific grammar evidence" }
+    "taskResponse": { "score": 0.0, "justification": ["What the student did well on task achievement", "Specific evidence from the essay", "The key thing to improve for the next band"] },
+    "coherenceCohesion": { "score": 0.0, "justification": ["What the student did well on coherence", "Specific structural evidence from the essay", "Key improvement needed"] },
+    "lexicalResource": { "score": 0.0, "justification": ["Vocabulary strength observed", "Specific word choice evidence from the essay", "Key vocabulary improvement to make"] },
+    "grammaticalRange": { "score": 0.0, "justification": ["Grammar strength observed", "Specific grammar evidence from the essay", "Key grammar improvement to make"] }
   },
   "structuralGrade": {
     "paragraph1_introduction": {
@@ -784,10 +796,10 @@ Provide your response in this EXACT JSON format:
   "overallBand": 0.0,
   "isRevision": ${isRevision || false},
   "scoringGrid": {
-    "taskResponse": { "score": 0.0, "justification": "Task Response: one sentence referencing specific band descriptor evidence" },
-    "coherenceCohesion": { "score": 0.0, "justification": "One sentence referencing specific structural/cohesion evidence" },
-    "lexicalResource": { "score": 0.0, "justification": "One sentence with specific vocabulary evidence from the essay" },
-    "grammaticalRange": { "score": 0.0, "justification": "One sentence with specific grammar evidence from the essay" }
+    "taskResponse": { "score": 0.0, "justification": ["What the student did well on task response", "Specific evidence from the essay", "The key thing to improve for the next band"] },
+    "coherenceCohesion": { "score": 0.0, "justification": ["What the student did well on coherence", "Specific structural evidence from the essay", "Key improvement needed"] },
+    "lexicalResource": { "score": 0.0, "justification": ["Vocabulary strength observed", "Specific word choice evidence from the essay", "Key vocabulary improvement to make"] },
+    "grammaticalRange": { "score": 0.0, "justification": ["Grammar strength observed", "Specific grammar evidence from the essay", "Key grammar improvement to make"] }
   },
   "structuralGrade": {
     "paragraph1_introduction": {
