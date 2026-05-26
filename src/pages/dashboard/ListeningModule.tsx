@@ -109,10 +109,6 @@ export default function ListeningModule() {
     return () => { isMountedRef.current = false; };
   }, []);
 
-  // Background generation store — survives component unmount/remount
-  const genEntry = useGenerationEntry('listening');
-  const isGenerating = genEntry.isGenerating;
-
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [doneFilter, setDoneFilter] = useState<"all" | "done" | "not-done">("all");
 
@@ -138,6 +134,8 @@ export default function ListeningModule() {
   const [currentTest, setCurrentTest] = useState<ListeningTest | null>(null);
   const genCtx = useGenerationContext();
   const isLoading = genCtx.listening.status === "generating";
+  const isGenerating = isLoading;
+  const stopGeneration = () => genCtx.resetListening();
   const [answers, setAnswers] = useState<UserAnswers>({});
   const [notes, setNotes] = useState("");
   const [hasStarted, setHasStarted] = useState(false);
