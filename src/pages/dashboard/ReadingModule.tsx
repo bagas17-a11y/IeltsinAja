@@ -144,6 +144,8 @@ export default function ReadingModule() {
 
   const passageRef = useRef<HTMLDivElement>(null);
   const questionRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const splitContainerRef = useRef<HTMLDivElement>(null);
+  const [splitPercent, setSplitPercent] = useState(60);
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
@@ -420,6 +422,29 @@ export default function ReadingModule() {
     setIsTimerActive(false);
   };
 
+  const handleSplitDrag = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!splitContainerRef.current) return;
+      const rect = splitContainerRef.current.getBoundingClientRect();
+      const pct = ((ev.clientX - rect.left) / rect.width) * 100;
+      setSplitPercent(Math.min(75, Math.max(25, pct)));
+    };
+
+    const onMouseUp = () => {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, []);
+
   const currentSection = currentTest?.sections.find((s) => s.section_number === activeSection);
   const filteredTests = libraryFilter === "all" ? libraryTests : libraryTests.filter((t) => t.difficulty === libraryFilter);
 
@@ -658,10 +683,10 @@ export default function ReadingModule() {
 
         {/* Two-column body */}
         {currentSection && (
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 min-h-0">
+          <div ref={splitContainerRef} className="flex-1 flex flex-row min-h-0 select-none">
 
             {/* ── Left: Passage ── */}
-            <div className="glass-card flex flex-col min-h-0 overflow-hidden">
+            <div className="glass-card flex flex-col min-h-0 overflow-hidden flex-shrink-0" style={{ width: `${splitPercent}%` }}>
               <div className="px-6 py-4 border-b border-border/30 flex-shrink-0">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -698,8 +723,17 @@ export default function ReadingModule() {
               </ScrollArea>
             </div>
 
+            {/* ── Drag handle ── */}
+            <div
+              onMouseDown={handleSplitDrag}
+              className="w-3 flex-shrink-0 flex items-center justify-center cursor-col-resize group z-10 mx-0.5"
+              title="Drag to resize"
+            >
+              <div className="w-0.5 h-10 rounded-full bg-border/50 group-hover:bg-accent group-hover:h-16 transition-all duration-150" />
+            </div>
+
             {/* ── Right: Questions ── */}
-            <div className="glass-card flex flex-col min-h-0 overflow-hidden">
+            <div className="glass-card flex flex-col min-h-0 overflow-hidden flex-1">
               <div className="px-5 py-4 border-b border-border/30 flex-shrink-0">
                 <h2 className="text-base font-bold">
                   Questions {currentSection.question_groups[0]?.question_range[0]}–
