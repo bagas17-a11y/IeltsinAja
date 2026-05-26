@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -148,6 +149,8 @@ export default function WritingModule() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const [diagramFilter, setDiagramFilter] = useState<string | null>(null);
+  const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
+  const [doneFilter, setDoneFilter] = useState<"all" | "done" | "not-done">("all");
   const { toast } = useToast();
   const { saveProgress } = useUserProgress();
   const { canAccess, refreshCounts, isLoading: isGatingLoading } = useFeatureGating();
@@ -422,6 +425,8 @@ export default function WritingModule() {
   const displayedQuestions = (activeTask === "Task 1" && diagramFilter
     ? filteredQuestions.filter(q => q.visual_type === diagramFilter)
     : filteredQuestions)
+    .filter(q => !difficultyFilter || q.difficulty === difficultyFilter)
+    .filter(q => doneFilter === "all" || (doneFilter === "done" ? completedIds.has(q.id) : !completedIds.has(q.id)))
     .sort((a, b) => (DIFFICULTY_ORDER[a.difficulty] ?? 1) - (DIFFICULTY_ORDER[b.difficulty] ?? 1));
 
   const handleStartPractice = (question: IeltsQuestion) => {
@@ -576,6 +581,8 @@ export default function WritingModule() {
     const newTask = task as "Task 1" | "Task 2";
     setActiveTask(newTask);
     setDiagramFilter(null);
+    setDifficultyFilter(null);
+    setDoneFilter("all");
     try {
       if (user?.id) sessionStorage.setItem(`ielts-writing-active-task-${user.id}`, newTask);
     } catch { /* non-critical sessionStorage write */ }
@@ -946,34 +953,36 @@ export default function WritingModule() {
                     </TabsList>
                   </Tabs>
 
-                  {/* Diagram type filter pills — Task 1 only */}
-                  {activeTask === "Task 1" && availableDiagramTypes.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <button
-                        onClick={() => setDiagramFilter(null)}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                          diagramFilter === null
-                            ? "bg-accent text-accent-foreground border-accent"
-                            : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                        }`}
-                      >
-                        All Diagrams
+                  {/* Filters: difficulty, graph type, done */}
+                  <div className="flex items-center gap-3 mb-4 flex-wrap">
+                    {/* Difficulty dropdown - always shown */}
+                    <select value={difficultyFilter ?? ""} onChange={e => setDifficultyFilter(e.target.value || null)}
+                      className="bg-secondary/50 border border-border/50 rounded-md px-3 py-1.5 text-sm text-foreground">
+                      <option value="">All Difficulties</option>
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                    {/* Graph type dropdown - Task 1 only */}
+                    {activeTask === "Task 1" && availableDiagramTypes.length > 0 && (
+                      <select value={diagramFilter ?? ""} onChange={e => setDiagramFilter(e.target.value || null)}
+                        className="bg-secondary/50 border border-border/50 rounded-md px-3 py-1.5 text-sm text-foreground">
+                        <option value="">All Graph Types</option>
+                        {availableDiagramTypes.map(type => (
+                          <option key={type} value={type}>{DIAGRAM_LABELS[type] ?? type}</option>
+                        ))}
+                      </select>
+                    )}
+                    {/* Done filter pills */}
+                    {(["all", "done", "not-done"] as const).map(f => (
+                      <button key={f} onClick={() => setDoneFilter(f)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors capitalize ${
+                          doneFilter === f ? "bg-accent text-accent-foreground border-accent" : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                        }`}>
+                        {f === "all" ? "All" : f === "done" ? "Done" : "Not Done"}
                       </button>
-                      {availableDiagramTypes.map(type => (
-                        <button
-                          key={type}
-                          onClick={() => setDiagramFilter(diagramFilter === type ? null : type)}
-                          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                            diagramFilter === type
-                              ? "bg-accent text-accent-foreground border-accent"
-                              : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                          }`}
-                        >
-                          {DIAGRAM_LABELS[type] ?? type}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                    ))}
+                  </div>
 
                   {/* Question Library */}
                   <div className="space-y-4">
@@ -1018,7 +1027,7 @@ export default function WritingModule() {
                       </Card>
                     ) : (
                       displayedQuestions.map((q) => (
-                        <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
+                        <Card key={q.id} className={cn("hover:border-accent/50 transition-colors cursor-pointer group", completedIds.has(q.id) && "border-green-500/30 bg-green-500/5")} onClick={() => handleStartPractice(q)}>
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                               <div className="flex-1 pr-4">
@@ -1087,34 +1096,36 @@ export default function WritingModule() {
                   </TabsList>
                 </Tabs>
 
-                {/* Diagram type filter pills — Task 1 only */}
-                {activeTask === "Task 1" && availableDiagramTypes.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <button
-                      onClick={() => setDiagramFilter(null)}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                        diagramFilter === null
-                          ? "bg-accent text-accent-foreground border-accent"
-                          : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                      }`}
-                    >
-                      All Diagrams
+                {/* Filters: difficulty, graph type, done */}
+                <div className="flex items-center gap-3 mb-4 flex-wrap">
+                  {/* Difficulty dropdown - always shown */}
+                  <select value={difficultyFilter ?? ""} onChange={e => setDifficultyFilter(e.target.value || null)}
+                    className="bg-secondary/50 border border-border/50 rounded-md px-3 py-1.5 text-sm text-foreground">
+                    <option value="">All Difficulties</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                  {/* Graph type dropdown - Task 1 only */}
+                  {activeTask === "Task 1" && availableDiagramTypes.length > 0 && (
+                    <select value={diagramFilter ?? ""} onChange={e => setDiagramFilter(e.target.value || null)}
+                      className="bg-secondary/50 border border-border/50 rounded-md px-3 py-1.5 text-sm text-foreground">
+                      <option value="">All Graph Types</option>
+                      {availableDiagramTypes.map(type => (
+                        <option key={type} value={type}>{DIAGRAM_LABELS[type] ?? type}</option>
+                      ))}
+                    </select>
+                  )}
+                  {/* Done filter pills */}
+                  {(["all", "done", "not-done"] as const).map(f => (
+                    <button key={f} onClick={() => setDoneFilter(f)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors capitalize ${
+                        doneFilter === f ? "bg-accent text-accent-foreground border-accent" : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                      }`}>
+                      {f === "all" ? "All" : f === "done" ? "Done" : "Not Done"}
                     </button>
-                    {availableDiagramTypes.map(type => (
-                      <button
-                        key={type}
-                        onClick={() => setDiagramFilter(diagramFilter === type ? null : type)}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                          diagramFilter === type
-                            ? "bg-accent text-accent-foreground border-accent"
-                            : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                        }`}
-                      >
-                        {DIAGRAM_LABELS[type] ?? type}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  ))}
+                </div>
 
                 {/* Question Library */}
                 <div className="space-y-4">
@@ -1159,7 +1170,7 @@ export default function WritingModule() {
                     </Card>
                   ) : (
                     displayedQuestions.map((q) => (
-                      <Card key={q.id} className="hover:border-accent/50 transition-colors cursor-pointer group" onClick={() => handleStartPractice(q)}>
+                      <Card key={q.id} className={cn("hover:border-accent/50 transition-colors cursor-pointer group", completedIds.has(q.id) && "border-green-500/30 bg-green-500/5")} onClick={() => handleStartPractice(q)}>
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 pr-4">

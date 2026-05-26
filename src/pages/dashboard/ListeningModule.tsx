@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,6 +113,7 @@ export default function ListeningModule() {
   const isGenerating = genEntry.isGenerating;
 
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [doneFilter, setDoneFilter] = useState<"all" | "done" | "not-done">("all");
 
   useEffect(() => {
     if (!user?.id) return;
@@ -1021,11 +1023,36 @@ export default function ListeningModule() {
       </div>
     ) : (
       <div className="grid gap-4">
-        {tests.map((test) => (
+        {/* Done filter pills */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {(["all", "done", "not-done"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setDoneFilter(f)}
+              className={cn(
+                "text-xs px-3 py-1.5 rounded-full border transition-colors",
+                doneFilter === f
+                  ? "bg-accent text-accent-foreground border-accent"
+                  : "border-border/50 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+              )}
+            >
+              {f === "all" ? "All" : f === "done" ? "Done" : "Not Done"}
+            </button>
+          ))}
+          <span className="ml-auto text-sm text-muted-foreground">
+            {tests.filter(t => doneFilter === "all" || (doneFilter === "done" ? completedIds.has(t.id) : !completedIds.has(t.id))).length} tests
+          </span>
+        </div>
+        {tests.filter(t =>
+          doneFilter === "all" || (doneFilter === "done" ? completedIds.has(t.id) : !completedIds.has(t.id))
+        ).map((test) => (
           <button
             key={test.id}
             onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : startTest(test)}
-            className="glass-card p-6 text-left hover:scale-[1.01] transition-all group"
+            className={cn(
+              "glass-card p-6 text-left hover:scale-[1.01] transition-all group border",
+              completedIds.has(test.id) ? "border-green-500/30 bg-green-500/5" : "border-transparent"
+            )}
           >
             <div className="flex items-center justify-between">
               <div>
