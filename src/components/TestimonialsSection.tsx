@@ -1,5 +1,4 @@
 import { Star } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 
 interface Review {
   name: string;
@@ -86,53 +85,26 @@ const StarRow = ({ count }: { count: number }) => (
   </div>
 );
 
+const ReviewCard = ({ review }: { review: Review }) => (
+  <div className="glass-card p-5 flex flex-col gap-3 border-border/50">
+    <StarRow count={review.rating} />
+    <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{review.text}&rdquo;</p>
+    <div className="flex items-center gap-2.5 mt-auto pt-2 border-t border-border/30">
+      <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-xs font-semibold text-accent flex-shrink-0">
+        {review.avatar}
+      </div>
+      <div>
+        <p className="text-xs font-medium text-foreground">{review.name}</p>
+        <p className="text-[10px] text-muted-foreground">{review.detail}</p>
+      </div>
+    </div>
+  </div>
+);
+
 export const TestimonialsSection = () => {
-  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = cardRefs.current.findIndex((ref) => ref === entry.target);
-            if (index !== -1) setRevealedCards((prev) => new Set([...prev, index]));
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    cardRefs.current.forEach((ref) => { if (ref) observer.observe(ref); });
-    return () => observer.disconnect();
-  }, []);
-
   const col1 = REVIEWS.filter((_, i) => i % 3 === 0);
   const col2 = REVIEWS.filter((_, i) => i % 3 === 1);
   const col3 = REVIEWS.filter((_, i) => i % 3 === 2);
-
-  const renderCard = (review: Review, globalIndex: number) => {
-    const isRevealed = revealedCards.has(globalIndex);
-    return (
-      <div
-        key={review.name}
-        ref={(el) => (cardRefs.current[globalIndex] = el)}
-        className={`glass-card p-5 flex flex-col gap-3 transition-all duration-700 ${isRevealed ? "revealed" : "scroll-reveal"}`}
-        style={{ transitionDelay: `${(globalIndex % 3) * 100}ms` }}
-      >
-        <StarRow count={review.rating} />
-        <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{review.text}&rdquo;</p>
-        <div className="flex items-center gap-2.5 mt-auto pt-2 border-t border-border/30">
-          <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-xs font-semibold text-accent flex-shrink-0">
-            {review.avatar}
-          </div>
-          <div>
-            <p className="text-xs font-medium text-foreground">{review.name}</p>
-            <p className="text-[10px] text-muted-foreground">{review.detail}</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <section className="py-24 md:py-32 relative overflow-hidden">
@@ -150,19 +122,19 @@ export const TestimonialsSection = () => {
         {/* Masonry grid — 3 columns on md+, 1 on mobile */}
         <div className="hidden md:grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
           <div className="flex flex-col gap-4">
-            {col1.map((r) => renderCard(r, REVIEWS.indexOf(r)))}
+            {col1.map((r) => <ReviewCard key={r.name} review={r} />)}
           </div>
           <div className="flex flex-col gap-4 md:mt-6">
-            {col2.map((r) => renderCard(r, REVIEWS.indexOf(r)))}
+            {col2.map((r) => <ReviewCard key={r.name} review={r} />)}
           </div>
           <div className="flex flex-col gap-4">
-            {col3.map((r) => renderCard(r, REVIEWS.indexOf(r)))}
+            {col3.map((r) => <ReviewCard key={r.name} review={r} />)}
           </div>
         </div>
 
         {/* Mobile: single column */}
         <div className="flex flex-col gap-4 md:hidden max-w-lg mx-auto">
-          {REVIEWS.map((r) => renderCard(r, REVIEWS.indexOf(r)))}
+          {REVIEWS.map((r) => <ReviewCard key={r.name} review={r} />)}
         </div>
 
         {/* Aggregate score */}

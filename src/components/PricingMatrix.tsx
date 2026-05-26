@@ -165,22 +165,40 @@ export const PricingMatrix = () => {
 
                   <h3 className="text-2xl font-light mb-2 text-foreground">{plan.name}</h3>
 
-                  <div className={isElite ? "blur-sm select-none pointer-events-none" : ""}>
-                    {(plan.strikethroughDisplayPrice || originalDisplayPrice) && (
-                      <p className="text-sm text-muted-foreground line-through mb-0.5">
-                        {originalDisplayPrice ?? plan.strikethroughDisplayPrice}
-                      </p>
-                    )}
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-4xl md:text-5xl font-light text-foreground">
-                        {displayPrice}
-                      </span>
-                      {plan.period && (
-                        <span className="text-muted-foreground">{plan.period}</span>
-                      )}
+                  {isElite ? (
+                    <div className="relative mb-1">
+                      {/* Price is intentionally hidden — contact us for Elite pricing */}
+                      <div className="blur-xl select-none pointer-events-none opacity-60">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-4xl md:text-5xl font-light text-foreground">
+                            IDR ????
+                          </span>
+                          <span className="text-muted-foreground">one-time</span>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xs font-medium text-elite-gold bg-elite-gold/10 border border-elite-gold/30 px-3 py-1 rounded-full">
+                          Chat us for pricing →
+                        </span>
+                      </div>
                     </div>
-                    {!plan.strikethroughDisplayPrice && !originalDisplayPrice && <div className="mb-1" />}
-                  </div>
+                  ) : (
+                    <div>
+                      {(plan.strikethroughDisplayPrice || originalDisplayPrice) && (
+                        <p className="text-sm text-muted-foreground line-through mb-0.5">
+                          {originalDisplayPrice ?? plan.strikethroughDisplayPrice}
+                        </p>
+                      )}
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-4xl md:text-5xl font-light text-foreground">
+                          {displayPrice}
+                        </span>
+                        {plan.period && (
+                          <span className="text-muted-foreground">{plan.period}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <p className="text-foreground/60 mb-6">{plan.description}</p>
 
