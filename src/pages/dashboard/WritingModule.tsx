@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -16,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, Edit3, ArrowRight, Lightbulb, FileText, BarChart3, CheckCircle, XCircle, RefreshCw, BookOpen, Play, ArrowLeft, Zap } from "lucide-react";
+import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, ArrowRight, Lightbulb, FileText, BarChart3, CheckCircle, XCircle, RefreshCw, BookOpen, Play, ArrowLeft, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -144,8 +143,7 @@ export default function WritingModule() {
   const isAnalyzingRevision = analysisEntry.isGenerating && analysisEntry.config?.isRevision === true;
   const [revisionFeedback, setRevisionFeedback] = useState<any>(null);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
-  const [adminNote, setAdminNote] = useState("");
-  const [adminOverrideScore, setAdminOverrideScore] = useState("");
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
@@ -157,6 +155,27 @@ export default function WritingModule() {
   const isTask1 = activeTask === "Task 1";
   const minWords = isTask1 ? 150 : 250;
   const currentRubric = isTask1 ? task1Rubric : task2Rubric;
+
+  // Load completed question IDs from localStorage
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const stored = localStorage.getItem(`ielts-writing-completed-${user.id}`);
+      if (stored) setCompletedIds(new Set(JSON.parse(stored)));
+    } catch { /* ignore */ }
+  }, [user?.id]);
+
+  const markCompleted = (questionId: string) => {
+    if (!user?.id) return;
+    setCompletedIds(prev => {
+      const next = new Set(prev);
+      next.add(questionId);
+      try {
+        localStorage.setItem(`ielts-writing-completed-${user.id}`, JSON.stringify([...next]));
+      } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   useEffect(() => {
     fetchQuestions();
@@ -399,9 +418,11 @@ export default function WritingModule() {
     ? [...new Set(filteredQuestions.map(q => q.visual_type).filter((t): t is string => Boolean(t)))]
     : [];
 
-  const displayedQuestions = activeTask === "Task 1" && diagramFilter
+  const DIFFICULTY_ORDER: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
+  const displayedQuestions = (activeTask === "Task 1" && diagramFilter
     ? filteredQuestions.filter(q => q.visual_type === diagramFilter)
-    : filteredQuestions;
+    : filteredQuestions)
+    .sort((a, b) => (DIFFICULTY_ORDER[a.difficulty] ?? 1) - (DIFFICULTY_ORDER[b.difficulty] ?? 1));
 
   const handleStartPractice = (question: IeltsQuestion) => {
     setSelectedQuestion(question);
@@ -504,8 +525,8 @@ export default function WritingModule() {
         }
       }
 
-      setAdminNote("");
-      setAdminOverrideScore("");
+      // Mark question as completed (non-revision only)
+      if (!isRevision && selectedQuestion?.id) markCompleted(selectedQuestion.id);
 
       // Save feedback to sessionStorage so it survives navigation
       try {
@@ -547,24 +568,6 @@ export default function WritingModule() {
         toast({ title: "Analysis failed", description: msg, variant: "destructive" });
       } else {
         generationStore.failGen('writing-analysis', msg);
-      }
-    }
-  };
-
-  const handleAdminOverride = () => {
-    if (adminOverrideScore && feedback) {
-      const newScore = parseFloat(adminOverrideScore);
-      if (newScore >= 1 && newScore <= 9) {
-        setFeedback({
-          ...feedback,
-          overallBand: newScore,
-          adminOverride: true,
-          adminNote: adminNote
-        });
-        toast({
-          title: "Score Override Applied",
-          description: `Band score updated to ${newScore}`,
-        });
       }
     }
   };
@@ -680,17 +683,27 @@ export default function WritingModule() {
     );
   };
 
-  const ScoreCell = ({ label, score, justification }: { label: string; score: number; justification?: string }) => {
-    const color = score >= 7 ? "text-green-400" : score >= 5.5 ? "text-elite-gold" : "text-destructive";
+  const ScoreCell = ({ label, score, justification }: { label: string; score: number; justification?: string | string[] }) => {
+    const color = score >= 7 ? "text-green-500" : score >= 5.5 ? "text-elite-gold" : "text-destructive";
+    const bullets: string[] = Array.isArray(justification)
+      ? justification
+      : justification ? [justification] : [];
     return (
-      <div className="p-4 bg-secondary/30 rounded-lg border border-border/30">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-medium text-foreground">{label}</span>
-          <span className={`text-xl font-light ${color}`}>{score}</span>
+      <div className="flex items-start gap-4 py-3 border-b border-border/20 last:border-0">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-foreground">{label}</p>
+          {bullets.length > 0 && (
+            <ul className="mt-1.5 space-y-1">
+              {bullets.map((b, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-foreground/70 leading-relaxed">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent/50 shrink-0" />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {justification && (
-          <p className="text-sm text-foreground/70 leading-snug">{justification}</p>
-        )}
+        <span className={`text-2xl font-light shrink-0 ${color}`}>{score}</span>
       </div>
     );
   };
@@ -813,9 +826,10 @@ export default function WritingModule() {
         </div>
       )}
 
-      {/* Criterion justifications */}
+      {/* Marking criteria breakdown */}
       {feedbackData.scoringGrid && (
-        <div className="grid md:grid-cols-2 gap-3">
+        <div className="p-4 bg-secondary/30 rounded-xl border border-border/30">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-1">Marking Criteria Breakdown</h3>
           <ScoreCell label={isTask1 ? "Task Achievement" : "Task Response"} score={feedbackData.scoringGrid.taskResponse?.score || 0} justification={feedbackData.scoringGrid.taskResponse?.justification} />
           <ScoreCell label="Coherence & Cohesion" score={feedbackData.scoringGrid.coherenceCohesion?.score || 0} justification={feedbackData.scoringGrid.coherenceCohesion?.justification} />
           <ScoreCell label="Lexical Resource" score={feedbackData.scoringGrid.lexicalResource?.score || 0} justification={feedbackData.scoringGrid.lexicalResource?.justification} />
@@ -1008,7 +1022,7 @@ export default function WritingModule() {
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                               <div className="flex-1 pr-4">
-                                <div className="flex items-center gap-2 mb-3">
+                                <div className="flex items-center gap-2 mb-3 flex-wrap">
                                   <span className={`text-xs px-2 py-0.5 rounded ${
                                     q.task_type === "Task 2"
                                       ? "bg-purple-500/20 text-purple-400"
@@ -1025,6 +1039,12 @@ export default function WritingModule() {
                                   {q.visual_type && (
                                     <span className="text-xs px-2 py-0.5 rounded bg-slate-500/20 text-slate-400">
                                       {DIAGRAM_LABELS[q.visual_type] ?? q.visual_type}
+                                    </span>
+                                  )}
+                                  {completedIds.has(q.id) && (
+                                    <span className="text-xs px-2 py-0.5 rounded flex items-center gap-1 bg-green-500/15 text-green-500">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Done
                                     </span>
                                   )}
                                 </div>
@@ -1160,6 +1180,12 @@ export default function WritingModule() {
                                 {q.visual_type && (
                                   <span className="text-xs px-2 py-0.5 rounded bg-slate-500/20 text-slate-400">
                                     {DIAGRAM_LABELS[q.visual_type] ?? q.visual_type}
+                                  </span>
+                                )}
+                                {completedIds.has(q.id) && (
+                                  <span className="text-xs px-2 py-0.5 rounded flex items-center gap-1 bg-green-500/15 text-green-500">
+                                    <CheckCircle className="w-3 h-3" />
+                                    Done
                                   </span>
                                 )}
                               </div>
@@ -1337,46 +1363,6 @@ export default function WritingModule() {
                 <h2 className="text-lg font-light mb-6">Diagnostic Feedback Report</h2>
                 <FeedbackDisplay feedbackData={feedback} />
 
-                {/* Admin Override Section */}
-                {isAdmin && (
-                  <Card className="border-destructive/30 bg-destructive/5 mt-6">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium text-destructive flex items-center gap-2">
-                        <Edit3 className="w-4 h-4" />
-                        Admin Score Override
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <label className="text-xs text-muted-foreground mb-1 block">Override Band Score</label>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="9"
-                            step="0.5"
-                            placeholder="e.g., 7.5"
-                            value={adminOverrideScore}
-                            onChange={(e) => setAdminOverrideScore(e.target.value)}
-                            className="max-w-[120px]"
-                          />
-                        </div>
-                        <Button variant="destructive" size="sm" onClick={handleAdminOverride}>
-                          Apply Override
-                        </Button>
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Admin Note</label>
-                        <Textarea
-                          placeholder="Add a note explaining the override..."
-                          value={adminNote}
-                          onChange={(e) => setAdminNote(e.target.value)}
-                          className="h-20"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             )}
 

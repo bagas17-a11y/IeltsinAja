@@ -165,18 +165,34 @@ export const PricingMatrix = () => {
 
                   <h3 className="text-2xl font-light mb-2 text-foreground">{plan.name}</h3>
 
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-4xl md:text-5xl font-light text-foreground">
-                      {displayPrice}
-                    </span>
-                    {plan.period && (
-                      <span className="text-muted-foreground">{plan.period}</span>
-                    )}
-                  </div>
-                  {originalDisplayPrice && (
-                    <p className="text-sm text-muted-foreground line-through mb-2">
-                      {originalDisplayPrice}
-                    </p>
+                  {isElite ? (
+                    <div className="mb-1 select-none">
+                      {/* Blurred strikethrough "original" price */}
+                      <p className="text-sm line-through blur-sm text-muted-foreground mb-0.5 pointer-events-none">
+                        IDR 6M
+                      </p>
+                      {/* Actual price shown as ??? */}
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl md:text-5xl font-light text-foreground">???</span>
+                        <span className="text-muted-foreground">one-time</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {(plan.strikethroughDisplayPrice || originalDisplayPrice) && (
+                        <p className="text-sm text-muted-foreground line-through mb-0.5">
+                          {originalDisplayPrice ?? plan.strikethroughDisplayPrice}
+                        </p>
+                      )}
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-4xl md:text-5xl font-light text-foreground">
+                          {displayPrice}
+                        </span>
+                        {plan.period && (
+                          <span className="text-muted-foreground">{plan.period}</span>
+                        )}
+                      </div>
+                    </div>
                   )}
 
                   <p className="text-foreground/60 mb-6">{plan.description}</p>

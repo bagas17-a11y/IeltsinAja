@@ -4,6 +4,7 @@ import { SocialProofBar } from "@/components/SocialProofBar";
 import { FeatureGrid } from "@/components/FeatureGrid";
 import { MissionBridge } from "@/components/MissionBridge";
 import { PricingMatrix } from "@/components/PricingMatrix";
+import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -18,6 +19,7 @@ const Index = () => {
         <FeatureGrid />
         <MissionBridge />
         <PricingMatrix />
+        <TestimonialsSection />
         <FAQSection />
       </main>
       <Footer />

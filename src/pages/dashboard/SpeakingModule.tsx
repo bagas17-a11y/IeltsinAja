@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Loader2, Play, Square, Volume2, RefreshCw, ChevronRight, Download } from "lucide-react";
+import { Mic, MicOff, Loader2, Play, Square, Volume2, RefreshCw, ChevronRight, Download, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -173,6 +173,27 @@ export default function SpeakingModule() {
   const analysisEntry = useGenerationEntry('speaking-analysis');
   const isAnalyzing = analysisEntry.isGenerating;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [completedTopics, setCompletedTopics] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const stored = localStorage.getItem(`ielts-speaking-completed-${user.id}`);
+      if (stored) setCompletedTopics(new Set(JSON.parse(stored)));
+    } catch { }
+  }, [user?.id]);
+
+  const markSpeakingCompleted = (part: string, topic: string) => {
+    if (!user?.id) return;
+    const key = `${part}-${topic}`;
+    setCompletedTopics((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      try { localStorage.setItem(`ielts-speaking-completed-${user.id}`, JSON.stringify([...next])); } catch { }
+      return next;
+    });
+  };
+
   const [activeQuestions, setActiveQuestions] = useState(FALLBACK_SPEAKING_QUESTIONS);
   const [dbQuestionsLoaded, setDbQuestionsLoaded] = useState(false);
   const { toast } = useToast();
@@ -494,6 +515,7 @@ export default function SpeakingModule() {
       if (isMountedRef.current) {
         generationStore.clearEntry('speaking-analysis');
         setFeedback(unwrappedData);
+        markSpeakingCompleted(currentPart, (currentQuestion as any).topic ?? "");
       } else {
         // Component unmounted — store result for remount to apply
         generationStore.finishGen('speaking-analysis', { feedbackData: unwrappedData });
@@ -654,30 +676,41 @@ export default function SpeakingModule() {
 
         {/* Part Selection */}
         <div className="flex gap-2 mb-6">
-          {(['part1', 'part2', 'part3'] as const).map((part) => (
-            <Button
-              key={part}
-              variant={currentPart === part ? "default" : "outline"}
-              onClick={() => handlePartChange(part)}
-              className="flex-1"
-            >
-              Part {part.slice(-1)}
-              <span className="ml-2 text-xs opacity-70">
-                {part === 'part1' ? 'Introduction' : part === 'part2' ? 'Cue Card' : 'Discussion'}
-              </span>
-            </Button>
-          ))}
+          {(['part1', 'part2', 'part3'] as const).map((part) => {
+            const partQuestions = activeQuestions[part] as Array<{ topic: string }>;
+            const doneCount = partQuestions.filter(q => completedTopics.has(`${part}-${q.topic}`)).length;
+            return (
+              <Button
+                key={part}
+                variant={currentPart === part ? "default" : "outline"}
+                onClick={() => handlePartChange(part)}
+                className="flex-1"
+              >
+                Part {part.slice(-1)}
+                <span className="ml-2 text-xs opacity-70">
+                  {part === 'part1' ? 'Introduction' : part === 'part2' ? 'Cue Card' : 'Discussion'}
+                </span>
+                {doneCount > 0 && (
+                  <span className="ml-2 text-xs text-green-400">·{doneCount} done</span>
+                )}
+              </Button>
+            );
+          })}
         </div>
 
         {/* Question Card */}
         <div className="glass-card p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                {currentPart === 'part1' ? (currentQuestion as any).topic : 
-                 currentPart === 'part2' ? (currentQuestion as any).topic :
-                 (currentQuestion as any).topic}
+                {(currentQuestion as any).topic}
               </span>
+              {completedTopics.has(`${currentPart}-${(currentQuestion as any).topic}`) && (
+                <span className="flex items-center gap-1 text-xs text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">
+                  <CheckCircle className="w-3 h-3" />
+                  Done
+                </span>
+              )}
               {currentPart === 'part2' && (
                 <span className="text-xs text-muted-foreground">
                   Prep: {(currentQuestion as any).prepTime} | Speak: {(currentQuestion as any).speakTime}

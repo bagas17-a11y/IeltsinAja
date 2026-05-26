@@ -293,6 +293,13 @@ export default function AdminDashboard() {
       path: "/admin/speaking",
       color: "text-elite-gold",
     },
+    {
+      title: "Reading Manager",
+      description: "AI-generate reading test library",
+      icon: <BookOpen className="w-6 h-6" />,
+      path: "/admin/reading",
+      color: "text-accent",
+    },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -467,7 +474,7 @@ export default function AdminDashboard() {
             <Settings className="w-5 h-5 text-accent" />
             Quick Actions
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             {quickActions.map((action) => (
               <Card
                 key={action.path}

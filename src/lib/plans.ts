@@ -16,8 +16,10 @@ export interface PlanDefinition {
   planKey: "free" | "pro" | "road_to_8";
   tier: PlanTier;
   name: string;
-  /** Display price, e.g. "IDR 500K". */
+  /** Display price, e.g. "IDR 200K". */
   displayPrice: string;
+  /** If set, always shows as crossed-out above displayPrice (permanent sale). */
+  strikethroughDisplayPrice?: string;
   /** Discounted display price when the BAGASCUTS promo applies. */
   discountedDisplayPrice?: string;
   /** Optional period label, e.g. "per month", "one-time". */
@@ -55,11 +57,12 @@ export const PLANS: PlanDefinition[] = [
     planKey: "pro",
     tier: "pro",
     name: "Pro",
-    displayPrice: "IDR 500K",
-    discountedDisplayPrice: "IDR 250K",
+    displayPrice: "IDR 200K",
+    strikethroughDisplayPrice: "IDR 500K",
+    discountedDisplayPrice: "IDR 200K",
     period: "per month",
-    amount: 500000,
-    discountedAmount: 250000,
+    amount: 200000,
+    discountedAmount: 200000,
     description: "Unlimited AI practice across every module.",
     features: [
       "Unlimited AI Reading passages",

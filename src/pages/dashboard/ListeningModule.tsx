@@ -100,6 +100,38 @@ export default function ListeningModule() {
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
 
+  // isMountedRef: tracks whether component is currently mounted
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
+  // Background generation store — survives component unmount/remount
+  const genEntry = useGenerationEntry('listening');
+  const isGenerating = genEntry.isGenerating;
+
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const stored = localStorage.getItem(`ielts-listening-completed-${user.id}`);
+      if (stored) setCompletedIds(new Set(JSON.parse(stored)));
+    } catch { }
+  }, [user?.id]);
+
+  const markListeningCompleted = (testId: string) => {
+    if (!user?.id) return;
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      next.add(testId);
+      try { localStorage.setItem(`ielts-listening-completed-${user.id}`, JSON.stringify([...next])); } catch { }
+      return next;
+    });
+  };
+
+  const [tests, setTests] = useState<ListeningTest[]>([]);
   const [currentTest, setCurrentTest] = useState<ListeningTest | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [answers, setAnswers] = useState<UserAnswers>({});
@@ -611,7 +643,9 @@ export default function ListeningModule() {
     setScore(correctCount);
     setResults(newResults);
     setIsSubmitted(true);
+    markListeningCompleted(currentTest.id);
 
+    // Save to database
     if (user) {
       try {
         await supabase.from("listening_submissions").insert({
@@ -934,6 +968,134 @@ export default function ListeningModule() {
   }
 
   if (!currentTest) {
+    const practiceContent = tests.length === 0 ? (
+      <div className="glass-card p-12 text-center">
+        <Headphones className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+        <h2 className="text-xl font-light mb-2">Generate an AI Listening Test</h2>
+        <p className="text-muted-foreground mb-6">
+          No pre-built tests yet. Generate a fresh IELTS-style test with AI.
+        </p>
+        <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
+          <div className="flex gap-2 w-full">
+            <select
+              value={generatePart}
+              disabled={isGenerating}
+              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
+              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="Part 1">Part 1</option>
+              <option value="Part 2">Part 2</option>
+              <option value="Part 3">Part 3</option>
+              <option value="Part 4">Part 4</option>
+            </select>
+            <select
+              value={generateDifficulty}
+              disabled={isGenerating}
+              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+              className="flex-1 bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          {isGenerating ? (
+            <Button
+              onClick={stopGeneration}
+              variant="destructive"
+              className="w-full"
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              Stop Generation
+            </Button>
+          ) : (
+            <Button
+              onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
+              className="w-full bg-accent hover:bg-accent/90"
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              Generate AI Test
+            </Button>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div className="grid gap-4">
+        {tests.map((test) => (
+          <button
+            key={test.id}
+            onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : startTest(test)}
+            className="glass-card p-6 text-left hover:scale-[1.01] transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-light mb-1">{test.title}</h3>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {test.duration_minutes} mins
+                  </span>
+                  <Badge variant={
+                    test.difficulty === "hard" ? "destructive" :
+                    test.difficulty === "easy" ? "secondary" : "default"
+                  }>
+                    {test.difficulty}
+                  </Badge>
+                  <span>{test.questions.length} questions</span>
+                  {completedIds.has(test.id) && (
+                    <span className="flex items-center gap-1 text-green-500">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Done
+                    </span>
+                  )}
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
+            </div>
+          </button>
+        ))}
+        {/* AI Generation row */}
+        <div className="glass-card p-4 border-dashed">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Wand2 className="w-4 h-4 text-accent flex-shrink-0" />
+            <span className="text-sm text-muted-foreground flex-1">Generate a new AI test</span>
+            <select
+              value={generatePart}
+              onChange={(e) => setGeneratePart(e.target.value as typeof generatePart)}
+              className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
+            >
+              <option value="Part 1">Part 1</option>
+              <option value="Part 2">Part 2</option>
+              <option value="Part 3">Part 3</option>
+              <option value="Part 4">Part 4</option>
+            </select>
+            <select
+              value={generateDifficulty}
+              onChange={(e) => setGenerateDifficulty(e.target.value as typeof generateDifficulty)}
+              className="bg-secondary/50 border border-border/50 rounded-md px-2 py-1.5 text-sm text-foreground"
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+            {isGenerating ? (
+              <Button size="sm" onClick={stopGeneration} variant="destructive">
+                <XCircle className="w-4 h-4 mr-1" /> Stop
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => !canAccess("listening") ? setShowUpgradeModal(true) : generateTest()}
+                className="bg-accent hover:bg-accent/90"
+              >
+                Generate
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+
     return (
       <DashboardLayout>
         <div className="max-w-4xl">
@@ -944,67 +1106,29 @@ export default function ListeningModule() {
             <div>
               <h1 className="text-2xl font-light">Listening Practice</h1>
               <p className="text-sm text-muted-foreground">
-                {isElite ? "Select difficulty or explore MudahInAja" : "Select difficulty"}
+                {isElite ? "Select a test or explore MudahInAja" : "Select a test"}
               </p>
             </div>
           </div>
 
-          {!isGatingLoading && !canAccess("listening") ? (
-            <div className="glass-card p-12 text-center">
-              <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
-                <Lock className="w-10 h-10 text-accent" />
-              </div>
-              <h2 className="text-xl font-light mb-3">Free Practice Used</h2>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                You've used your one free listening test. Upgrade for unlimited tests.
-              </p>
-              <Button onClick={() => navigate("/pricing-selection")} variant="neumorphicPrimary">
-                View Plans
-              </Button>
-            </div>
+          {isElite ? (
+            <Tabs defaultValue="practice" className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="practice">Practice Tests</TabsTrigger>
+                <TabsTrigger value="cheatsheet">MudahInAja</TabsTrigger>
+              </TabsList>
+              <TabsContent value="practice" className="mt-0">
+                {practiceContent}
+              </TabsContent>
+              <TabsContent value="cheatsheet" className="mt-0">
+                <div className="glass-card p-6">
+                  <h2 className="text-lg font-semibold mb-4">Elite Cheatsheet & Hard Tips</h2>
+                  <ListeningCheatsheet />
+                </div>
+              </TabsContent>
+            </Tabs>
           ) : (
-            <div className="glass-card p-12 text-center">
-              <Headphones className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="text-xl font-light mb-2">Load an IELTS Listening Test</h2>
-              <p className="text-muted-foreground mb-6">
-                Choose a difficulty level and load a complete 4-part listening test.
-              </p>
-              <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
-                <select
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value as typeof difficulty)}
-                  className="w-full bg-secondary/50 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
-                >
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-                <Button
-                  onClick={generateTest}
-                  disabled={isLoading}
-                  className="w-full bg-accent hover:bg-accent/90"
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                  Load Test
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {isElite && (
-            <div className="mt-8">
-              <Tabs defaultValue="cheatsheet" className="w-full">
-                <TabsList className="mb-6">
-                  <TabsTrigger value="cheatsheet">Elite Cheatsheet</TabsTrigger>
-                </TabsList>
-                <TabsContent value="cheatsheet" className="mt-0">
-                  <div className="glass-card p-6">
-                    <h2 className="text-lg font-semibold mb-4">Listening Tips & Strategies</h2>
-                    <ListeningCheatsheet />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
+            practiceContent
           )}
         </div>
       </DashboardLayout>
