@@ -76,16 +76,16 @@ const familiarityQuestions: FamiliarityQuestion[] = [
 ];
 
 const quizQuestions: Question[] = [
-  // ── Band 5 ── Explicit reading comprehension, basic academic grammar & vocabulary
+  // ── Band 5 ── Reading comprehension, basic academic grammar, writing fundamentals
   {
     id: 1,
-    passage: "Deforestation is the removal of trees from forested areas. This process has several negative effects on the environment, including increased greenhouse gas emissions and loss of animal habitats. Governments in many countries have introduced laws to protect forested areas from further destruction.",
-    text: "According to the passage, what is one consequence of deforestation?",
+    passage: "Many people around the world do not have access to clean drinking water. This is a serious health problem because contaminated water can cause diseases such as cholera and typhoid. Governments and international organisations are working together to improve water supplies in affected regions.",
+    text: "According to the passage, why is lack of clean water a serious problem?",
     options: [
-      "It primarily affects urban areas",
-      "It releases gases that contribute to climate change",
-      "Animals benefit from reduced tree cover",
-      "Governments have done nothing to address it"
+      "It makes farming more difficult in rural areas",
+      "It can lead to dangerous illnesses in people",
+      "It causes economic problems for governments",
+      "It reduces the amount of water available for industry"
     ],
     correctAnswer: 1,
     band: 5,
@@ -93,63 +93,73 @@ const quizQuestions: Question[] = [
   },
   {
     id: 2,
-    text: "Despite the extensive clinical trials, the new medication proved ___; patients showed no measurable improvement in their condition.",
-    options: ["effective", "conclusive", "ineffective", "promising"],
-    correctAnswer: 2,
+    text: "Which sentence is written correctly for an academic report?",
+    options: [
+      "The results shows that pollution have increased in recent years.",
+      "The results show that pollution has increased in recent years.",
+      "The results are showing that pollution increased in the recent years.",
+      "The result show that pollution are increasing in recent year."
+    ],
+    correctAnswer: 1,
     band: 5,
-    skill: "Vocabulary in context"
+    skill: "Writing — subject-verb agreement and tense"
   },
   {
     id: 3,
-    text: "If global temperatures continue to rise at the current rate, many coastal species ___ face extinction within the century.",
-    options: ["would", "will", "can", "might have"],
+    text: "If the company does not reduce its carbon emissions, it ___ face significant financial penalties.",
+    options: ["would", "will", "can", "had"],
     correctAnswer: 1,
     band: 5,
     skill: "First conditional"
   },
   {
     id: 4,
-    text: "Scientists need to ___ further research into the long-term effects of the compound on human health.",
-    options: ["do", "make", "conduct", "take"],
-    correctAnswer: 2,
+    text: "There are two main causes of traffic congestion in cities. ___, the number of private car owners has grown rapidly. Secondly, public transport has not kept pace with population growth.",
+    options: ["Firstly", "For example", "However", "Therefore"],
+    correctAnswer: 0,
     band: 5,
-    skill: "Academic collocations"
+    skill: "Writing — sequencing connectors"
   },
   {
     id: 5,
-    text: "The ancient ruins ___ to be at least 3,000 years old, based on carbon-dating evidence.",
-    options: ["believe", "are believed", "believing", "believed"],
+    text: "The report ___ by a team of independent researchers over a period of twelve months.",
+    options: ["wrote", "was written", "is writing", "has written"],
     correctAnswer: 1,
     band: 5,
     skill: "Passive voice"
   },
 
-  // ── Band 6 ── Inferential reading, discourse markers, subjunctive, precise vocabulary
+  // ── Band 6 ── Inferential reading, writing structure, discourse markers, vocabulary precision
   {
     id: 6,
-    passage: "Urban heat islands occur when cities are significantly warmer than surrounding rural areas. This phenomenon results from the replacement of natural vegetation with buildings and roads, which absorb and retain solar energy. While increasing urban greenery can mitigate this effect, most city planning continues to prioritize commercial and residential development over green infrastructure.",
-    text: "What can be inferred from the passage about urban heat islands?",
+    passage: "Many companies have introduced flexible working arrangements, allowing employees to work from home several days a week. Studies suggest this has raised overall productivity, though some managers worry that remote work reduces team cohesion and makes it harder to support junior staff who benefit from day-to-day contact with more experienced colleagues.",
+    text: "What concern do some managers have about remote working?",
     options: [
-      "Rural areas are completely unaffected by the heat island phenomenon",
-      "Industrial pollution is the primary driver of higher city temperatures",
-      "Prevailing urban planning priorities are likely to make the problem worse",
-      "Increasing urban greenery has been shown to be ineffective as a solution"
+      "Employees work too many hours at home",
+      "It may be harder to keep teams connected and develop junior staff",
+      "Home offices are too expensive for companies to fund",
+      "Productivity falls significantly when staff work remotely"
     ],
-    correctAnswer: 2,
+    correctAnswer: 1,
     band: 6,
     skill: "Inferential reading comprehension"
   },
   {
     id: 7,
-    text: "Sales figures were deeply disappointing last quarter; ___, the board decided not to dismiss the chief executive.",
-    options: ["consequently", "as a result", "furthermore", "nonetheless"],
-    correctAnswer: 3,
+    text: "Which is the best opening sentence for an IELTS Task 2 essay on the topic: 'Some people think zoos serve an important purpose; others argue they should be closed.'?",
+    options: [
+      "I think zoos are good because animals can be protected there.",
+      "Zoos are places where animals live and people go to see them.",
+      "The role of zoos in modern society is a subject of considerable debate, with strong arguments on both sides.",
+      "In this essay I will talk about zoos and why some people like them and some do not."
+    ],
+    correctAnswer: 2,
     band: 6,
-    skill: "Discourse markers — contrast"
+    skill: "Writing — Task 2 essay introduction"
   },
   {
     id: 8,
-    text: "The researchers hoped to ___ a clear correlation between adolescent screen time and disrupted sleep patterns.",
+    text: "The scientists hoped to ___ a connection between air quality and the rise in childhood respiratory conditions.",
     options: ["find out", "establish", "discover out", "research into"],
     correctAnswer: 1,
     band: 6,
@@ -157,105 +167,115 @@ const quizQuestions: Question[] = [
   },
   {
     id: 9,
-    text: "The report was considered ___ because it presented only the evidence that supported its predetermined conclusions, ignoring contradictory data.",
-    options: ["thorough", "comprehensive", "biased", "objective"],
+    text: "Many students struggle with time management during examinations. ___, practising under timed conditions can lead to significant improvement.",
+    options: ["Furthermore", "As a result", "Nevertheless", "In addition"],
     correctAnswer: 2,
     band: 6,
-    skill: "Academic vocabulary — precision"
+    skill: "Writing — contrast discourse markers"
   },
   {
     id: 10,
-    text: "The review board insisted that the entire project ___ by an independent committee before any findings could be published.",
-    options: ["was approved", "is approved", "be approved", "approved"],
-    correctAnswer: 2,
-    band: 6,
-    skill: "Subjunctive mood"
-  },
-
-  // ── Band 7 ── Author stance, inversion, precise academic vocabulary, register, possessive relative clause
-  {
-    id: 11,
-    passage: "The concept of 'cognitive offloading' — using external tools to extend mental capacity — is not new. Ancient humans used cave paintings as memory aids long before writing systems emerged. What modern technology has changed is not the practice itself, but its pervasiveness and the degree of reliance upon it. Critics contend that this dependency erodes autonomous thought; proponents counter that freeing working memory from routine storage enables engagement with more complex problems.",
-    text: "Which statement best describes the author's approach to the topic of cognitive offloading?",
+    text: "Which sentence would make the best thesis statement for a Task 2 essay arguing that technology has more benefits than drawbacks?",
     options: [
-      "The author argues that cognitive offloading is harmful to human cognition",
-      "The author presents competing perspectives without endorsing a definitive position",
-      "The author implies that ancient cognitive practices were superior to modern ones",
-      "The author concludes that technology has permanently damaged human intelligence"
+      "Technology is very important in today's world and affects many people.",
+      "Although technology carries certain risks, its benefits to communication, education, and economic development considerably outweigh its drawbacks.",
+      "I will discuss the advantages and disadvantages of technology in this essay.",
+      "Technology has good and bad points that we need to think about carefully."
     ],
     correctAnswer: 1,
+    band: 6,
+    skill: "Writing — Task 2 thesis statement"
+  },
+
+  // ── Band 7 ── Critical reading, paragraph development, precise vocabulary, grammar, register
+  {
+    id: 11,
+    passage: "The debate over four-day working weeks has grown in recent years, with several pilot programmes reporting improvements in employee wellbeing and productivity. Proponents argue that a shorter schedule encourages workers to cut inefficiencies and focus on outcomes. Sceptics, however, note that such pilots have overwhelmingly involved office-based, knowledge-work roles, and caution against assuming the results are transferable to sectors such as manufacturing, healthcare, and retail, where continuous coverage is essential.",
+    text: "What is the main concern raised by sceptics regarding the four-day working week?",
+    options: [
+      "Employees will become less motivated with more leisure time",
+      "Pilot programmes have not demonstrated genuine gains in productivity",
+      "The positive findings may not apply equally across all types of employment",
+      "Office-based workers are less productive than those in physical industries"
+    ],
+    correctAnswer: 2,
     band: 7,
-    skill: "Author's stance — critical reading"
+    skill: "Critical reading — author's perspective"
   },
   {
     id: 12,
-    text: "Not only ___ results consistent with previous studies, but the experiment also uncovered a previously unknown variable.",
+    text: "Which paragraph most effectively develops an argument for an IELTS Task 2 essay?",
     options: [
-      "the experiment produced",
-      "the experiment did produce",
-      "did the experiment produce",
-      "produced the experiment"
+      "There are many advantages of social media. People use it to communicate. It is also used for business. Social media can be addictive though.",
+      "One significant advantage of social media is its capacity to connect people across geographical boundaries. Platforms such as Instagram allow families separated by distance to maintain close relationships, reducing social isolation.",
+      "Social media is very popular today and many people around the world use it for many different purposes including talking to friends and family.",
+      "Social media has advantages and disadvantages. It helps people communicate but it also has problems like addiction and misinformation."
     ],
-    correctAnswer: 2,
+    correctAnswer: 1,
     band: 7,
-    skill: "Inversion after negative adverbials"
+    skill: "Writing — PEEL paragraph structure"
   },
   {
     id: 13,
-    text: "The government's response to the crisis was widely described as ___: it was designed to appear decisive while actually deferring any real commitment indefinitely.",
-    options: ["ambiguous", "equivocal", "vague", "speculative"],
-    correctAnswer: 1,
+    text: "The government introduced a series of ___ measures to address the housing crisis, covering tax incentives for developers, subsidies for buyers, and new planning regulations.",
+    options: ["comprehensive", "general", "common", "normal"],
+    correctAnswer: 0,
     band: 7,
-    skill: "Precise academic vocabulary"
+    skill: "Academic vocabulary — precision"
   },
   {
     id: 14,
-    text: "Which sentence is most appropriate for a formal academic essay?",
+    text: "Which sentence uses the most appropriate style for a formal academic essay?",
     options: [
-      "The economy got a lot better because companies started hiring more workers.",
-      "Economic recovery was driven largely by growth in private-sector employment.",
-      "Things improved economically once businesses decided to take on more staff.",
-      "The economic situation improved a lot after more people managed to get jobs."
+      "A lot of people think that governments should do more to help people living in poverty.",
+      "Many individuals believe that governments should take further steps to support those in poverty.",
+      "It is widely argued that governments bear a responsibility to implement more robust policies addressing systemic poverty.",
+      "Governments really need to do much more for poor people, and most people agree with this."
     ],
-    correctAnswer: 1,
+    correctAnswer: 2,
     band: 7,
-    skill: "Academic register and nominalization"
+    skill: "Writing — academic register and nominalization"
   },
   {
     id: 15,
-    text: "The research institute, ___ entire funding was withdrawn following the financial scandal, permanently closed its doors last year.",
-    options: ["that", "which", "whose", "what"],
+    text: "The research institute, ___ entire funding was withdrawn following the financial scandal, closed its doors permanently last year.",
+    options: ["that", "which", "whose", "who's"],
     correctAnswer: 2,
     band: 7,
     skill: "Possessive relative clauses"
   },
 
-  // ── Band 8 ── Complex philosophical passage, rare vocabulary, third-conditional inversion, sophisticated register
+  // ── Band 8 ── Complex inference, rare vocabulary, advanced grammar, sophisticated writing
   {
     id: 16,
-    passage: "The paradox of tolerance, as articulated by philosopher Karl Popper, posits that unlimited tolerance must eventually lead to the disappearance of tolerance itself. A tolerant society that extends unrestricted acceptance to intolerant ideologies risks dismantlement by those very ideologies. Popper therefore argues that rational societies must reserve the right to suppress intolerance — not by prohibiting the expression of intolerant ideas, but by refusing to legitimize them and by treating their resort to force as criminal.",
-    text: "According to Popper's argument, which scenario would most clearly justify a society actively suppressing an intolerant group?",
+    passage: "The concept of planned obsolescence — designing products to become outdated or non-functional within a set timeframe — has attracted growing criticism. Manufacturers argue that continuous product cycles drive innovation and keep prices competitive. Critics counter that this model prioritises profit over sustainability, generating vast quantities of electronic waste while compelling consumers to purchase replacements they do not genuinely need.",
+    text: "How does the passage present the manufacturers' justification for planned obsolescence?",
     options: [
-      "When their ideas are considered offensive by a majority of citizens",
-      "When they begin using violence or coercion to advance their ideology",
-      "When their philosophical views contradict established democratic principles",
-      "When they seek to limit the free expression of other groups"
+      "It is presented as a fully convincing argument that the passage endorses",
+      "It is acknowledged, but the broader framing of the passage gives more weight to critics",
+      "It is dismissed outright as irrelevant to the environmental debate",
+      "It is treated as more credible than the critics' position"
     ],
     correctAnswer: 1,
     band: 8,
-    skill: "Complex philosophical text — precise inference"
+    skill: "Reading — author framing and implied stance"
   },
   {
     id: 17,
-    text: "The professor's interpretation was criticized as ___: she had imposed her own cultural framework onto texts produced by a fundamentally different civilization.",
-    options: ["parochial", "ethnocentric", "anachronistic", "reductive"],
-    correctAnswer: 1,
+    text: "Which sentence demonstrates the most sophisticated academic writing?",
+    options: [
+      "Climate change is a really big problem and governments are not doing enough about it.",
+      "Many people think that governments are not handling climate change as well as they should be.",
+      "Governments around the world are clearly failing to deal with climate change.",
+      "The inadequacy of governmental responses to climate change has drawn increasing criticism from both the scientific community and civil society."
+    ],
+    correctAnswer: 3,
     band: 8,
-    skill: "Advanced academic vocabulary"
+    skill: "Writing — advanced nominalization and register"
   },
   {
     id: 18,
-    text: "___ the authorities acted more swiftly upon initial reports, the outbreak might have been contained within the originating region.",
+    text: "___ the research team secured additional funding at an earlier stage, the study could have been expanded to include a far more representative sample.",
     options: ["Should", "If only", "Had", "Were"],
     correctAnswer: 2,
     band: 8,
@@ -263,30 +283,24 @@ const quizQuestions: Question[] = [
   },
   {
     id: 19,
-    text: "Which sentence demonstrates the most sophisticated academic register through effective nominalization?",
+    text: "Which sentence makes the most effective conclusion for a Task 2 essay on renewable energy investment?",
     options: [
-      "People often disagree about how to understand ambiguous scientific findings.",
-      "There is frequent disagreement regarding the interpretation of ambiguous scientific findings.",
-      "Scientists sometimes cannot agree on how to read confusing data from experiments.",
-      "Confusing scientific data leads to disagreements, so researchers often fail to reach consensus."
+      "In conclusion, I have discussed both sides of the argument and there are many things to consider.",
+      "In conclusion, while there are merits to both perspectives, the evidence suggests that the long-term economic and social benefits of investing in renewable energy considerably outweigh the short-term costs.",
+      "To summarise, this essay has looked at the advantages and disadvantages of the topic in detail.",
+      "Overall, this is a very complex issue and different people have different opinions on what should happen."
     ],
     correctAnswer: 1,
     band: 8,
-    skill: "Nominalization and formal academic register"
+    skill: "Writing — Task 2 conclusion"
   },
   {
     id: 20,
-    passage: "Archaeological evidence indicates that Stonehenge was constructed in multiple phases over approximately 1,500 years, with the earliest phase dating to around 3000 BCE. The monument's bluestones were transported from quarries up to 240 miles distant — a logistical undertaking that, given the technology available at the time, would have required extraordinary communal organization. The precise purpose of the site remains contested, though the alignment of certain stones with the summer solstice sunrise implies both astronomical knowledge and possibly ritual significance.",
-    text: "What does the passage most clearly imply about the society that constructed Stonehenge?",
-    options: [
-      "They possessed astronomical knowledge equivalent to that of modern scientists",
-      "Their society was capable of sophisticated planning and large-scale collective effort",
-      "The primary and definitive purpose of Stonehenge was religious ritual",
-      "Archaeologists have now reached consensus about the monument's original function"
-    ],
-    correctAnswer: 1,
+    text: "The historian's analysis was criticised as ___: she had applied the moral standards of the present to evaluate decisions made in an entirely different social and political context.",
+    options: ["parochial", "reductive", "anachronistic", "ethnocentric"],
+    correctAnswer: 2,
     band: 8,
-    skill: "Complex inference — archaeological text"
+    skill: "Advanced academic vocabulary — precision"
   }
 ];
 
@@ -518,8 +532,8 @@ export default function DiagnosticQuiz() {
 
             <div className="bg-muted/50 rounded-lg p-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Take your time and answer honestly. The harder questions are intentionally challenging —
-                your result reflects a genuine prediction of your current IELTS band.
+                Questions include grammar, vocabulary, short reading passages, and writing tasks.
+                Answer honestly — your result is a genuine prediction of your current IELTS band.
               </p>
             </div>
           </div>
