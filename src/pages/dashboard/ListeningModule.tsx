@@ -180,8 +180,8 @@ export default function ListeningModule() {
   const speechRef = useRef<any>(null);
   const lastTestIdRef = useRef<string | null>(null);
   const usedTopicsRef = useRef<string[]>([]);
-  const isPausedRef = useRef(false);
-  const resumeCallbackRef = useRef<(() => void) | null>(null);
+  const audioBlobUrlRef = useRef<string | null>(null);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
   const LISTENING_SESSION_PREFIX = `ielts-listening-${user?.id || 'guest'}`;
 
@@ -303,10 +303,11 @@ export default function ListeningModule() {
   const startTest = async (test: ListeningTest) => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      audioRef.current.src = "";
     }
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
+    if (audioBlobUrlRef.current) {
+      URL.revokeObjectURL(audioBlobUrlRef.current);
+      audioBlobUrlRef.current = null;
     }
     speechRef.current = null;
 
@@ -412,143 +413,81 @@ export default function ListeningModule() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [genCtx.listening.status]);
 
-  const speakPart = useCallback((partNumber: number) => {
+  const speakPart = useCallback(async (partNumber: number) => {
     if (!currentTest) return;
     const section = currentTest.sections[partNumber - 1];
     if (!section?.transcript) return;
 
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
     }
-    isPausedRef.current = false;
-    resumeCallbackRef.current = null;
+    if (audioBlobUrlRef.current) {
+      URL.revokeObjectURL(audioBlobUrlRef.current);
+      audioBlobUrlRef.current = null;
+    }
 
-    // Unique session token — any stale callbacks check against this
     const token = Symbol();
     speechRef.current = token;
 
-    // Parse transcript into per-speaker turns
-    const turns: { speaker: string | null; text: string }[] = [];
-    for (const raw of section.transcript.split("\n")) {
-      const line = raw.trim();
-      if (!line) continue;
-      const m = line.match(/^([A-Z][A-Z0-9 ]{0,20}):\s*(.+)$/);
-      if (m) {
-        turns.push({ speaker: m[1].trim(), text: m[2].trim() });
-      } else if (turns.length > 0 && turns[turns.length - 1].speaker === null) {
-        turns[turns.length - 1].text += " " + line;
-      } else {
-        turns.push({ speaker: null, text: line });
-      }
-    }
-    if (turns.length === 0) return;
+    setPlayingPart(partNumber);
+    setIsPlaying(false);
+    setIsPaused(false);
+    setIsLoadingAudio(true);
+    setPlayedParts(prev => ({ ...prev, [partNumber]: true }));
 
-    const doSpeak = () => {
-      const voices = window.speechSynthesis.getVoices();
+    // One voice per part — fable and shimmer are British-accented, good for IELTS
+    const VOICES = ["fable", "shimmer", "echo", "nova"];
+    const voice = VOICES[(partNumber - 1) % VOICES.length];
 
-      // Prefer high-quality named voices available in Chrome/Edge
-      const PREFERRED = [
-        "Google UK English Female",
-        "Google UK English Male",
-        "Microsoft Sonia Online (Natural) - English (United Kingdom)",
-        "Microsoft Ryan Online (Natural) - English (United Kingdom)",
-        "Microsoft Libby Online (Natural) - English (United Kingdom)",
-        "Microsoft Hazel Desktop - English (Great Britain)",
-        "Google UK English",
-      ];
-      const preferred = PREFERRED
-        .map(n => voices.find(v => v.name === n))
-        .filter(Boolean) as SpeechSynthesisVoice[];
-      const preferredNames = new Set(preferred.map(v => v.name));
-      const enGB = voices.filter(v => v.lang === "en-GB" && !preferredNames.has(v.name));
-      const enAU = voices.filter(v => v.lang === "en-AU");
-      const enUS = voices.filter(v => v.lang === "en-US");
-      const pool = [...preferred, ...enGB, ...enAU, ...enUS, ...voices.filter(v => v.lang.startsWith("en-"))];
-
-      // Assign each speaker a distinct voice + natural rate/pitch variation
-      const uniqueSpeakers = [...new Set(turns.map(t => t.speaker).filter(Boolean) as string[])];
-      const RATES  = [0.87, 0.82, 0.91, 0.85];
-      const PITCHES = [1.10, 0.88, 1.05, 0.93];
-      const speakerCfg: Record<string, { voice?: SpeechSynthesisVoice; rate: number; pitch: number }> = {};
-      uniqueSpeakers.forEach((sp, i) => {
-        speakerCfg[sp] = {
-          voice: pool[i % Math.max(pool.length, 1)],
-          rate: RATES[i % RATES.length],
-          pitch: PITCHES[i % PITCHES.length],
-        };
+    try {
+      const response = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "tts-1-hd",
+          input: section.transcript.slice(0, 4096),
+          voice,
+          speed: 0.9,
+        }),
       });
 
-      // Break transcript into sentence-level chunks — shorter utterances sound
-      // significantly more natural because TTS applies better per-sentence prosody
-      const splitSentences = (text: string): string[] => {
-        const parts = text.match(/[^.!?]+(?:[.!?]+(?:\s|$)|$)/g);
-        return (parts ?? [text]).map(s => s.trim()).filter(Boolean);
-      };
+      if (speechRef.current !== token) return;
+      if (!response.ok) throw new Error(`TTS API error ${response.status}`);
 
-      interface Chunk { speaker: string | null; text: string; pauseAfter: number }
-      const chunks: Chunk[] = [];
-      for (let i = 0; i < turns.length; i++) {
-        const { speaker, text } = turns[i];
-        const nextSpeaker = turns[i + 1]?.speaker ?? null;
-        const sentences = splitSentences(text);
-        sentences.forEach((s, si) => {
-          const isLast = si === sentences.length - 1;
-          const speakerChanges = isLast && speaker !== nextSpeaker;
-          chunks.push({
-            speaker,
-            text: s,
-            // Speaker-change gap ≫ sentence-end gap ≫ mid-sentence continuation
-            pauseAfter: speakerChanges ? 650 : isLast ? 300 : 110,
-          });
-        });
-      }
+      const blob = await response.blob();
+      if (speechRef.current !== token) return;
 
-      let idx = 0;
-      const next = () => {
-        if (speechRef.current !== token) return;
-        if (isPausedRef.current) { resumeCallbackRef.current = next; return; }
-        if (idx >= chunks.length) {
+      const url = URL.createObjectURL(blob);
+      audioBlobUrlRef.current = url;
+
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        audioRef.current.onended = () => {
+          if (speechRef.current !== token) return;
+          URL.revokeObjectURL(url);
+          audioBlobUrlRef.current = null;
           setIsPlaying(false);
           setIsPaused(false);
           setPlayingPart(null);
           setCompletedParts(prev => ({ ...prev, [partNumber]: true }));
           speechRef.current = null;
-          return;
-        }
-        const { speaker, text, pauseAfter } = chunks[idx++];
-        const utt = new SpeechSynthesisUtterance(text);
-        utt.lang = "en-GB";
-        const cfg = speaker ? speakerCfg[speaker] : null;
-        utt.rate  = cfg ? cfg.rate  : 0.88;
-        utt.pitch = cfg ? cfg.pitch : 1.0;
-        if (cfg?.voice) utt.voice = cfg.voice;
-        else if (pool[0]) utt.voice = pool[0];
-        utt.onend = () => {
-          if (speechRef.current !== token) return;
-          setTimeout(next, pauseAfter);
         };
-        utt.onerror = () => {
-          if (speechRef.current !== token) return;
-          setTimeout(next, 100);
-        };
-        window.speechSynthesis.speak(utt);
-      };
-      next();
-    };
-
-    setPlayingPart(partNumber);
-    setIsPlaying(true);
-    setIsPaused(false);
-    setPlayedParts(prev => ({ ...prev, [partNumber]: true }));
-
-    // Voices may not be ready on first call — wait for them
-    if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null;
-        if (speechRef.current === token) doSpeak();
-      };
-    } else {
-      doSpeak();
+        setIsLoadingAudio(false);
+        setIsPlaying(true);
+        audioRef.current.play();
+      }
+    } catch (err) {
+      if (speechRef.current !== token) return;
+      console.error("TTS error:", err);
+      toast.error("Failed to generate audio. Check your OpenAI API key.");
+      setIsLoadingAudio(false);
+      setIsPlaying(false);
+      setPlayingPart(null);
+      speechRef.current = null;
     }
   }, [currentTest]);
 
@@ -560,16 +499,8 @@ export default function ListeningModule() {
       setTimerEndAt(Date.now() + timeRemaining * 1000);
     }
 
-    if (isPaused && playingPart === activePart) {
-      isPausedRef.current = false;
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      } else if (resumeCallbackRef.current) {
-        // Paused between turns — fire the stored continuation
-        const cb = resumeCallbackRef.current;
-        resumeCallbackRef.current = null;
-        cb();
-      }
+    if (isPaused && playingPart === activePart && audioRef.current) {
+      audioRef.current.play();
       setIsPaused(false);
       setIsPlaying(true);
       return;
@@ -579,20 +510,23 @@ export default function ListeningModule() {
   };
 
   const handlePause = () => {
-    if (!isPlaying) return;
-    isPausedRef.current = true;
-    if (window.speechSynthesis.speaking) window.speechSynthesis.pause();
+    if (!isPlaying || !audioRef.current) return;
+    audioRef.current.pause();
     setIsPaused(true);
     setIsPlaying(false);
   };
 
   const handleStop = () => {
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    if (audioBlobUrlRef.current) {
+      URL.revokeObjectURL(audioBlobUrlRef.current);
+      audioBlobUrlRef.current = null;
     }
     speechRef.current = null;
-    isPausedRef.current = false;
-    resumeCallbackRef.current = null;
+    setIsLoadingAudio(false);
     setIsPlaying(false);
     setIsPaused(false);
     setPlayingPart(null);
@@ -757,9 +691,8 @@ export default function ListeningModule() {
 
   const resetTest = () => {
     if (currentTest?.id) lastTestIdRef.current = currentTest.id;
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
-    }
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
+    if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); audioBlobUrlRef.current = null; }
     speechRef.current = null;
     if (timerRef.current) clearInterval(timerRef.current);
     setCachedState(null);
@@ -784,22 +717,21 @@ export default function ListeningModule() {
   // Stop any active playback when switching parts
   const handleSwitchPart = (newPart: number) => {
     if (newPart === activePart) return;
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
-    }
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
+    if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); audioBlobUrlRef.current = null; }
     speechRef.current = null;
+    setIsLoadingAudio(false);
     setIsPlaying(false);
     setIsPaused(false);
     setPlayingPart(null);
     setActivePart(newPart);
   };
 
-  // Cancel any speech on unmount to avoid stuck audio
+  // Stop audio on unmount
   useEffect(() => {
     return () => {
-      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-        window.speechSynthesis.cancel();
-      }
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
+      if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); }
     };
   }, []);
 
@@ -1227,7 +1159,16 @@ export default function ListeningModule() {
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              {isPlaying && playingPart === activePart ? (
+              {isLoadingAudio ? (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-full w-12 h-12"
+                  disabled
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                </Button>
+              ) : isPlaying && playingPart === activePart ? (
                 <Button
                   onClick={handlePause}
                   variant="outline"
@@ -1272,7 +1213,9 @@ export default function ListeningModule() {
             </div>
 
             <div className="flex-1">
-              {isPlaying && playingPart === activePart ? (
+              {isLoadingAudio ? (
+                <p className="text-accent text-sm animate-pulse">Generating audio...</p>
+              ) : isPlaying && playingPart === activePart ? (
                 <p className="text-accent text-sm animate-pulse">
                   Audio playing for Part {activePart}... Listen carefully.
                 </p>
