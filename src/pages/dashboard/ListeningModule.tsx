@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Headphones,
   Play,
@@ -922,7 +921,7 @@ export default function ListeningModule() {
       const isCorrect = result?.correct;
       const userAnswer = answers[n.toString()] || "";
 
-      const baseCls = "inline-block w-40 h-9 mx-1.5 px-3 text-base border-2 rounded-lg align-middle font-medium";
+      const baseCls = "inline-block w-48 h-11 mx-2 px-4 text-base border-2 rounded-lg align-middle font-medium";
       const stateCls = isSubmitted
         ? isCorrect
           ? "border-green-500 bg-green-500/10 text-green-700 dark:text-green-300"
@@ -977,7 +976,7 @@ export default function ListeningModule() {
 
     const lines = template.split("\n");
     return (
-      <div className="p-6 rounded-2xl border border-border/40 bg-card/50 space-y-2.5">
+      <div className="p-6 rounded-2xl border border-border/40 bg-card/50 space-y-4">
         {lines.map((rawLine, idx) => {
           const key = `tpl-${idx}`;
           const line = rawLine.replace(/\s+$/g, "");
@@ -1130,12 +1129,12 @@ export default function ListeningModule() {
 
     if (groupType === "form_completion" || groupType === "note_completion" || groupType === "table_completion") {
       body = (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <p className="text-base text-foreground font-medium leading-snug">{question.label || question.statement}</p>
           <Input
             value={userAnswer}
             onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
-            className={cn("h-11 text-base border-2 font-medium", isSubmitted ? isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10" : "border-border/50 focus:border-accent")}
+            className={cn("h-12 px-4 text-base border-2 font-medium rounded-xl", isSubmitted ? isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10" : "border-border/50 focus:border-accent")}
             disabled={isSubmitted}
             placeholder="Your answer…"
           />
@@ -1155,7 +1154,7 @@ export default function ListeningModule() {
                   <Input
                     value={userAnswer}
                     onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
-                    className={cn("inline-block w-44 mx-2 h-9 text-center text-base border-2 font-medium", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent")}
+                    className={cn("inline-block w-52 mx-2 h-11 px-3 text-center text-base border-2 font-medium rounded-lg", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent")}
                     disabled={isSubmitted}
                     placeholder="…"
                   />
@@ -1169,16 +1168,16 @@ export default function ListeningModule() {
     } else if (groupType === "matching") {
       const poolKeys = matchingPool ? Object.keys(matchingPool).sort() : [];
       body = (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <p className="text-base text-foreground leading-snug">{question.label || question.statement}</p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {poolKeys.length > 0 ? (
               <select
                 value={userAnswer}
                 onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
                 disabled={isSubmitted}
                 className={cn(
-                  "w-32 px-3 py-2 rounded-lg border-2 bg-background text-foreground text-base font-bold uppercase cursor-pointer",
+                  "w-36 h-12 px-3 py-0 rounded-xl border-2 bg-background text-foreground text-base font-bold uppercase cursor-pointer",
                   isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent"
                 )}
               >
@@ -1191,7 +1190,7 @@ export default function ListeningModule() {
               <Input
                 value={userAnswer}
                 onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value.toUpperCase())}
-                className={cn("w-24 text-center uppercase text-base border-2 font-bold h-11", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent")}
+                className={cn("w-28 text-center uppercase text-base border-2 font-bold h-12 rounded-xl", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent")}
                 disabled={isSubmitted}
                 maxLength={1}
                 placeholder="A–G"
@@ -1208,7 +1207,7 @@ export default function ListeningModule() {
       body = (
         <div className="space-y-3">
           <p className="text-base leading-relaxed text-foreground font-medium">{question.question || question.statement}</p>
-          <div className="space-y-2.5 pt-1">
+          <div className="space-y-3 pt-1">
             {question.options &&
               Object.entries(question.options).map(([key, value]) => {
                 const isSelected = userAnswer === key;
@@ -1444,7 +1443,7 @@ export default function ListeningModule() {
   return (
     <DashboardLayout>
       <SidebarFocusController testActive={true} />
-      <div className="h-[calc(100vh-100px)] flex flex-col gap-3">
+      <div className="flex flex-col gap-4 pb-12">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -1501,7 +1500,7 @@ export default function ListeningModule() {
         )}
 
         {/* Audio Player */}
-        <div className="flex-shrink-0 glass-card p-4">
+        <div className="sticky top-0 z-20 glass-card p-4 backdrop-blur-sm">
           <audio ref={audioRef} preload="none" />
 
           {/* Part header */}
@@ -1600,11 +1599,11 @@ export default function ListeningModule() {
         </div>
 
         {/* Main content */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-3 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-5 items-start">
           {/* Questions panel */}
-          <div className="lg:col-span-3 glass-card flex flex-col min-h-0 overflow-hidden">
+          <div className="glass-card">
             {/* Part tabs */}
-            <div className="flex-shrink-0 border-b border-border/30 px-4 pt-3">
+            <div className="border-b border-border/30 px-4 pt-3">
               <div className="flex gap-1">
                 {[1, 2, 3, 4].map((part) => (
                   <button
@@ -1637,8 +1636,8 @@ export default function ListeningModule() {
               </div>
             </div>
 
-            <ScrollArea className="flex-1">
-              <div className="p-6 space-y-8">
+            <div>
+              <div className="p-6 space-y-10">
                 {/* Transcript (after submission) */}
                 {isSubmitted && currentPart?.transcript && (
                   <div className="p-5 rounded-2xl bg-secondary/30 border border-border/30">
@@ -1659,7 +1658,7 @@ export default function ListeningModule() {
                       ? group.options_pool ?? deriveMatchingPool(group)
                       : null;
                   return (
-                    <div key={idx} className="space-y-4">
+                    <div key={idx} className="space-y-6">
                       {/* Group header */}
                       <div className="space-y-1">
                         {group.title && (
@@ -1694,7 +1693,7 @@ export default function ListeningModule() {
                       ) : group.template ? (
                         renderTemplate(group.template, group)
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-5">
                           {group.items.map((item) => renderQuestion(item, group.type, matchingPool))}
                         </div>
                       )}
@@ -1702,12 +1701,12 @@ export default function ListeningModule() {
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Notes sidebar */}
-          <div className="glass-card p-4 flex flex-col min-h-0">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex-shrink-0 flex items-center gap-2">
+          <div className="glass-card p-5 flex flex-col gap-3">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Notes
             </h2>
@@ -1715,14 +1714,14 @@ export default function ListeningModule() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={"Jot down keywords as you listen…\n\nUse this space for:\n• Key numbers\n• Names & places\n• Spelling clues\n• Answer guesses"}
-              className="flex-1 resize-none bg-transparent border-border/30 text-sm leading-relaxed placeholder:text-muted-foreground/40"
+              className="min-h-[440px] resize-none bg-transparent border-border/30 text-sm leading-loose placeholder:text-muted-foreground/40 p-3"
               disabled={isSubmitted}
             />
           </div>
         </div>
 
         {/* Question navigator */}
-        <div className="flex-shrink-0 glass-card p-4">
+        <div className="glass-card p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Questions</p>
             {!isSubmitted && (
@@ -1768,7 +1767,7 @@ export default function ListeningModule() {
 
         {/* Submit */}
         {!isSubmitted && (
-          <div className="flex-shrink-0 flex justify-end">
+          <div className="flex justify-end">
             <Button
               onClick={handleSubmit}
               size="lg"
