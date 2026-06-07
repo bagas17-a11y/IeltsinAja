@@ -67,6 +67,8 @@ interface QuestionGroup {
   question_range: [number, number];
   items: QuestionItem[];
   options_pool?: Record<string, string>;
+  template?: string;
+  group_transcript?: string;
 }
 
 interface ListeningPart {
@@ -115,6 +117,34 @@ const QUESTION_TYPE_LABEL: Record<string, string> = {
   table_completion: "Table Completion",
 };
 
+type SpeakerTurn = { speaker: string | null; text: string };
+
+const parseTranscriptToTurns = (transcript: string): SpeakerTurn[] => {
+  const rawTurns: SpeakerTurn[] = [];
+  for (const raw of transcript.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    const m = line.match(/^([A-Z][A-Z0-9 ]{0,20}):\s*(.+)$/);
+    if (m) {
+      rawTurns.push({ speaker: m[1].trim(), text: m[2].trim() });
+    } else if (rawTurns.length > 0) {
+      rawTurns[rawTurns.length - 1].text += " " + line;
+    } else {
+      rawTurns.push({ speaker: null, text: line });
+    }
+  }
+  // Merge consecutive same-speaker turns
+  const merged: SpeakerTurn[] = [];
+  for (const turn of rawTurns) {
+    if (merged.length > 0 && merged[merged.length - 1].speaker === turn.speaker) {
+      merged[merged.length - 1].text += " " + turn.text;
+    } else {
+      merged.push({ ...turn });
+    }
+  }
+  return merged;
+};
+
 export default function ListeningModule() {
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
@@ -138,6 +168,11 @@ export default function ListeningModule() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [results, setResults] = useState<Record<string, { correct: boolean; correctAnswer: string }>>({});
+
+  // Audio player state
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [isSeeking, setIsSeeking] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -271,6 +306,43 @@ export default function ListeningModule() {
     };
   }, [hasStarted, isSubmitted, timerEndAt]);
 
+  // Audio element event listeners (time/duration tracking)
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+
+    const onTimeUpdate = () => {
+      if (!isSeeking) setAudioCurrentTime(el.currentTime || 0);
+    };
+    const onDurationChange = () => {
+      if (Number.isFinite(el.duration)) setAudioDuration(el.duration || 0);
+    };
+    const onLoadedMetadata = () => {
+      if (Number.isFinite(el.duration)) setAudioDuration(el.duration || 0);
+      setAudioCurrentTime(el.currentTime || 0);
+    };
+    const onEnded = () => {
+      setIsPlaying(false);
+      setIsPaused(false);
+      if (playingPart !== null) {
+        setCompletedParts((prev) => ({ ...prev, [playingPart]: true }));
+      }
+      setPlayingPart(null);
+    };
+
+    el.addEventListener("timeupdate", onTimeUpdate);
+    el.addEventListener("durationchange", onDurationChange);
+    el.addEventListener("loadedmetadata", onLoadedMetadata);
+    el.addEventListener("ended", onEnded);
+
+    return () => {
+      el.removeEventListener("timeupdate", onTimeUpdate);
+      el.removeEventListener("durationchange", onDurationChange);
+      el.removeEventListener("loadedmetadata", onLoadedMetadata);
+      el.removeEventListener("ended", onEnded);
+    };
+  }, [isSeeking, playingPart]);
+
   const startTest = async (test: ListeningTest) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
     if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); audioBlobUrlRef.current = null; }
@@ -307,6 +379,8 @@ export default function ListeningModule() {
     setActivePart(1);
     setTimeRemaining(test.durationMinutes * 60);
     setTimerEndAt(null);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
 
     if (user) {
       try {
@@ -328,6 +402,23 @@ export default function ListeningModule() {
     }
   };
 
+  const fetchTTS = async (text: string, voice: string, signal: AbortSignal): Promise<Blob> => {
+    const res = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      signal,
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ model: "tts-1-hd", input: text.slice(0, 4096), voice, speed: 0.88 }),
+    });
+    if (!res.ok) {
+      const err = await res.text().catch(() => "");
+      throw new Error(`TTS ${res.status}: ${err}`);
+    }
+    return res.blob();
+  };
+
   const speakPart = useCallback(async (partNumber: number) => {
     if (!currentTest) return;
     const section = currentTest.sections[partNumber - 1];
@@ -347,116 +438,130 @@ export default function ListeningModule() {
     setIsPlaying(false);
     setIsPaused(false);
     setIsLoadingAudio(true);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
     setPlayedParts((prev) => ({ ...prev, [partNumber]: true }));
 
-    // Build intro narration text (Cambridge-style announcer)
-    const firstGroup = section.question_groups[0];
-    const lastGroup = section.question_groups[section.question_groups.length - 1];
-    const qStart = firstGroup.question_range[0];
-    const qEnd = lastGroup.question_range[1];
+    // Part info
+    const groups = section.question_groups;
+    const qStart = groups[0].question_range[0];
+    const qEnd = groups[groups.length - 1].question_range[1];
     const partWord = PART_NUMBER_WORDS[partNumber - 1] ?? partNumber.toString();
-    const instructions = [...new Set(section.question_groups.map((g) => g.instruction))].join(" ");
-    const introText = `Part ${partWord}. Questions ${qStart} to ${qEnd}. ${instructions} You will now hear the recording.`;
+    const splitGroupIdx = groups.length > 1 ? 1 : null;
+    const splitQ = splitGroupIdx !== null ? groups[splitGroupIdx].question_range[0] : null;
 
-    // Parse transcript into speaker turns
-    const raw_turns: { speaker: string | null; text: string }[] = [];
-    for (const raw of section.transcript.split("\n")) {
-      const line = raw.trim();
-      if (!line) continue;
-      const m = line.match(/^([A-Z][A-Z0-9 ]{0,20}):\s*(.+)$/);
-      if (m) {
-        raw_turns.push({ speaker: m[1].trim(), text: m[2].trim() });
-      } else if (raw_turns.length > 0) {
-        raw_turns[raw_turns.length - 1].text += " " + line;
-      } else {
-        raw_turns.push({ speaker: null, text: line });
-      }
-    }
+    // Parse the full transcript into turns
+    const allTurns = parseTranscriptToTurns(section.transcript);
 
-    // Merge consecutive same-speaker turns
-    const transcriptTurns: { speaker: string | null; text: string }[] = [];
-    for (const turn of raw_turns) {
-      if (transcriptTurns.length > 0 && transcriptTurns[transcriptTurns.length - 1].speaker === turn.speaker) {
-        transcriptTurns[transcriptTurns.length - 1].text += " " + turn.text;
-      } else {
-        transcriptTurns.push({ ...turn });
-      }
-    }
-
-    // All turns: narrator intro first, then speakers
+    // Determine speaker voices across the entire part
     const SPEAKER_VOICES = ["fable", "nova", "onyx", "shimmer"];
-    const uniqueSpeakers = [...new Set(transcriptTurns.map((t) => t.speaker).filter(Boolean) as string[])];
+    const uniqueSpeakers = [...new Set(allTurns.map((t) => t.speaker).filter(Boolean) as string[])];
     const speakerVoice: Record<string, string> = { NARRATOR: "alloy" };
     uniqueSpeakers.forEach((sp, i) => { speakerVoice[sp] = SPEAKER_VOICES[i % SPEAKER_VOICES.length]; });
 
-    const allTurns = [
-      { speaker: "NARRATOR", text: introText },
-      ...transcriptTurns,
-    ];
-    if (allTurns.length === 0) { setIsLoadingAudio(false); return; }
-
-    const fetchTurn = async (text: string, voice: string): Promise<Blob> => {
-      const res = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        signal: abort.signal,
-        headers: {
-          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ model: "tts-1-hd", input: text.slice(0, 4096), voice, speed: 0.88 }),
-      });
-      if (!res.ok) {
-        const errBody = await res.text().catch(() => "");
-        throw new Error(`TTS API error ${res.status}: ${errBody}`);
+    // Split turns at midpoint (or use per-group transcripts when provided)
+    let group0Turns: SpeakerTurn[] = allTurns;
+    let group1Turns: SpeakerTurn[] = [];
+    if (splitGroupIdx !== null) {
+      if (groups[0].group_transcript) {
+        group0Turns = parseTranscriptToTurns(groups[0].group_transcript);
+        if (groups[splitGroupIdx].group_transcript) {
+          group1Turns = parseTranscriptToTurns(groups[splitGroupIdx].group_transcript!);
+        } else {
+          // No second group transcript: fall back to the remainder of the full transcript by midpoint
+          const mid = Math.ceil(allTurns.length / 2);
+          group1Turns = allTurns.slice(mid);
+        }
+      } else if (groups[splitGroupIdx].group_transcript) {
+        group1Turns = parseTranscriptToTurns(groups[splitGroupIdx].group_transcript!);
+        const mid = Math.ceil(allTurns.length / 2);
+        group0Turns = allTurns.slice(0, mid);
+      } else {
+        const mid = Math.ceil(allTurns.length / 2);
+        group0Turns = allTurns.slice(0, mid);
+        group1Turns = allTurns.slice(mid);
       }
-      return res.blob();
-    };
+    }
+
+    // Update unique speakers in case group transcripts introduced new ones
+    const allKnownTurns = [...group0Turns, ...group1Turns];
+    for (const t of allKnownTurns) {
+      if (t.speaker && !(t.speaker in speakerVoice)) {
+        const nextIdx = Object.keys(speakerVoice).length - 1; // exclude NARRATOR
+        speakerVoice[t.speaker] = SPEAKER_VOICES[nextIdx % SPEAKER_VOICES.length];
+      }
+    }
+
+    const voiceFor = (speaker: string | null): string =>
+      speaker ? (speakerVoice[speaker] ?? SPEAKER_VOICES[0]) : SPEAKER_VOICES[0];
+
+    // Build the IELTS-format segments
+    const segments: { text: string; voice: string }[] = [];
+
+    const firstHalfEnd = splitQ ? splitQ - 1 : qEnd;
+    segments.push({
+      text: `IELTS Listening. Part ${partWord}. Questions ${qStart} to ${qEnd}. ${section.context}. You now have some time to look at Questions ${qStart} to ${firstHalfEnd}.`,
+      voice: "alloy",
+    });
+    segments.push({
+      text: `Now listen carefully and answer Questions ${qStart} to ${firstHalfEnd}.`,
+      voice: "alloy",
+    });
+    for (const turn of group0Turns) {
+      if (!turn.text.trim()) continue;
+      segments.push({ text: turn.text, voice: voiceFor(turn.speaker) });
+    }
+    if (splitQ !== null) {
+      segments.push({
+        text: `Before you hear the rest of Part ${partWord}, look at Questions ${splitQ} to ${qEnd}. Now listen and answer Questions ${splitQ} to ${qEnd}.`,
+        voice: "alloy",
+      });
+      for (const turn of group1Turns) {
+        if (!turn.text.trim()) continue;
+        segments.push({ text: turn.text, voice: voiceFor(turn.speaker) });
+      }
+    }
+    segments.push({ text: `That is the end of Part ${partWord}.`, voice: "alloy" });
+
+    if (segments.length === 0) { setIsLoadingAudio(false); return; }
 
     try {
-      const blobs = await Promise.all(
-        allTurns.map((t) => fetchTurn(t.text, t.speaker ? (speakerVoice[t.speaker] ?? SPEAKER_VOICES[0]) : SPEAKER_VOICES[0]))
-      );
-
+      const blobs = await Promise.all(segments.map((s) => fetchTTS(s.text, s.voice, abort.signal)));
       if (speechRef.current !== token) return;
-      setIsLoadingAudio(false);
+
+      // Concatenate MP3 blobs into a single blob
+      const combinedBlob = new Blob(blobs, { type: "audio/mpeg" });
+      const url = URL.createObjectURL(combinedBlob);
+      audioBlobUrlRef.current = url;
+
+      if (!audioRef.current) { setIsLoadingAudio(false); return; }
+      audioRef.current.src = url;
+      audioRef.current.onended = () => {
+        if (speechRef.current !== token) return;
+        setIsPlaying(false);
+        setIsPaused(false);
+        setPlayingPart(null);
+        setCompletedParts((prev) => ({ ...prev, [partNumber]: true }));
+        if (audioBlobUrlRef.current) {
+          URL.revokeObjectURL(audioBlobUrlRef.current);
+          audioBlobUrlRef.current = null;
+        }
+        speechRef.current = null;
+      };
+      audioRef.current.onerror = () => {
+        if (speechRef.current !== token) return;
+        setIsPlaying(false);
+        setIsPaused(false);
+        setPlayingPart(null);
+        if (audioBlobUrlRef.current) {
+          URL.revokeObjectURL(audioBlobUrlRef.current);
+          audioBlobUrlRef.current = null;
+        }
+        speechRef.current = null;
+      };
+      await audioRef.current.play();
       setIsPlaying(true);
-
-      for (let i = 0; i < blobs.length; i++) {
-        if (speechRef.current !== token) return;
-
-        while (isPausedRef.current && speechRef.current === token) {
-          await new Promise((r) => setTimeout(r, 80));
-        }
-        if (speechRef.current !== token) return;
-
-        const url = URL.createObjectURL(blobs[i]);
-        audioBlobUrlRef.current = url;
-
-        await new Promise<void>((resolve) => {
-          if (!audioRef.current) { resolve(); return; }
-          audioRef.current.src = url;
-          audioRef.current.onended = () => { URL.revokeObjectURL(url); audioBlobUrlRef.current = null; resolve(); };
-          audioRef.current.onerror = () => { URL.revokeObjectURL(url); audioBlobUrlRef.current = null; resolve(); };
-          audioRef.current.play();
-        });
-
-        // Pause between speaker changes (not needed after narrator intro since transcript starts immediately)
-        if (i < blobs.length - 1 && allTurns[i].speaker !== allTurns[i + 1].speaker) {
-          if (i === 0) {
-            // Pause after intro before transcript begins
-            await new Promise((r) => setTimeout(r, 800));
-          } else {
-            await new Promise((r) => setTimeout(r, 350));
-          }
-        }
-      }
-
-      if (speechRef.current !== token) return;
-      setIsPlaying(false);
-      setIsPaused(false);
-      setPlayingPart(null);
-      setCompletedParts((prev) => ({ ...prev, [partNumber]: true }));
-      speechRef.current = null;
+      setIsLoadingAudio(false);
     } catch (err) {
       if (abort.signal.aborted || speechRef.current !== token) return;
       const msg = err instanceof Error ? err.message : String(err);
@@ -503,6 +608,8 @@ export default function ListeningModule() {
     setIsPlaying(false);
     setIsPaused(false);
     setPlayingPart(null);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
   };
 
   const handleAnswerChange = (questionId: string, value: string) => {
@@ -677,6 +784,8 @@ export default function ListeningModule() {
     setActivePart(1);
     setTimeRemaining(0);
     setTimerEndAt(null);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
   };
 
   const handleSwitchPart = (newPart: number) => {
@@ -690,6 +799,8 @@ export default function ListeningModule() {
     setIsPlaying(false);
     setIsPaused(false);
     setPlayingPart(null);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
     setActivePart(newPart);
   };
 
@@ -716,6 +827,112 @@ export default function ListeningModule() {
     const pool: Record<string, string> = {};
     for (const l of sorted) pool[l] = byLetter.get(l)!;
     return pool;
+  };
+
+  // Render a template-style note/form completion group
+  const renderTemplate = (template: string, group: QuestionGroup) => {
+    const itemsByNumber: Record<number, QuestionItem> = {};
+    for (const item of group.items) itemsByNumber[item.number] = item;
+
+    const inputForNumber = (n: number) => {
+      const item = itemsByNumber[n];
+      const result = results[n.toString()];
+      const isCorrect = result?.correct;
+      const userAnswer = answers[n.toString()] || "";
+
+      const baseCls = "inline-block w-32 h-7 mx-1 px-2 text-sm border rounded align-middle";
+      const stateCls = isSubmitted
+        ? isCorrect
+          ? "border-green-500 bg-green-500/10"
+          : "border-red-500 bg-red-500/10"
+        : "border-border/60 bg-background";
+
+      return (
+        <span key={`q-${n}`} className="inline-flex items-baseline gap-1 align-middle">
+          <span className={cn(
+            "inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-semibold align-middle",
+            isSubmitted
+              ? isCorrect
+                ? "bg-green-500/20 text-green-700 dark:text-green-400"
+                : "bg-red-500/20 text-red-700 dark:text-red-400"
+              : "bg-accent/15 text-accent"
+          )}>
+            {n}
+          </span>
+          <Input
+            value={userAnswer}
+            onChange={(e) => handleAnswerChange(n.toString(), e.target.value)}
+            disabled={isSubmitted || !item}
+            className={cn(baseCls, stateCls)}
+            placeholder="…"
+            data-question={n}
+          />
+        </span>
+      );
+    };
+
+    const renderLineContent = (line: string, lineKey: string) => {
+      // Split by {{N}} placeholders
+      const tokens: React.ReactNode[] = [];
+      const regex = /\{\{(\d+)\}\}/g;
+      let lastIdx = 0;
+      let match: RegExpExecArray | null;
+      let tokenIdx = 0;
+      while ((match = regex.exec(line)) !== null) {
+        if (match.index > lastIdx) {
+          tokens.push(<span key={`${lineKey}-t-${tokenIdx++}`}>{line.slice(lastIdx, match.index)}</span>);
+        }
+        const num = parseInt(match[1], 10);
+        tokens.push(inputForNumber(num));
+        tokenIdx++;
+        lastIdx = regex.lastIndex;
+      }
+      if (lastIdx < line.length) {
+        tokens.push(<span key={`${lineKey}-t-${tokenIdx++}`}>{line.slice(lastIdx)}</span>);
+      }
+      return tokens;
+    };
+
+    const lines = template.split("\n");
+    return (
+      <div className="p-5 rounded-2xl border border-border/40 bg-card/50 space-y-1">
+        {lines.map((rawLine, idx) => {
+          const key = `tpl-${idx}`;
+          const line = rawLine.replace(/\s+$/g, "");
+
+          if (line.trim() === "") {
+            return <div key={key} className="h-2" />;
+          }
+
+          // Bold heading line: starts and ends with **
+          const boldMatch = line.trim().match(/^\*\*(.+?)\*\*$/);
+          if (boldMatch) {
+            return (
+              <p key={key} className="font-bold text-foreground mt-4 mb-2">
+                {boldMatch[1]}
+              </p>
+            );
+          }
+
+          // Bullet line
+          if (/^\s*[–\-]\s+/.test(line)) {
+            const content = line.replace(/^\s*[–\-]\s+/, "");
+            return (
+              <p key={key} className="text-sm text-foreground pl-4">
+                <span className="mr-1">–</span>
+                {renderLineContent(content, key)}
+              </p>
+            );
+          }
+
+          return (
+            <p key={key} className="text-sm leading-relaxed text-foreground">
+              {renderLineContent(line, key)}
+            </p>
+          );
+        })}
+      </div>
+    );
   };
 
   const renderQuestion = (
@@ -1041,6 +1258,8 @@ export default function ListeningModule() {
   const partQStart = firstGroup?.question_range[0];
   const partQEnd = lastGroup?.question_range[1];
 
+  const progressPct = audioDuration > 0 ? (audioCurrentTime / audioDuration) * 100 : 0;
+
   return (
     <DashboardLayout>
       <div className="h-[calc(100vh-100px)] flex flex-col gap-3">
@@ -1099,67 +1318,99 @@ export default function ListeningModule() {
           </div>
         )}
 
-        {/* Audio player */}
+        {/* Audio Player */}
         <div className="flex-shrink-0 glass-card p-4">
           <audio ref={audioRef} preload="none" />
-          <div className="flex items-center gap-4">
-            {/* Play/Pause/Loading button */}
-            <div className="flex items-center gap-2">
-              {isLoadingAudio ? (
-                <Button variant="outline" size="lg" className="rounded-full w-12 h-12" disabled>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                </Button>
-              ) : isPlaying && playingPart === activePart ? (
-                <Button onClick={handlePause} variant="outline" size="lg" className="rounded-full w-12 h-12" disabled={isSubmitted}>
-                  <Pause className="w-5 h-5" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handlePlay}
-                  variant="neumorphicPrimary"
-                  size="lg"
-                  className="rounded-full w-12 h-12"
-                  title={isPaused && playingPart === activePart ? "Resume" : completedParts[activePart] ? "Replay" : "Play"}
-                  disabled={isSubmitted}
-                >
-                  <Play className="w-5 h-5 ml-0.5" />
-                </Button>
-              )}
-              {(isPlaying || isPaused) && playingPart === activePart && !isSubmitted && (
-                <Button onClick={handleStop} variant="ghost" size="icon" className="rounded-full w-9 h-9 text-muted-foreground hover:text-destructive">
-                  <Square className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
 
-            {/* Part info + status */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <Volume2 className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                <p className="text-sm font-medium text-foreground">
-                  Part {activePart} — Questions {partQStart}–{partQEnd}
-                </p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {isLoadingAudio
-                  ? "Generating audio…"
-                  : isPlaying && playingPart === activePart
-                  ? "Playing — listen carefully and answer as you go"
-                  : isPaused && playingPart === activePart
-                  ? "Paused — press play to resume"
-                  : completedParts[activePart]
-                  ? "Complete — answer the questions below or replay"
-                  : playedParts[activePart]
-                  ? "Stopped — press play to restart"
-                  : "Press play to begin Part " + activePart}
+          {/* Part header */}
+          <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0">
+              <Volume2 className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <p className="text-sm font-medium text-foreground truncate">
+                Part {activePart}: Listen and answer questions {partQStart}–{partQEnd}
               </p>
             </div>
+            <p className="text-xs text-muted-foreground max-w-md text-right truncate">{currentPart?.context}</p>
+          </div>
 
-            {/* Context hint */}
-            <div className="hidden lg:block text-right">
-              <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">{currentPart?.context}</p>
+          {/* Controls row */}
+          <div className="flex items-center gap-3">
+            {/* Play/Pause or Loading */}
+            {isLoadingAudio ? (
+              <Button variant="outline" size="icon" className="rounded-full w-10 h-10 flex-shrink-0" disabled>
+                <Loader2 className="w-4 h-4 animate-spin" />
+              </Button>
+            ) : isPlaying && playingPart === activePart ? (
+              <Button onClick={handlePause} variant="outline" size="icon" className="rounded-full w-10 h-10 flex-shrink-0" disabled={isSubmitted}>
+                <Pause className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handlePlay}
+                variant="neumorphicPrimary"
+                size="icon"
+                className="rounded-full w-10 h-10 flex-shrink-0"
+                disabled={isSubmitted}
+                title={isPaused && playingPart === activePart ? "Resume" : completedParts[activePart] ? "Replay" : "Play"}
+              >
+                <Play className="w-4 h-4 ml-0.5" />
+              </Button>
+            )}
+
+            {/* Stop button */}
+            {(isPlaying || isPaused) && playingPart === activePart && !isSubmitted && (
+              <Button onClick={handleStop} variant="ghost" size="icon" className="rounded-full w-8 h-8 flex-shrink-0 text-muted-foreground hover:text-destructive">
+                <Square className="w-3.5 h-3.5" />
+              </Button>
+            )}
+
+            {/* Progress bar */}
+            <div className="flex-1 flex items-center gap-2 min-w-0">
+              <input
+                type="range"
+                min={0}
+                max={audioDuration || 0}
+                value={audioCurrentTime}
+                step={0.1}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  if (audioRef.current && Number.isFinite(v)) {
+                    audioRef.current.currentTime = v;
+                    setAudioCurrentTime(v);
+                  }
+                }}
+                onMouseDown={() => setIsSeeking(true)}
+                onMouseUp={() => setIsSeeking(false)}
+                onTouchStart={() => setIsSeeking(true)}
+                onTouchEnd={() => setIsSeeking(false)}
+                className="flex-1 h-1.5 rounded-full appearance-none bg-border/50 cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-accent [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
+                style={{
+                  background: audioDuration
+                    ? `linear-gradient(to right, hsl(var(--accent)) ${progressPct}%, hsl(var(--border)) ${progressPct}%)`
+                    : undefined,
+                }}
+                disabled={!audioDuration}
+              />
+              <span className="text-xs text-muted-foreground font-mono flex-shrink-0 w-24 text-right">
+                {formatTime(Math.floor(audioCurrentTime))} / {formatTime(Math.floor(audioDuration || 0))}
+              </span>
             </div>
           </div>
+
+          {/* Status */}
+          <p className="text-xs text-muted-foreground mt-2">
+            {isLoadingAudio
+              ? "Generating audio — please wait…"
+              : isPlaying && playingPart === activePart
+              ? `Playing Part ${activePart} — listen carefully and answer as you go`
+              : isPaused && playingPart === activePart
+              ? "Paused — press play to resume"
+              : completedParts[activePart]
+              ? `Part ${activePart} complete — answer the questions below, or press play to replay`
+              : playedParts[activePart]
+              ? `Stopped — press play to restart Part ${activePart}`
+              : `Press play to begin Part ${activePart}`}
+          </p>
         </div>
 
         {/* Main content */}
@@ -1245,10 +1496,14 @@ export default function ListeningModule() {
                         </div>
                       )}
 
-                      {/* Questions */}
-                      <div className="space-y-3">
-                        {group.items.map((item) => renderQuestion(item, group.type, matchingPool))}
-                      </div>
+                      {/* Questions: template-driven or card-based */}
+                      {group.template ? (
+                        renderTemplate(group.template, group)
+                      ) : (
+                        <div className="space-y-3">
+                          {group.items.map((item) => renderQuestion(item, group.type, matchingPool))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
