@@ -181,6 +181,8 @@ export default function ListeningModule() {
   const lastTestIdRef = useRef<string | null>(null);
   const usedTopicsRef = useRef<string[]>([]);
   const audioBlobUrlRef = useRef<string | null>(null);
+  const isPausedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
   const LISTENING_SESSION_PREFIX = `ielts-listening-${user?.id || 'guest'}`;
@@ -418,17 +420,15 @@ export default function ListeningModule() {
     const section = currentTest.sections[partNumber - 1];
     if (!section?.transcript) return;
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
-    if (audioBlobUrlRef.current) {
-      URL.revokeObjectURL(audioBlobUrlRef.current);
-      audioBlobUrlRef.current = null;
-    }
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
+    if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); audioBlobUrlRef.current = null; }
+    abortRef.current?.abort();
 
     const token = Symbol();
     speechRef.current = token;
+    isPausedRef.current = false;
+    const abort = new AbortController();
+    abortRef.current = abort;
 
     setPlayingPart(partNumber);
     setIsPlaying(false);
@@ -436,56 +436,100 @@ export default function ListeningModule() {
     setIsLoadingAudio(true);
     setPlayedParts(prev => ({ ...prev, [partNumber]: true }));
 
-    // One voice per part — fable and shimmer are British-accented, good for IELTS
-    const VOICES = ["fable", "shimmer", "echo", "nova"];
-    const voice = VOICES[(partNumber - 1) % VOICES.length];
+    // Parse transcript into speaker turns, merge consecutive same-speaker lines
+    const raw_turns: { speaker: string | null; text: string }[] = [];
+    for (const raw of section.transcript.split("\n")) {
+      const line = raw.trim();
+      if (!line) continue;
+      const m = line.match(/^([A-Z][A-Z0-9 ]{0,20}):\s*(.+)$/);
+      if (m) {
+        raw_turns.push({ speaker: m[1].trim(), text: m[2].trim() });
+      } else if (raw_turns.length > 0) {
+        raw_turns[raw_turns.length - 1].text += " " + line;
+      } else {
+        raw_turns.push({ speaker: null, text: line });
+      }
+    }
 
-    try {
-      const response = await fetch("https://api.openai.com/v1/audio/speech", {
+    const turns: { speaker: string | null; text: string }[] = [];
+    for (const turn of raw_turns) {
+      if (turns.length > 0 && turns[turns.length - 1].speaker === turn.speaker) {
+        turns[turns.length - 1].text += " " + turn.text;
+      } else {
+        turns.push({ ...turn });
+      }
+    }
+    if (turns.length === 0) { setIsLoadingAudio(false); return; }
+
+    // Assign a distinct voice to each unique speaker
+    // fable = British male, nova = female, onyx = deep male, shimmer = soft female
+    const SPEAKER_VOICES = ["fable", "nova", "onyx", "shimmer"];
+    const uniqueSpeakers = [...new Set(turns.map(t => t.speaker).filter(Boolean) as string[])];
+    const speakerVoice: Record<string, string> = {};
+    uniqueSpeakers.forEach((sp, i) => { speakerVoice[sp] = SPEAKER_VOICES[i % SPEAKER_VOICES.length]; });
+
+    const fetchTurn = async (text: string, voice: string): Promise<Blob> => {
+      const res = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
+        signal: abort.signal,
         headers: {
           Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: "tts-1-hd",
-          input: section.transcript.slice(0, 4096),
-          voice,
-          speed: 0.9,
-        }),
+        body: JSON.stringify({ model: "tts-1-hd", input: text.slice(0, 4096), voice, speed: 0.9 }),
       });
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => "");
+        throw new Error(`TTS API error ${res.status}: ${errBody}`);
+      }
+      return res.blob();
+    };
+
+    try {
+      // Fetch all turns in parallel
+      const blobs = await Promise.all(
+        turns.map(t => fetchTurn(t.text, t.speaker ? (speakerVoice[t.speaker] ?? SPEAKER_VOICES[0]) : SPEAKER_VOICES[0]))
+      );
 
       if (speechRef.current !== token) return;
-      if (!response.ok) {
-        const errBody = await response.text().catch(() => "");
-        console.error("OpenAI TTS error:", response.status, errBody);
-        throw new Error(`TTS API error ${response.status}: ${errBody}`);
+      setIsLoadingAudio(false);
+      setIsPlaying(true);
+
+      // Play turns sequentially
+      for (let i = 0; i < blobs.length; i++) {
+        if (speechRef.current !== token) return;
+
+        // If paused between turns, wait until resumed
+        while (isPausedRef.current && speechRef.current === token) {
+          await new Promise(r => setTimeout(r, 80));
+        }
+        if (speechRef.current !== token) return;
+
+        const url = URL.createObjectURL(blobs[i]);
+        audioBlobUrlRef.current = url;
+
+        await new Promise<void>(resolve => {
+          if (!audioRef.current) { resolve(); return; }
+          audioRef.current.src = url;
+          audioRef.current.onended = () => { URL.revokeObjectURL(url); audioBlobUrlRef.current = null; resolve(); };
+          audioRef.current.onerror = () => { URL.revokeObjectURL(url); audioBlobUrlRef.current = null; resolve(); };
+          audioRef.current.play();
+        });
+
+        // Brief gap between speaker changes
+        if (i < blobs.length - 1 && turns[i].speaker !== turns[i + 1].speaker) {
+          await new Promise(r => setTimeout(r, 350));
+        }
       }
 
-      const blob = await response.blob();
       if (speechRef.current !== token) return;
-
-      const url = URL.createObjectURL(blob);
-      audioBlobUrlRef.current = url;
-
-      if (audioRef.current) {
-        audioRef.current.src = url;
-        audioRef.current.onended = () => {
-          if (speechRef.current !== token) return;
-          URL.revokeObjectURL(url);
-          audioBlobUrlRef.current = null;
-          setIsPlaying(false);
-          setIsPaused(false);
-          setPlayingPart(null);
-          setCompletedParts(prev => ({ ...prev, [partNumber]: true }));
-          speechRef.current = null;
-        };
-        setIsLoadingAudio(false);
-        setIsPlaying(true);
-        audioRef.current.play();
-      }
+      setIsPlaying(false);
+      setIsPaused(false);
+      setPlayingPart(null);
+      setCompletedParts(prev => ({ ...prev, [partNumber]: true }));
+      speechRef.current = null;
     } catch (err) {
-      if (speechRef.current !== token) return;
+      if (abort.signal.aborted || speechRef.current !== token) return;
       const msg = err instanceof Error ? err.message : String(err);
       console.error("TTS error:", msg);
       toast.error(`Audio error: ${msg}`);
@@ -504,8 +548,9 @@ export default function ListeningModule() {
       setTimerEndAt(Date.now() + timeRemaining * 1000);
     }
 
-    if (isPaused && playingPart === activePart && audioRef.current) {
-      audioRef.current.play();
+    if (isPaused && playingPart === activePart) {
+      isPausedRef.current = false;
+      if (audioRef.current?.src) audioRef.current.play();
       setIsPaused(false);
       setIsPlaying(true);
       return;
@@ -515,22 +560,19 @@ export default function ListeningModule() {
   };
 
   const handlePause = () => {
-    if (!isPlaying || !audioRef.current) return;
-    audioRef.current.pause();
+    if (!isPlaying) return;
+    isPausedRef.current = true;
+    if (audioRef.current) audioRef.current.pause();
     setIsPaused(true);
     setIsPlaying(false);
   };
 
   const handleStop = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
-    if (audioBlobUrlRef.current) {
-      URL.revokeObjectURL(audioBlobUrlRef.current);
-      audioBlobUrlRef.current = null;
-    }
+    abortRef.current?.abort();
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
+    if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); audioBlobUrlRef.current = null; }
     speechRef.current = null;
+    isPausedRef.current = false;
     setIsLoadingAudio(false);
     setIsPlaying(false);
     setIsPaused(false);
@@ -696,9 +738,11 @@ export default function ListeningModule() {
 
   const resetTest = () => {
     if (currentTest?.id) lastTestIdRef.current = currentTest.id;
+    abortRef.current?.abort();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
     if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); audioBlobUrlRef.current = null; }
     speechRef.current = null;
+    isPausedRef.current = false;
     if (timerRef.current) clearInterval(timerRef.current);
     setCachedState(null);
     if (user?.id) sessionStorage.removeItem(`${LISTENING_SESSION_PREFIX}-active`);
@@ -722,9 +766,11 @@ export default function ListeningModule() {
   // Stop any active playback when switching parts
   const handleSwitchPart = (newPart: number) => {
     if (newPart === activePart) return;
+    abortRef.current?.abort();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
     if (audioBlobUrlRef.current) { URL.revokeObjectURL(audioBlobUrlRef.current); audioBlobUrlRef.current = null; }
     speechRef.current = null;
+    isPausedRef.current = false;
     setIsLoadingAudio(false);
     setIsPlaying(false);
     setIsPaused(false);
