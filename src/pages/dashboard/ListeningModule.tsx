@@ -27,6 +27,7 @@ import { useSessionStorage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListeningCheatsheet } from "@/components/listening/ListeningCheatsheet";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const NUMBER_WORDS: Record<string, string> = {
   "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
@@ -283,6 +284,7 @@ const generatePartAudio = async (section: ListeningPart, signal: AbortSignal): P
 export default function ListeningModule() {
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
+  const { setOpen: setSidebarOpen, isMobile } = useSidebar();
 
   const [tests, setTests] = useState<ListeningTest[]>([]);
   const [isLoadingTests, setIsLoadingTests] = useState(true);
@@ -387,6 +389,7 @@ export default function ListeningModule() {
       }
 
       setCachedState(parsed);
+      if (parsed.hasStarted && !isMobile) setSidebarOpen(false);
       if (!currentTest) {
         setCurrentTest(cachedTest);
         setAnswers(parsed.answers || {});
@@ -485,6 +488,7 @@ export default function ListeningModule() {
   }, [isSeeking, playingPart]);
 
   const startTest = async (test: ListeningTest) => {
+    if (!isMobile) setSidebarOpen(false);
     preloadAbortRef.current?.abort();
     Object.values(audioUrlsRef.current).forEach((u) => URL.revokeObjectURL(u));
     audioUrlsRef.current = {};
@@ -826,6 +830,7 @@ export default function ListeningModule() {
   };
 
   const resetTest = () => {
+    if (!isMobile) setSidebarOpen(true);
     preloadAbortRef.current?.abort();
     abortRef.current?.abort();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; }
@@ -912,22 +917,22 @@ export default function ListeningModule() {
       const isCorrect = result?.correct;
       const userAnswer = answers[n.toString()] || "";
 
-      const baseCls = "inline-block w-32 h-7 mx-1 px-2 text-sm border rounded align-middle";
+      const baseCls = "inline-block w-40 h-9 mx-1.5 px-3 text-base border-2 rounded-lg align-middle font-medium";
       const stateCls = isSubmitted
         ? isCorrect
-          ? "border-green-500 bg-green-500/10"
-          : "border-red-500 bg-red-500/10"
-        : "border-border/60 bg-background";
+          ? "border-green-500 bg-green-500/10 text-green-700 dark:text-green-300"
+          : "border-red-500 bg-red-500/10 text-red-700 dark:text-red-300"
+        : "border-border/60 bg-background focus:border-accent";
 
       return (
-        <span key={`q-${n}`} className="inline-flex items-baseline gap-1 align-middle">
+        <span key={`q-${n}`} className="inline-flex items-center gap-1.5 align-middle">
           <span className={cn(
-            "inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-semibold align-middle",
+            "inline-flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-bold align-middle flex-shrink-0",
             isSubmitted
               ? isCorrect
                 ? "bg-green-500/20 text-green-700 dark:text-green-400"
                 : "bg-red-500/20 text-red-700 dark:text-red-400"
-              : "bg-accent/15 text-accent"
+              : "bg-accent/20 text-accent"
           )}>
             {n}
           </span>
@@ -967,38 +972,36 @@ export default function ListeningModule() {
 
     const lines = template.split("\n");
     return (
-      <div className="p-5 rounded-2xl border border-border/40 bg-card/50 space-y-1">
+      <div className="p-6 rounded-2xl border border-border/40 bg-card/50 space-y-2.5">
         {lines.map((rawLine, idx) => {
           const key = `tpl-${idx}`;
           const line = rawLine.replace(/\s+$/g, "");
 
           if (line.trim() === "") {
-            return <div key={key} className="h-2" />;
+            return <div key={key} className="h-3" />;
           }
 
-          // Bold heading line: starts and ends with **
           const boldMatch = line.trim().match(/^\*\*(.+?)\*\*$/);
           if (boldMatch) {
             return (
-              <p key={key} className="font-bold text-foreground mt-4 mb-2">
+              <p key={key} className="text-sm font-bold uppercase tracking-widest text-muted-foreground mt-5 mb-1 border-b border-border/30 pb-1">
                 {boldMatch[1]}
               </p>
             );
           }
 
-          // Bullet line
           if (/^\s*[–\-]\s+/.test(line)) {
             const content = line.replace(/^\s*[–\-]\s+/, "");
             return (
-              <p key={key} className="text-sm text-foreground pl-4">
-                <span className="mr-1">–</span>
+              <p key={key} className="text-base leading-loose text-foreground pl-4 flex items-center flex-wrap gap-y-1">
+                <span className="mr-2 text-muted-foreground">–</span>
                 {renderLineContent(content, key)}
               </p>
             );
           }
 
           return (
-            <p key={key} className="text-sm leading-relaxed text-foreground">
+            <p key={key} className="text-base leading-loose text-foreground flex items-center flex-wrap gap-y-1">
               {renderLineContent(line, key)}
             </p>
           );
@@ -1122,14 +1125,14 @@ export default function ListeningModule() {
 
     if (groupType === "form_completion" || groupType === "note_completion" || groupType === "table_completion") {
       body = (
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground font-medium">{question.label || question.statement}</p>
+        <div className="space-y-2">
+          <p className="text-base text-foreground font-medium leading-snug">{question.label || question.statement}</p>
           <Input
             value={userAnswer}
             onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
-            className={inputClass}
+            className={cn("h-11 text-base border-2 font-medium", isSubmitted ? isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10" : "border-border/50 focus:border-accent")}
             disabled={isSubmitted}
-            placeholder="Your answer..."
+            placeholder="Your answer…"
           />
           {correctnessHint}
         </div>
@@ -1138,8 +1141,8 @@ export default function ListeningModule() {
       const sentenceText = question.sentence || question.statement || "";
       const parts = sentenceText.split("_____");
       body = (
-        <div className="space-y-2">
-          <p className="text-foreground leading-relaxed">
+        <div className="space-y-3">
+          <p className="text-base leading-relaxed text-foreground flex flex-wrap items-center gap-y-2">
             {parts.map((part, idx) => (
               <span key={idx}>
                 {part}
@@ -1147,9 +1150,9 @@ export default function ListeningModule() {
                   <Input
                     value={userAnswer}
                     onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
-                    className={cn("inline-block w-40 mx-1 h-8 text-center text-sm", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "")}
+                    className={cn("inline-block w-44 mx-2 h-9 text-center text-base border-2 font-medium", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent")}
                     disabled={isSubmitted}
-                    placeholder="..."
+                    placeholder="…"
                   />
                 )}
               </span>
@@ -1161,8 +1164,8 @@ export default function ListeningModule() {
     } else if (groupType === "matching") {
       const poolKeys = matchingPool ? Object.keys(matchingPool).sort() : [];
       body = (
-        <div className="space-y-2">
-          <p className="text-foreground leading-relaxed">{question.label || question.statement}</p>
+        <div className="space-y-3">
+          <p className="text-base text-foreground leading-snug">{question.label || question.statement}</p>
           <div className="flex items-center gap-3">
             {poolKeys.length > 0 ? (
               <select
@@ -1170,8 +1173,8 @@ export default function ListeningModule() {
                 onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
                 disabled={isSubmitted}
                 className={cn(
-                  "w-28 px-2 py-1.5 rounded-md border bg-background text-foreground text-sm uppercase",
-                  isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50"
+                  "w-32 px-3 py-2 rounded-lg border-2 bg-background text-foreground text-base font-bold uppercase cursor-pointer",
+                  isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent"
                 )}
               >
                 <option value="">—</option>
@@ -1183,21 +1186,24 @@ export default function ListeningModule() {
               <Input
                 value={userAnswer}
                 onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value.toUpperCase())}
-                className={cn("w-20 text-center uppercase text-sm", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "")}
+                className={cn("w-24 text-center uppercase text-base border-2 font-bold h-11", isSubmitted ? (isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10") : "border-border/50 focus:border-accent")}
                 disabled={isSubmitted}
                 maxLength={1}
                 placeholder="A–G"
               />
             )}
+            {isSubmitted && isCorrect && <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />}
+            {isSubmitted && !isCorrect && <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />}
           </div>
           {correctnessHint}
         </div>
       );
     } else {
+      // Multiple choice — Cambridge-style large option blocks
       body = (
         <div className="space-y-3">
-          <p className="text-foreground leading-relaxed font-medium">{question.question || question.statement}</p>
-          <div className="space-y-2">
+          <p className="text-base leading-relaxed text-foreground font-medium">{question.question || question.statement}</p>
+          <div className="space-y-2.5 pt-1">
             {question.options &&
               Object.entries(question.options).map(([key, value]) => {
                 const isSelected = userAnswer === key;
@@ -1206,18 +1212,32 @@ export default function ListeningModule() {
                   <label
                     key={key}
                     className={cn(
-                      "flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-all border",
+                      "flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border-2 group select-none",
                       isSubmitted
                         ? isCorrectOption
-                          ? "bg-green-500/10 border-green-500/40"
+                          ? "bg-green-500/10 border-green-500/60"
                           : isSelected && !isCorrectOption
-                          ? "bg-red-500/10 border-red-500/40"
-                          : "bg-secondary/20 border-transparent"
+                          ? "bg-red-500/10 border-red-500/60"
+                          : "bg-transparent border-border/20 opacity-50"
                         : isSelected
-                        ? "bg-accent/10 border-accent/50"
-                        : "bg-secondary/20 border-transparent hover:bg-secondary/40 hover:border-border/50"
+                        ? "bg-accent/10 border-accent"
+                        : "border-border/40 hover:border-accent/50 hover:bg-secondary/30"
                     )}
                   >
+                    <span className={cn(
+                      "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-colors",
+                      isSubmitted
+                        ? isCorrectOption
+                          ? "bg-green-500 text-white"
+                          : isSelected && !isCorrectOption
+                          ? "bg-red-500 text-white"
+                          : "bg-secondary/60 text-muted-foreground"
+                        : isSelected
+                        ? "bg-accent text-accent-foreground"
+                        : "bg-secondary/60 text-muted-foreground group-hover:bg-accent/20 group-hover:text-accent"
+                    )}>
+                      {key}
+                    </span>
                     <input
                       type="radio"
                       name={`question-${question.number}`}
@@ -1225,12 +1245,11 @@ export default function ListeningModule() {
                       checked={isSelected}
                       onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
                       disabled={isSubmitted}
-                      className="mt-0.5 w-4 h-4 text-accent flex-shrink-0"
+                      className="sr-only"
                     />
-                    <span className="font-semibold text-muted-foreground mr-1 flex-shrink-0">{key}.</span>
-                    <span className="text-foreground">{value}</span>
-                    {isSubmitted && isCorrectOption && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto flex-shrink-0 mt-0.5" />}
-                    {isSubmitted && isSelected && !isCorrectOption && <XCircle className="w-4 h-4 text-red-500 ml-auto flex-shrink-0 mt-0.5" />}
+                    <span className="text-base leading-snug text-foreground flex-1">{value}</span>
+                    {isSubmitted && isCorrectOption && <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />}
+                    {isSubmitted && isSelected && !isCorrectOption && <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />}
                   </label>
                 );
               })}
@@ -1245,17 +1264,17 @@ export default function ListeningModule() {
         key={question.number}
         data-question={question.number}
         className={cn(
-          "p-5 rounded-2xl border transition-all",
+          "p-6 rounded-2xl border-2 transition-all",
           isSubmitted
             ? isCorrect
               ? "border-green-500/40 bg-green-500/5"
               : "border-red-500/40 bg-red-500/5"
-            : "border-border/40 bg-card/50"
+            : "border-border/30 bg-card/50"
         )}
       >
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-5">
           <span className={cn(
-            "flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold",
+            "flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-base font-bold",
             isSubmitted
               ? isCorrect
                 ? "bg-green-500/20 text-green-600 dark:text-green-400"
@@ -1649,13 +1668,13 @@ export default function ListeningModule() {
 
                       {/* Matching pool */}
                       {matchingPool && (
-                        <div className="p-4 rounded-2xl border border-border/40 bg-secondary/20">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Options</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                        <div className="p-5 rounded-2xl border-2 border-border/40 bg-secondary/20">
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Options</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3">
                             {Object.entries(matchingPool).map(([letter, label]) => (
-                              <p key={letter} className="text-sm text-foreground">
-                                <span className="font-bold text-accent mr-2">{letter}</span>
-                                {label}
+                              <p key={letter} className="text-base text-foreground flex items-start gap-2.5">
+                                <span className="flex-shrink-0 w-7 h-7 rounded-md bg-accent/15 text-accent font-bold text-sm flex items-center justify-center">{letter}</span>
+                                <span className="leading-snug pt-0.5">{label}</span>
                               </p>
                             ))}
                           </div>
