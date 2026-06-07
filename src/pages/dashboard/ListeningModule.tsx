@@ -333,6 +333,17 @@ export default function ListeningModule() {
   const [preloadedParts, setPreloadedParts] = useState<Record<number, boolean>>({});
   const [preloadingParts, setPreloadingParts] = useState<Record<number, boolean>>({});
 
+  // Notes panel resize + sticky positioning
+  const audioPlayerRef = useRef<HTMLDivElement>(null);
+  const [audioPlayerHeight, setAudioPlayerHeight] = useState(160);
+  const [notesWidth, setNotesWidth] = useState(380);
+  const [isLargeScreen, setIsLargeScreen] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth >= 1024
+  );
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartWidthRef = useRef(0);
+
   const LISTENING_SESSION_PREFIX = `ielts-listening-${user?.id || "guest"}`;
 
   const [cachedState, setCachedState] = useSessionStorage<CachedListeningState | null>(
@@ -492,6 +503,54 @@ export default function ListeningModule() {
       el.removeEventListener("ended", onEnded);
     };
   }, [isSeeking, playingPart]);
+
+  // Measure sticky audio player height so notes top offset stays accurate
+  useEffect(() => {
+    const el = audioPlayerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setAudioPlayerHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Responsive breakpoint tracking for notes panel
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsLargeScreen(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsLargeScreen(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Drag-to-resize notes panel
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const delta = dragStartXRef.current - e.clientX;
+      setNotesWidth(Math.max(220, Math.min(620, dragStartWidthRef.current + delta)));
+    };
+    const onMouseUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, []);
+
+  const handleDividerMouseDown = (e: React.MouseEvent) => {
+    isDraggingRef.current = true;
+    dragStartXRef.current = e.clientX;
+    dragStartWidthRef.current = notesWidth;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  };
 
   const startTest = async (test: ListeningTest) => {
     preloadAbortRef.current?.abort();
@@ -1130,7 +1189,7 @@ export default function ListeningModule() {
     if (groupType === "form_completion" || groupType === "note_completion" || groupType === "table_completion") {
       body = (
         <div className="space-y-3">
-          <p className="text-base text-foreground font-medium leading-snug">{question.label || question.statement}</p>
+          <p className="text-sm text-foreground font-medium leading-snug">{question.label || question.statement}</p>
           <Input
             value={userAnswer}
             onChange={(e) => handleAnswerChange(question.number.toString(), e.target.value)}
@@ -1146,7 +1205,7 @@ export default function ListeningModule() {
       const parts = sentenceText.split("_____");
       body = (
         <div className="space-y-3">
-          <p className="text-base leading-relaxed text-foreground flex flex-wrap items-center gap-y-2">
+          <p className="text-sm leading-relaxed text-foreground flex flex-wrap items-center gap-y-2">
             {parts.map((part, idx) => (
               <span key={idx}>
                 {part}
@@ -1169,7 +1228,7 @@ export default function ListeningModule() {
       const poolKeys = matchingPool ? Object.keys(matchingPool).sort() : [];
       body = (
         <div className="space-y-4">
-          <p className="text-base text-foreground leading-snug">{question.label || question.statement}</p>
+          <p className="text-sm text-foreground leading-snug">{question.label || question.statement}</p>
           <div className="flex items-center gap-4">
             {poolKeys.length > 0 ? (
               <select
@@ -1206,8 +1265,8 @@ export default function ListeningModule() {
       // Multiple choice — Cambridge-style large option blocks
       body = (
         <div className="space-y-3">
-          <p className="text-base leading-relaxed text-foreground font-medium">{question.question || question.statement}</p>
-          <div className="space-y-3 pt-1">
+          <p className="text-sm leading-relaxed text-foreground font-medium">{question.question || question.statement}</p>
+          <div className="space-y-2.5 pt-1">
             {question.options &&
               Object.entries(question.options).map(([key, value]) => {
                 const isSelected = userAnswer === key;
@@ -1216,7 +1275,7 @@ export default function ListeningModule() {
                   <label
                     key={key}
                     className={cn(
-                      "flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border-2 group select-none",
+                      "flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border-2 group select-none",
                       isSubmitted
                         ? isCorrectOption
                           ? "bg-green-500/10 border-green-500/60"
@@ -1229,7 +1288,7 @@ export default function ListeningModule() {
                     )}
                   >
                     <span className={cn(
-                      "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-colors",
+                      "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors",
                       isSubmitted
                         ? isCorrectOption
                           ? "bg-green-500 text-white"
@@ -1251,7 +1310,7 @@ export default function ListeningModule() {
                       disabled={isSubmitted}
                       className="sr-only"
                     />
-                    <span className="text-base leading-snug text-foreground flex-1">{value}</span>
+                    <span className="text-sm leading-snug text-foreground flex-1">{value}</span>
                     {isSubmitted && isCorrectOption && <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />}
                     {isSubmitted && isSelected && !isCorrectOption && <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />}
                   </label>
@@ -1500,7 +1559,7 @@ export default function ListeningModule() {
         )}
 
         {/* Audio Player */}
-        <div className="sticky top-0 z-20 glass-card p-4 backdrop-blur-sm">
+        <div ref={audioPlayerRef} className="sticky top-0 z-20 glass-card p-4 backdrop-blur-sm">
           <audio ref={audioRef} preload="none" />
 
           {/* Part header */}
@@ -1599,9 +1658,9 @@ export default function ListeningModule() {
         </div>
 
         {/* Main content */}
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-5 items-start">
+        <div className="flex flex-col gap-5 lg:flex-row lg:gap-0 items-start">
           {/* Questions panel */}
-          <div className="glass-card">
+          <div className="glass-card flex-1 min-w-0">
             {/* Part tabs */}
             <div className="border-b border-border/30 px-4 pt-3">
               <div className="flex gap-1">
@@ -1704,11 +1763,32 @@ export default function ListeningModule() {
             </div>
           </div>
 
+          {/* Drag handle — desktop only */}
+          <div
+            className="hidden lg:flex items-center justify-center w-5 self-stretch cursor-col-resize flex-shrink-0 group"
+            onMouseDown={handleDividerMouseDown}
+          >
+            <div className="w-0.5 h-10 rounded-full bg-border/40 group-hover:bg-accent/60 transition-colors" />
+          </div>
+
           {/* Notes sidebar */}
-          <div className="glass-card p-5 flex flex-col gap-3">
+          <div
+            className={cn(
+              "glass-card p-5 flex flex-col gap-3 w-full lg:w-auto lg:flex-shrink-0",
+              isLargeScreen && "sticky overflow-y-auto"
+            )}
+            style={isLargeScreen ? {
+              width: notesWidth,
+              top: audioPlayerHeight + 16,
+              maxHeight: `calc(100vh - ${audioPlayerHeight + 32}px)`,
+            } : {}}
+          >
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Notes
+              {isLargeScreen && (
+                <span className="ml-auto text-xs text-muted-foreground/50 font-normal">drag edge to resize</span>
+              )}
             </h2>
             <Textarea
               value={notes}
