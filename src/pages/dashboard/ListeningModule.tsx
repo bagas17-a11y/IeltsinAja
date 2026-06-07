@@ -456,7 +456,11 @@ export default function ListeningModule() {
       });
 
       if (speechRef.current !== token) return;
-      if (!response.ok) throw new Error(`TTS API error ${response.status}`);
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => "");
+        console.error("OpenAI TTS error:", response.status, errBody);
+        throw new Error(`TTS API error ${response.status}: ${errBody}`);
+      }
 
       const blob = await response.blob();
       if (speechRef.current !== token) return;
@@ -482,8 +486,9 @@ export default function ListeningModule() {
       }
     } catch (err) {
       if (speechRef.current !== token) return;
-      console.error("TTS error:", err);
-      toast.error("Failed to generate audio. Check your OpenAI API key.");
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("TTS error:", msg);
+      toast.error(`Audio error: ${msg}`);
       setIsLoadingAudio(false);
       setIsPlaying(false);
       setPlayingPart(null);
