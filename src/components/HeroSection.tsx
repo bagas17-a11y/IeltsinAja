@@ -36,8 +36,8 @@ const PARTICLES = [
   { left: "43%", top: "58%", delay: "4.5s",  dur: "5s"  },
 ];
 
-const HEADLINE_1 = ["Stuck", "at", "your", "band", "score?"];
-const HEADLINE_2 = ["We", "know", "exactly", "why."];
+const HEADLINE_1 = ["Your", "score", "is", "on", "the", "launchpad."];
+const HEADLINE_2 = ["We", "light", "the", "engine."];
 
 export const HeroSection = () => {
   const navigate = useNavigate();
@@ -133,8 +133,8 @@ export const HeroSection = () => {
 
           {/* Subheading */}
           <p className="text-lg md:text-xl text-foreground/75 max-w-2xl mx-auto mb-8 animate-entrance delay-400">
-            IELTSinAja's AI pinpoints the exact gaps holding your score back — then our
-            8.5+ alumni fix them with you, practice by practice.
+            Stop grinding and hoping. IELTSinAja identifies exactly what's capping
+            your band — then our 8.5+ alumni launch you past it, fast.
           </p>
 
           {/* Trust bullets */}
