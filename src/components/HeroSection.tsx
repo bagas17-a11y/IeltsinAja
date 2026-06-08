@@ -99,7 +99,7 @@ export const HeroSection = () => {
               {HEADLINE_1.map((word, i) => (
                 <span
                   key={i}
-                  className="inline-block overflow-hidden pb-[0.18em] mb-[-0.18em]"
+                  className="inline-block overflow-hidden pb-[0.4em] mb-[-0.4em]"
                 >
                   <span
                     className="inline-block animate-word-up"
@@ -117,7 +117,7 @@ export const HeroSection = () => {
               {HEADLINE_2.map((word, i) => (
                 <span
                   key={i}
-                  className="inline-block overflow-hidden pb-[0.18em] mb-[-0.18em]"
+                  className="inline-block overflow-hidden pb-[0.4em] mb-[-0.4em]"
                 >
                   <span
                     className="inline-block text-gradient animate-word-up"
@@ -133,8 +133,9 @@ export const HeroSection = () => {
 
           {/* Subheading */}
           <p className="text-lg md:text-xl text-foreground/75 max-w-2xl mx-auto mb-8 animate-entrance delay-400">
-            Stop grinding and hoping. IELTSinAja identifies exactly what's capping
-            your band — then our 8.5+ alumni launch you past it, fast.
+            All your IELTS prep in one place — built by 8.5+ scorers for Indonesian
+            students, with practice, feedback, and exam‑day strategies so you never
+            have to juggle multiple apps again.
           </p>
 
           {/* Trust bullets */}
