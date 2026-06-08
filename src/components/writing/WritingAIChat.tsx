@@ -151,9 +151,13 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
         buildFeedbackSummary(feedback),
       );
 
+      // Claude API requires the first message to be role "user" — strip any leading assistant messages (e.g. welcome message)
+      const firstUserIdx = updatedMessages.findIndex(m => m.role === "user");
+      const apiMessages = firstUserIdx >= 0 ? updatedMessages.slice(firstUserIdx) : updatedMessages;
+
       const { data, error } = await supabase.functions.invoke("ai-chatbot", {
         body: {
-          messages: updatedMessages,
+          messages: apiMessages,
           language: "en",
           systemContext,
         },
