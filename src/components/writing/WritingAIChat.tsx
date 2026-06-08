@@ -16,6 +16,64 @@ interface Props {
   feedback?: any;
 }
 
+// Renders **bold**, *italic*, `code` inline
+function InlineText({ text }: { text: string }) {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+    if (match[1] !== undefined) {
+      parts.push(<strong key={key++} className="font-semibold text-foreground">{match[1]}</strong>);
+    } else if (match[2] !== undefined) {
+      parts.push(<em key={key++}>{match[2]}</em>);
+    } else if (match[3] !== undefined) {
+      parts.push(<code key={key++} className="bg-secondary/70 px-1 rounded text-[11px] font-mono">{match[3]}</code>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return <>{parts}</>;
+}
+
+function MessageContent({ content }: { content: string }) {
+  const lines = content.split("\n");
+  return (
+    <div className="space-y-0.5 text-sm leading-relaxed">
+      {lines.map((line, i) => {
+        if (line === "") return <div key={i} className="h-1.5" />;
+        if (line.startsWith("> ")) {
+          return (
+            <div key={i} className="border-l-2 border-accent/40 pl-2 italic text-foreground/70">
+              <InlineText text={line.slice(2)} />
+            </div>
+          );
+        }
+        if (/^[-*•] /.test(line)) {
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="text-accent/60 shrink-0 mt-0.5 leading-relaxed">•</span>
+              <span><InlineText text={line.replace(/^[-*•] /, "")} /></span>
+            </div>
+          );
+        }
+        if (/^\d+\. /.test(line)) {
+          const dotIdx = line.indexOf(". ");
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="text-accent/60 shrink-0">{line.slice(0, dotIdx + 1)}</span>
+              <span><InlineText text={line.slice(dotIdx + 2)} /></span>
+            </div>
+          );
+        }
+        return <div key={i}><InlineText text={line} /></div>;
+      })}
+    </div>
+  );
+}
+
 function buildFeedbackSummary(feedback: any): string {
   if (!feedback) return "";
   const lines: string[] = [`Overall Band: ${feedback.overallBand}`];
@@ -92,7 +150,7 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Drag-to-resize
+  // Drag-to-resize — width is constrained to 45% of viewport so the left panel always stays visible
   const [width, setWidth] = useState(380);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
@@ -119,10 +177,11 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
     dragStartX.current = e.clientX;
     dragStartWidth.current = width;
 
-    const onMove = (e: MouseEvent) => {
+    const onMove = (ev: MouseEvent) => {
       if (!isDragging.current) return;
-      const delta = dragStartX.current - e.clientX;
-      setWidth(Math.min(640, Math.max(280, dragStartWidth.current + delta)));
+      const delta = dragStartX.current - ev.clientX;
+      const maxW = Math.min(640, Math.floor(window.innerWidth * 0.45));
+      setWidth(Math.min(maxW, Math.max(280, dragStartWidth.current + delta)));
     };
     const onUp = () => {
       isDragging.current = false;
@@ -151,7 +210,7 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
         buildFeedbackSummary(feedback),
       );
 
-      // Claude API requires the first message to be role "user" — strip any leading assistant messages (e.g. welcome message)
+      // Claude API requires the first message to be role "user"
       const firstUserIdx = updatedMessages.findIndex(m => m.role === "user");
       const apiMessages = firstUserIdx >= 0 ? updatedMessages.slice(firstUserIdx) : updatedMessages;
 
@@ -187,7 +246,7 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
 
   return (
     <div style={{ width }} className="relative flex shrink-0">
-      {/* Drag handle */}
+      {/* Drag handle — sits between the two panels */}
       <div
         onMouseDown={onDragStart}
         className="absolute left-0 top-0 bottom-0 w-3 flex items-center justify-center cursor-col-resize group z-10 select-none"
@@ -235,12 +294,14 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
                   ? <Bot className="w-3 h-3 text-accent" />
                   : <User className="w-3 h-3 text-muted-foreground" />}
               </div>
-              <div className={`rounded-xl px-3 py-2 max-w-[85%] text-sm leading-relaxed whitespace-pre-wrap ${
+              <div className={`rounded-xl px-3 py-2 max-w-[85%] ${
                 msg.role === "assistant"
                   ? "bg-secondary/40 text-foreground/90"
-                  : "bg-accent/15 text-foreground"
+                  : "bg-accent/15 text-foreground text-sm leading-relaxed"
               }`}>
-                {msg.content}
+                {msg.role === "assistant"
+                  ? <MessageContent content={msg.content} />
+                  : msg.content}
               </div>
             </div>
           ))}

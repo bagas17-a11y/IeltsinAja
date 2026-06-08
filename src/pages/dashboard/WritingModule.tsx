@@ -1225,10 +1225,10 @@ export default function WritingModule() {
 
         {/* Practice View — split screen: left=content, right=AI chat */}
         {view === "practice" && selectedQuestion && (
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6 items-start">
+          <div className="flex flex-col xl:flex-row gap-6 items-start overflow-x-hidden">
 
           {/* ── Left column: all practice content ── */}
-          <div>
+          <div className="flex-1 min-w-0">
             {/* Question Section */}
             <div className="glass-card p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
@@ -1433,7 +1433,7 @@ export default function WritingModule() {
           </div>
 
           {/* Right column: AI Writing Tutor */}
-          <div className="sticky top-4">
+          <div className="sticky top-4 shrink-0">
             <WritingAIChat
               taskType={selectedQuestion.task_type}
               questionPrompt={selectedQuestion.question_prompt}
