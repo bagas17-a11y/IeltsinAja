@@ -36,8 +36,8 @@ const PARTICLES = [
   { left: "43%", top: "58%", delay: "4.5s",  dur: "5s"  },
 ];
 
-const HEADLINE_1 = ["Your", "score", "is", "on", "the", "launchpad."];
-const HEADLINE_2 = ["We", "light", "the", "engine."];
+const HEADLINE_1 = ["Capek", "belajar,", "mau", "skor", "tinggi?"];
+const HEADLINE_2 = ["IELTSinAja."];
 
 export const HeroSection = () => {
   const navigate = useNavigate();
