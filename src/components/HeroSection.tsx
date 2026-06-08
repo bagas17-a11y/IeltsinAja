@@ -36,7 +36,7 @@ const PARTICLES = [
   { left: "43%", top: "58%", delay: "4.5s",  dur: "5s"  },
 ];
 
-const HEADLINE_1 = ["Capek", "belajar,", "mau", "skor", "tinggi?"];
+const HEADLINE_1 = ["Learn,", "Practice,", "Repeat."];
 const HEADLINE_2 = ["IELTSinAja."];
 
 export const HeroSection = () => {
@@ -99,7 +99,7 @@ export const HeroSection = () => {
               {HEADLINE_1.map((word, i) => (
                 <span
                   key={i}
-                  className="inline-block overflow-hidden"
+                  className="inline-block overflow-hidden pb-[0.18em] mb-[-0.18em]"
                 >
                   <span
                     className="inline-block animate-word-up"
@@ -117,7 +117,7 @@ export const HeroSection = () => {
               {HEADLINE_2.map((word, i) => (
                 <span
                   key={i}
-                  className="inline-block overflow-hidden"
+                  className="inline-block overflow-hidden pb-[0.18em] mb-[-0.18em]"
                 >
                   <span
                     className="inline-block text-gradient animate-word-up"
