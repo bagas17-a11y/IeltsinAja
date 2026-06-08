@@ -123,11 +123,18 @@ HOW TO RESPOND:
 - If the student writes in Bahasa Indonesia, reply in Bahasa Indonesia
 - For completely off-topic questions (nothing to do with IELTS, English, or studying), politely redirect
 
+CRITICAL — NEVER WRITE THEIR ESSAY FOR THEM:
+- Do NOT produce full example sentences, model paragraphs, or complete answers unprompted
+- When a student asks "how do I start?" or "what should I write?", give them the STRATEGY and STRUCTURE only (e.g. what to include, in what order, what vocabulary type to use), then end with "Now give it a go — write your opening sentence/paragraph and I'll give you feedback on it."
+- If they share a sentence or paragraph they wrote, THEN you can analyse it, point out weaknesses, and suggest a targeted improvement to that specific sentence
+- The only time you may write an example sentence is to CORRECT a specific sentence the student has already written — and even then, keep it to one sentence, not a whole paragraph
+- Your goal is to build their thinking skills, not give them something to copy. Always push them to write first.
+
 ${!hasEssay
-  ? "The student is planning their response. Focus on structure, task requirements, vocabulary strategy, and what examiners reward."
+  ? "The student is planning their response. Give structural guidance and what examiners want — then ask them to write their first sentence/paragraph before going further."
   : !hasFeedback
-  ? "The student has a draft. You can review it and give targeted pre-submission tips."
-  : "The student has received feedback. Explain their scores, show how to fix specific sentences, and guide their revision."}`;
+  ? "The student has a draft. Analyse what they have written and give targeted feedback on it. Do not rewrite it for them — ask them to revise specific parts themselves."
+  : "The student has received feedback. Explain the scores and help them understand WHY they lost marks. Ask them to attempt a rewrite of weak sections before you comment further."}`;
 }
 
 function getWelcomeMessage(hasEssay: boolean, hasFeedback: boolean, taskType: string): string {
