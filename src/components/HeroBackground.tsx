@@ -53,32 +53,33 @@ const STARS = [
 
 export const HeroBackground = () => {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    // No overflow-hidden here — the section itself clips; this div must not clip the moon/rocket
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
 
-      {/* ── Drifting aurora orbs ────────────────────────────── */}
+      {/* ── Drifting aurora orbs ─────────────────────────── */}
       <div className="aurora-orb absolute rounded-full" style={{
-        top: "10%", left: "50%",
-        width: "500px", height: "500px",
-        background: "hsl(200 80% 60% / 0.045)",
-        filter: "blur(100px)",
+        top: "10%", left: "45%",
+        width: "550px", height: "550px",
+        background: "hsl(200 80% 60% / 0.05)",
+        filter: "blur(110px)",
         animationDelay: "0s",
       }} />
       <div className="aurora-orb absolute rounded-full" style={{
-        top: "55%", left: "5%",
-        width: "380px", height: "380px",
+        top: "55%", left: "0%",
+        width: "400px", height: "400px",
         background: "hsl(220 70% 45% / 0.06)",
-        filter: "blur(80px)",
+        filter: "blur(90px)",
         animationDelay: "9s",
       }} />
       <div className="aurora-orb absolute rounded-full" style={{
-        top: "25%", right: "2%",
-        width: "420px", height: "420px",
-        background: "hsl(200 90% 55% / 0.035)",
-        filter: "blur(90px)",
+        top: "20%", right: "5%",
+        width: "460px", height: "460px",
+        background: "hsl(200 90% 55% / 0.04)",
+        filter: "blur(100px)",
         animationDelay: "4.5s",
       }} />
 
-      {/* ── Star field ─────────────────────────────────────── */}
+      {/* ── Star field ──────────────────────────────────── */}
       {STARS.map((star, i) => (
         <div
           key={i}
@@ -93,54 +94,44 @@ export const HeroBackground = () => {
         />
       ))}
 
-      {/* ── Moon ───────────────────────────────────────────── */}
-      {/* Positioned top-right, partially off-edge for dramatic crop */}
+      {/* ── Moon — top-right, clearly in frame ──────────── */}
       <div
         className="animate-moon-glow absolute"
-        style={{ top: "-2%", right: "-1%", zIndex: 1 }}
+        style={{ top: "4%", right: "4%", zIndex: 1 }}
       >
         {/* Outer diffuse halo */}
         <div style={{
           position: "absolute",
-          inset: "-80px",
+          inset: "-70px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, hsl(200 80% 70% / 0.07) 40%, transparent 75%)",
-          filter: "blur(40px)",
+          background: "radial-gradient(circle, hsl(200 80% 70% / 0.08) 35%, transparent 70%)",
+          filter: "blur(35px)",
         }} />
         {/* Mid halo */}
         <div style={{
           position: "absolute",
-          inset: "-30px",
+          inset: "-25px",
           borderRadius: "50%",
           background: "hsl(200 75% 65% / 0.05)",
-          filter: "blur(20px)",
+          filter: "blur(18px)",
         }} />
 
-        <svg
-          viewBox="0 0 260 260"
-          width="260"
-          height="260"
-          style={{ display: "block" }}
-        >
+        <svg viewBox="0 0 280 280" width="280" height="280" style={{ display: "block" }}>
           <defs>
-            {/* Main surface — off-center radial for 3-D depth */}
             <radialGradient id="moonSurface" cx="40%" cy="36%" r="62%">
               <stop offset="0%"   stopColor="hsl(214 32% 38%)" />
               <stop offset="35%"  stopColor="hsl(220 40% 26%)" />
               <stop offset="75%"  stopColor="hsl(224 46% 18%)" />
               <stop offset="100%" stopColor="hsl(228 54% 11%)" />
             </radialGradient>
-            {/* Specular shimmer — upper-left light source */}
             <radialGradient id="moonShimmer" cx="34%" cy="30%" r="38%">
               <stop offset="0%"   stopColor="hsl(210 55% 78%)" stopOpacity="0.10" />
               <stop offset="100%" stopColor="hsl(210 55% 78%)" stopOpacity="0" />
             </radialGradient>
-            {/* Brand-accent rim light */}
             <radialGradient id="moonRim" cx="50%" cy="50%" r="50%">
               <stop offset="82%" stopColor="transparent" stopOpacity="0" />
               <stop offset="100%" stopColor="hsl(200 78% 66%)" stopOpacity="0.22" />
             </radialGradient>
-            {/* Shadow limb — right-side darkening */}
             <radialGradient id="moonLimb" cx="72%" cy="50%" r="38%">
               <stop offset="0%"   stopColor="hsl(228 60% 6%)" stopOpacity="0.50" />
               <stop offset="100%" stopColor="hsl(228 60% 6%)" stopOpacity="0" />
@@ -148,152 +139,160 @@ export const HeroBackground = () => {
           </defs>
 
           {/* Base disc */}
-          <circle cx="130" cy="130" r="118" fill="hsl(228 54% 10%)" />
-          {/* Surface gradient */}
-          <circle cx="130" cy="130" r="118" fill="url(#moonSurface)" />
-          {/* Limb darkening on shadow side */}
-          <circle cx="130" cy="130" r="118" fill="url(#moonLimb)" />
+          <circle cx="140" cy="140" r="128" fill="hsl(228 54% 10%)" />
+          {/* Surface */}
+          <circle cx="140" cy="140" r="128" fill="url(#moonSurface)" />
+          {/* Limb darkening */}
+          <circle cx="140" cy="140" r="128" fill="url(#moonLimb)" />
 
-          {/* Maria (large dark regions — give realism) */}
-          <ellipse cx="108" cy="112" rx="30" ry="24" fill="hsl(226 48% 14%)" opacity="0.38" />
-          <ellipse cx="158" cy="148" rx="24" ry="18" fill="hsl(226 48% 14%)" opacity="0.30" />
-          <ellipse cx="88"  cy="160" rx="18" ry="14" fill="hsl(226 48% 14%)" opacity="0.25" />
+          {/* Maria */}
+          <ellipse cx="116" cy="120" rx="34" ry="26" fill="hsl(226 48% 14%)" opacity="0.38" />
+          <ellipse cx="170" cy="160" rx="26" ry="20" fill="hsl(226 48% 14%)" opacity="0.30" />
+          <ellipse cx="94"  cy="172" rx="20" ry="15" fill="hsl(226 48% 14%)" opacity="0.25" />
 
           {/* Craters */}
-          <circle cx="95"  cy="108" r="16" fill="hsl(228 52% 8%)"  opacity="0.55" />
-          <circle cx="95"  cy="108" r="16" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="0.9" opacity="0.40" />
+          <circle cx="102" cy="116" r="18" fill="hsl(228 52% 8%)" opacity="0.55" />
+          <circle cx="102" cy="116" r="18" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="1" opacity="0.40" />
 
-          <circle cx="168" cy="148" r="11" fill="hsl(228 52% 8%)"  opacity="0.45" />
-          <circle cx="168" cy="148" r="11" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="0.7" opacity="0.30" />
+          <circle cx="180" cy="158" r="13" fill="hsl(228 52% 8%)" opacity="0.45" />
+          <circle cx="180" cy="158" r="13" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="0.8" opacity="0.30" />
 
-          <circle cx="112" cy="178" r="20" fill="hsl(228 52% 8%)"  opacity="0.50" />
-          <circle cx="112" cy="178" r="20" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="0.9" opacity="0.35" />
+          <circle cx="120" cy="192" r="22" fill="hsl(228 52% 8%)" opacity="0.50" />
+          <circle cx="120" cy="192" r="22" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="1" opacity="0.35" />
 
-          <circle cx="185" cy="88"  r="13" fill="hsl(228 52% 8%)"  opacity="0.40" />
-          <circle cx="185" cy="88"  r="13" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="0.7" opacity="0.28" />
+          <circle cx="200" cy="94"  r="14" fill="hsl(228 52% 8%)" opacity="0.40" />
+          <circle cx="200" cy="94"  r="14" fill="none" stroke="hsl(216 36% 30%)" strokeWidth="0.8" opacity="0.28" />
 
-          <circle cx="72"  cy="165" r="8"  fill="hsl(228 52% 8%)"  opacity="0.38" />
-          <circle cx="152" cy="80"  r="6"  fill="hsl(228 52% 8%)"  opacity="0.32" />
-          <circle cx="200" cy="140" r="9"  fill="hsl(228 52% 8%)"  opacity="0.35" />
+          <circle cx="76"  cy="178" r="9"  fill="hsl(228 52% 8%)" opacity="0.38" />
+          <circle cx="164" cy="86"  r="7"  fill="hsl(228 52% 8%)" opacity="0.32" />
+          <circle cx="216" cy="150" r="10" fill="hsl(228 52% 8%)" opacity="0.35" />
 
-          {/* Specular highlight */}
-          <circle cx="130" cy="130" r="118" fill="url(#moonShimmer)" />
-          {/* Brand accent rim */}
-          <circle cx="130" cy="130" r="118" fill="url(#moonRim)" />
-          {/* Hard border ring */}
-          <circle cx="130" cy="130" r="118" fill="none" stroke="hsl(200 75% 65%)" strokeWidth="1.2" opacity="0.18" />
+          {/* Specular shimmer + rim */}
+          <circle cx="140" cy="140" r="128" fill="url(#moonShimmer)" />
+          <circle cx="140" cy="140" r="128" fill="url(#moonRim)" />
+          <circle cx="140" cy="140" r="128" fill="none" stroke="hsl(200 75% 65%)" strokeWidth="1.4" opacity="0.18" />
         </svg>
       </div>
 
-      {/* ── Rocket — bottom-left → top-right ───────────────── */}
+      {/* ── Rocket — bottom-left, flies to top-right ─────── */}
+      {/*
+        Container anchored at bottom-left within the section.
+        The rocket assembly is tilted 38 deg so the nose points upper-right.
+        animate-rocket-diagonal translates it across the screen on a 20 s loop.
+        z-index 1 keeps it firmly behind all hero text (z-10).
+      */}
       <div
-        className="animate-rocket-diagonal absolute"
-        style={{ left: "3%", bottom: "-15%", zIndex: 3 }}
+        style={{
+          position: "absolute",
+          left: "4%",
+          bottom: "6%",
+          zIndex: 1,
+        }}
       >
-        {/* Rocket assembly: static 38-deg tilt for direction of travel */}
-        <div style={{ transform: "rotate(38deg)", transformOrigin: "center bottom" }}>
+        <div className="animate-rocket-diagonal">
+          {/* Static tilt — nose points upper-right */}
+          <div style={{ transform: "rotate(38deg)", transformOrigin: "center center" }}>
 
-          {/* Body */}
-          <svg
-            viewBox="-20 -58 40 116"
-            width="88"
-            height="176"
-            style={{
-              display: "block",
-              filter: "drop-shadow(0 0 14px hsl(200 80% 70% / 0.65)) drop-shadow(0 0 40px hsl(200 80% 70% / 0.28))",
-            }}
-          >
-            <defs>
-              <radialGradient id="rocketBody" cx="35%" cy="30%" r="60%">
-                <stop offset="0%"   stopColor="hsl(218 50% 34%)" />
-                <stop offset="100%" stopColor="hsl(224 56% 18%)" />
-              </radialGradient>
-            </defs>
-
-            {/* Main body */}
-            <path
-              d="M0,-54 C10,-40 13,-10 13,20 C13,27 8,30 0,30 C-8,30 -13,27 -13,20 C-13,-10 -10,-40 0,-54 Z"
-              fill="url(#rocketBody)"
-            />
-            {/* Body sheen — left stripe */}
-            <path
-              d="M-4,-52 C3,-38 6,-10 6,14 C6,23 3,28 0,30"
-              stroke="hsl(200 80% 72%)"
-              strokeWidth="1.3"
-              fill="none"
-              opacity="0.55"
-            />
-            {/* Body sheen — right faint */}
-            <path
-              d="M-10,-40 C-8,-22 -8,0 -8,12"
-              stroke="hsl(200 80% 72%)"
-              strokeWidth="0.6"
-              fill="none"
-              opacity="0.20"
-            />
-
-            {/* Nose cone — brand accent */}
-            <path
-              d="M0,-54 C5,-44 6.5,-28 6.5,-17 C6.5,-13 3.5,-11 0,-11 C-3.5,-11 -6.5,-13 -6.5,-17 C-6.5,-28 -5,-44 0,-54 Z"
-              fill="hsl(200 82% 70%)"
-            />
-            {/* Nose tip specular */}
-            <path
-              d="M0,-54 C2,-47 2.5,-40 2.5,-34"
-              stroke="hsl(0 0% 100%)"
-              strokeWidth="0.9"
-              fill="none"
-              opacity="0.28"
-            />
-
-            {/* Porthole */}
-            <circle cx="0" cy="6"  r="8.5" fill="hsl(222 62% 7%)" />
-            <circle cx="0" cy="6"  r="7.5" fill="hsl(204 60% 13%)" />
-            <circle cx="0" cy="6"  r="6.5" fill="hsl(208 64% 17%)" />
-            {/* Porthole shine */}
-            <circle cx="-2.5" cy="3.5" r="2.5" fill="hsl(200 80% 92%)" opacity="0.20" />
-            {/* Porthole accent ring */}
-            <circle cx="0" cy="6" r="8.5" fill="none" stroke="hsl(200 70% 55%)" strokeWidth="0.8" opacity="0.35" />
-
-            {/* Left fin */}
-            <path d="M-13,16 L-25,38 L-13,30 Z" fill="hsl(202 65% 38%)" />
-            <path d="M-13,16 L-25,38" stroke="hsl(200 80% 62%)" strokeWidth="0.7" opacity="0.40" />
-            {/* Right fin */}
-            <path d="M13,16 L25,38 L13,30 Z"  fill="hsl(202 65% 38%)" />
-            <path d="M13,16 L25,38"  stroke="hsl(200 80% 62%)" strokeWidth="0.7" opacity="0.40" />
-
-            {/* Nozzle */}
-            <rect x="-8"  y="30" width="16" height="7"  rx="2.5" fill="hsl(222 40% 16%)" />
-            <rect x="-8"  y="30" width="16" height="2"  rx="0"   fill="hsl(222 40% 28%)" />
-            <rect x="-8"  y="35" width="16" height="2"  rx="0"   fill="hsl(222 40% 12%)" />
-          </svg>
-
-          {/* Flame — separate SVG with flicker animation */}
-          <div
-            className="animate-flame"
-            style={{
-              marginTop: "-6px",
-              display: "flex",
-              justifyContent: "center",
-              transformOrigin: "center top",
-            }}
-          >
+            {/* ── Rocket body ── */}
             <svg
-              viewBox="-12 0 24 46"
-              width="42"
-              height="72"
+              viewBox="-24 -68 48 136"
+              width="160"
+              height="320"
               style={{
                 display: "block",
-                filter: "drop-shadow(0 0 10px hsl(42 90% 55% / 0.9))",
+                filter:
+                  "drop-shadow(0 0 16px hsl(200 80% 70% / 0.70)) " +
+                  "drop-shadow(0 0 50px hsl(200 80% 70% / 0.30))",
               }}
             >
-              {/* Outer flame */}
-              <path d="M-10,0 Q-7,24 0,42 Q7,24 10,0 Z" fill="hsl(42 90% 55%)"  opacity="0.96" />
-              {/* Mid flame */}
-              <path d="M-6.5,0 Q-4,17 0,30 Q4,17 6.5,0 Z" fill="hsl(28 100% 64%)" opacity="0.86" />
-              {/* Inner core */}
-              <path d="M-3.5,0 Q-2,10 0,18 Q2,10 3.5,0 Z" fill="hsl(55 100% 88%)" opacity="0.92" />
+              <defs>
+                <radialGradient id="rBody" cx="35%" cy="30%" r="60%">
+                  <stop offset="0%"   stopColor="hsl(218 50% 34%)" />
+                  <stop offset="100%" stopColor="hsl(224 56% 18%)" />
+                </radialGradient>
+              </defs>
+
+              {/* Body */}
+              <path
+                d="M0,-64 C12,-48 16,-12 16,24 C16,34 10,38 0,38 C-10,38 -16,34 -16,24 C-16,-12 -12,-48 0,-64 Z"
+                fill="url(#rBody)"
+              />
+              {/* Body sheen left */}
+              <path
+                d="M-5,-62 C4,-46 8,-12 8,18 C8,30 4,36 0,38"
+                stroke="hsl(200 80% 72%)"
+                strokeWidth="1.6"
+                fill="none"
+                opacity="0.55"
+              />
+              {/* Body sheen right (faint) */}
+              <path
+                d="M-12,-50 C-10,-28 -10,0 -10,14"
+                stroke="hsl(200 80% 72%)"
+                strokeWidth="0.7"
+                fill="none"
+                opacity="0.20"
+              />
+
+              {/* Nose cone — brand accent blue */}
+              <path
+                d="M0,-64 C6,-52 8,-34 8,-20 C8,-15 4.5,-13 0,-13 C-4.5,-13 -8,-15 -8,-20 C-8,-34 -6,-52 0,-64 Z"
+                fill="hsl(200 82% 70%)"
+              />
+              {/* Nose specular */}
+              <path
+                d="M0,-64 C2.5,-56 3,-48 3,-40"
+                stroke="hsl(0 0% 100%)"
+                strokeWidth="1.1"
+                fill="none"
+                opacity="0.28"
+              />
+
+              {/* Porthole */}
+              <circle cx="0" cy="8"  r="10.5" fill="hsl(222 62% 7%)" />
+              <circle cx="0" cy="8"  r="9"    fill="hsl(204 60% 13%)" />
+              <circle cx="0" cy="8"  r="7.5"  fill="hsl(208 64% 17%)" />
+              <circle cx="-3" cy="5" r="3"    fill="hsl(200 80% 92%)" opacity="0.18" />
+              <circle cx="0" cy="8"  r="10.5" fill="none" stroke="hsl(200 70% 55%)" strokeWidth="0.9" opacity="0.35" />
+
+              {/* Left fin */}
+              <path d="M-16,20 L-30,46 L-16,36 Z" fill="hsl(202 65% 38%)" />
+              <path d="M-16,20 L-30,46" stroke="hsl(200 80% 62%)" strokeWidth="0.9" opacity="0.40" />
+              {/* Right fin */}
+              <path d="M16,20 L30,46 L16,36 Z"   fill="hsl(202 65% 38%)" />
+              <path d="M16,20 L30,46"  stroke="hsl(200 80% 62%)" strokeWidth="0.9" opacity="0.40" />
+
+              {/* Nozzle */}
+              <rect x="-10" y="38" width="20" height="8"  rx="3" fill="hsl(222 40% 16%)" />
+              <rect x="-10" y="38" width="20" height="2.5" rx="0" fill="hsl(222 40% 30%)" />
+              <rect x="-10" y="43" width="20" height="3"  rx="0" fill="hsl(222 40% 12%)" />
             </svg>
+
+            {/* ── Flame ── */}
+            <div
+              className="animate-flame"
+              style={{
+                marginTop: "-8px",
+                display: "flex",
+                justifyContent: "center",
+                transformOrigin: "center top",
+              }}
+            >
+              <svg
+                viewBox="-14 0 28 52"
+                width="52"
+                height="88"
+                style={{
+                  display: "block",
+                  filter: "drop-shadow(0 0 12px hsl(42 90% 55% / 0.95))",
+                }}
+              >
+                <path d="M-12,0 Q-8,28 0,48 Q8,28 12,0 Z"   fill="hsl(42 90% 55%)"  opacity="0.96" />
+                <path d="M-7.5,0 Q-5,20 0,36 Q5,20 7.5,0 Z" fill="hsl(28 100% 64%)" opacity="0.86" />
+                <path d="M-4,0 Q-2.5,12 0,22 Q2.5,12 4,0 Z" fill="hsl(55 100% 88%)" opacity="0.92" />
+              </svg>
+            </div>
+
           </div>
         </div>
       </div>

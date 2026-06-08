@@ -466,13 +466,13 @@
 
 /* Rocket flight — diagonal bottom-left to top-right */
 @keyframes rocket-diagonal {
-  0%   { transform: translate(0,    0);             opacity: 0;    }
-  6%   {                                             opacity: 0.78; }
-  88%  {                                             opacity: 0.78; }
-  100% { transform: translate(92vw, -112vh);         opacity: 0;    }
+  0%   { transform: translate(0,    0);          opacity: 0;    }
+  8%   {                                          opacity: 0.72; }
+  85%  {                                          opacity: 0.72; }
+  100% { transform: translate(88vw, -108vh);      opacity: 0;    }
 }
 .animate-rocket-diagonal {
-  animation: rocket-diagonal 18s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  animation: rocket-diagonal 20s ease-in-out infinite;
 }
 
 /* Moon glow pulse */
