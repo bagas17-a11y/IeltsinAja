@@ -56,9 +56,10 @@ export const MissionBridge = () => {
 
       <div className="container mx-auto px-6 relative z-10">
         <div
-          className={`max-w-4xl mx-auto text-center transition-all duration-1000 ${
-            isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          className={`max-w-4xl mx-auto text-center transition-opacity transition-transform duration-500 ${
+            isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
+          style={{ transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)" }}
         >
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="w-12 h-px bg-accent/50" />
@@ -80,18 +81,19 @@ export const MissionBridge = () => {
           </p>
         </div>
 
-        <div
-          className={`grid md:grid-cols-3 gap-5 max-w-5xl mx-auto transition-all duration-700 ${
-            isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-          style={{ transitionDelay: "300ms" }}
-        >
-          {valuePillars.map((pillar) => {
+        <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          {valuePillars.map((pillar, i) => {
             const Icon = pillar.icon;
             return (
               <div
                 key={pillar.label}
-                className="glass-card p-6 text-left"
+                className={`glass-card p-6 text-left transition-opacity transition-transform duration-500 ${
+                  isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+                }`}
+                style={{
+                  transitionDelay: `${300 + i * 70}ms`,
+                  transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+                }}
               >
                 <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
                   <Icon className="w-5 h-5 text-accent" />

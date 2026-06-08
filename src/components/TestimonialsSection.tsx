@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface Review {
   name: string;
@@ -85,8 +86,24 @@ const StarRow = ({ count }: { count: number }) => (
   </div>
 );
 
-const ReviewCard = ({ review }: { review: Review }) => (
-  <div className="glass-card p-5 flex flex-col gap-3 border-border/50">
+const ReviewCard = ({
+  review,
+  visible,
+  delay,
+}: {
+  review: Review;
+  visible: boolean;
+  delay: number;
+}) => (
+  <div
+    className="glass-card p-5 flex flex-col gap-3 border-border/50 transition-opacity transition-transform duration-500"
+    style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? "translateY(0)" : "translateY(12px)",
+      transitionDelay: `${delay}ms`,
+      transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+    }}
+  >
     <StarRow count={review.rating} />
     <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{review.text}&rdquo;</p>
     <div className="flex items-center gap-2.5 mt-auto pt-2 border-t border-border/30">
@@ -102,14 +119,38 @@ const ReviewCard = ({ review }: { review: Review }) => (
 );
 
 export const TestimonialsSection = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setIsVisible(true);
+      },
+      { threshold: 0.1 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const col1 = REVIEWS.filter((_, i) => i % 3 === 0);
   const col2 = REVIEWS.filter((_, i) => i % 3 === 1);
   const col3 = REVIEWS.filter((_, i) => i % 3 === 2);
 
+  // stagger: 50ms between cards, columns offset by 40ms each
+  const delayFor = (col: number, row: number) => col * 40 + row * 60;
+
   return (
-    <section className="py-24 md:py-32 relative overflow-hidden">
+    <section ref={sectionRef} className="py-24 md:py-32 relative overflow-hidden">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-14">
+        <div
+          className="text-center mb-14 transition-opacity transition-transform duration-500"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? "translateY(0)" : "translateY(12px)",
+            transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+          }}
+        >
           <p className="text-sm text-accent font-medium tracking-wide uppercase mb-3">Student Reviews</p>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light mb-4">
             Real results from <span className="text-gradient">real students</span>
@@ -122,23 +163,28 @@ export const TestimonialsSection = () => {
         {/* Masonry grid — 3 columns on md+, 1 on mobile */}
         <div className="hidden md:grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
           <div className="flex flex-col gap-4">
-            {col1.map((r) => <ReviewCard key={r.name} review={r} />)}
+            {col1.map((r, i) => <ReviewCard key={r.name} review={r} visible={isVisible} delay={delayFor(0, i)} />)}
           </div>
           <div className="flex flex-col gap-4 md:mt-6">
-            {col2.map((r) => <ReviewCard key={r.name} review={r} />)}
+            {col2.map((r, i) => <ReviewCard key={r.name} review={r} visible={isVisible} delay={delayFor(1, i)} />)}
           </div>
           <div className="flex flex-col gap-4">
-            {col3.map((r) => <ReviewCard key={r.name} review={r} />)}
+            {col3.map((r, i) => <ReviewCard key={r.name} review={r} visible={isVisible} delay={delayFor(2, i)} />)}
           </div>
         </div>
 
         {/* Mobile: single column */}
         <div className="flex flex-col gap-4 md:hidden max-w-lg mx-auto">
-          {REVIEWS.map((r) => <ReviewCard key={r.name} review={r} />)}
+          {REVIEWS.map((r, i) => <ReviewCard key={r.name} review={r} visible={isVisible} delay={i * 40} />)}
         </div>
 
-        {/* Aggregate score */}
-        <div className="text-center mt-12 flex items-center justify-center gap-3">
+        <div
+          className="text-center mt-12 flex items-center justify-center gap-3 transition-opacity duration-500"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transitionDelay: "400ms",
+          }}
+        >
           <StarRow count={5} />
           <p className="text-sm text-muted-foreground">
             <span className="text-foreground font-medium">4.9 / 5</span> · Based on student feedback

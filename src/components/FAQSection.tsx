@@ -70,11 +70,10 @@ export const FAQSection = () => {
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto">
           <div
-            className={`text-center mb-12 md:mb-16 transition-all duration-700 ${
-              isRevealed
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-10"
+            className={`text-center mb-12 md:mb-16 transition-opacity transition-transform duration-500 ${
+              isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
             }`}
+            style={{ transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)" }}
           >
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light mb-6">
               Frequently asked <span className="text-gradient">questions</span>
@@ -90,12 +89,13 @@ export const FAQSection = () => {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className={`glass-card border-none overflow-hidden transition-all duration-500 ${
-                  isRevealed
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-5"
-                }`}
-                style={{ transitionDelay: `${200 + index * 100}ms` }}
+                className="glass-card border-none overflow-hidden"
+                style={{
+                  opacity: isRevealed ? 1 : 0,
+                  transform: isRevealed ? "translateY(0)" : "translateY(8px)",
+                  transition: `opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1), transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)`,
+                  transitionDelay: `${80 + index * 50}ms`,
+                }}
               >
                 <AccordionTrigger className="px-6 py-5 text-left text-foreground hover:text-accent hover:no-underline transition-colors [&[data-state=open]>svg]:rotate-180">
                   <span className="font-light text-base md:text-lg">
@@ -110,12 +110,12 @@ export const FAQSection = () => {
           </Accordion>
 
           <div
-            className={`mt-10 text-center transition-all duration-700 ${
-              isRevealed
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-5"
-            }`}
-            style={{ transitionDelay: "900ms" }}
+            className="mt-10 text-center"
+            style={{
+              opacity: isRevealed ? 1 : 0,
+              transition: "opacity 0.4s ease",
+              transitionDelay: "400ms",
+            }}
           >
             <p className="text-sm text-muted-foreground">
               Still have a question?{" "}

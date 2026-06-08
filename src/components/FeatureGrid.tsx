@@ -87,19 +87,21 @@ export const FeatureGrid = () => {
               <div
                 key={feature.title}
                 ref={(el) => (cardRefs.current[index] = el)}
-                className={`glass-card p-8 lg:p-10 group cursor-pointer transition-all duration-700 ${
+                className={`glass-card p-8 lg:p-10 group cursor-pointer ${
                   isRevealed ? "revealed" : "scroll-reveal"
                 }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
+                style={{ transitionDelay: `${index * 80}ms` }}
                 id={feature.title.toLowerCase()}
               >
                 {/* Icon */}
                 <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 ${
+                  data-icon-wrapper=""
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${
                     feature.color === "accent"
                       ? "bg-accent/10 text-accent"
                       : "bg-elite-gold/10 text-elite-gold"
                   }`}
+                  style={{ transition: "transform 200ms cubic-bezier(0.23, 1, 0.32, 1)" }}
                 >
                   <Icon className="w-6 h-6" />
                 </div>
@@ -119,11 +121,13 @@ export const FeatureGrid = () => {
                   {feature.description}
                 </p>
 
-                {/* Hover accent line */}
+                {/* Hover accent line — only expands on pointer devices (CSS guard) */}
                 <div
-                  className={`h-0.5 w-0 group-hover:w-16 mt-6 transition-all duration-500 ${
+                  data-accent-line=""
+                  className={`h-0.5 w-0 mt-6 ${
                     feature.color === "accent" ? "bg-accent" : "bg-elite-gold"
                   }`}
+                  style={{ transition: "width 300ms cubic-bezier(0.23, 1, 0.32, 1)" }}
                 />
               </div>
             );
