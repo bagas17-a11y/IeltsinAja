@@ -38,24 +38,25 @@ function InlineText({ text }: { text: string }) {
   return <>{parts}</>;
 }
 
-function MessageContent({ content }: { content: string }) {
+function MessageContent({ content, showCursor }: { content: string; showCursor?: boolean }) {
   const lines = content.split("\n");
   return (
     <div className="space-y-0.5 text-sm leading-relaxed">
       {lines.map((line, i) => {
+        const isLast = i === lines.length - 1;
         if (line === "") return <div key={i} className="h-1.5" />;
         if (line.startsWith("> ")) {
           return (
             <div key={i} className="border-l-2 border-accent/40 pl-2 italic text-foreground/70">
-              <InlineText text={line.slice(2)} />
+              <InlineText text={line.slice(2)} />{isLast && showCursor && <Cursor />}
             </div>
           );
         }
         if (/^[-*•] /.test(line)) {
           return (
             <div key={i} className="flex gap-2">
-              <span className="text-accent/60 shrink-0 mt-0.5 leading-relaxed">•</span>
-              <span><InlineText text={line.replace(/^[-*•] /, "")} /></span>
+              <span className="text-accent/60 shrink-0 mt-0.5">•</span>
+              <span><InlineText text={line.replace(/^[-*•] /, "")} />{isLast && showCursor && <Cursor />}</span>
             </div>
           );
         }
@@ -64,14 +65,18 @@ function MessageContent({ content }: { content: string }) {
           return (
             <div key={i} className="flex gap-2">
               <span className="text-accent/60 shrink-0">{line.slice(0, dotIdx + 1)}</span>
-              <span><InlineText text={line.slice(dotIdx + 2)} /></span>
+              <span><InlineText text={line.slice(dotIdx + 2)} />{isLast && showCursor && <Cursor />}</span>
             </div>
           );
         }
-        return <div key={i}><InlineText text={line} /></div>;
+        return <div key={i}><InlineText text={line} />{isLast && showCursor && <Cursor />}</div>;
       })}
     </div>
   );
+}
+
+function Cursor() {
+  return <span className="inline-block w-0.5 h-[1em] bg-accent/70 animate-pulse ml-px align-middle" />;
 }
 
 function buildFeedbackSummary(feedback: any): string {
@@ -156,27 +161,63 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [streamingContent, setStreamingContent] = useState<string | null>(null);
 
-  // Drag-to-resize — width is constrained to 45% of viewport so the left panel always stays visible
+  // Drag-to-resize
   const [width, setWidth] = useState(380);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
+  const streamTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // When context changes (essay starts, feedback arrives), append a note instead of clearing history
   const prevKey = useRef(`${hasEssay}-${hasFeedback}`);
   useEffect(() => {
     const key = `${hasEssay}-${hasFeedback}`;
-    if (key !== prevKey.current) {
-      prevKey.current = key;
-      setMessages([{ role: "assistant", content: getWelcomeMessage(hasEssay, hasFeedback, taskType) }]);
+    if (key === prevKey.current) return;
+    const [prevEssayStr] = prevKey.current.split("-");
+    const prevHasEssay = prevEssayStr === "true";
+    prevKey.current = key;
+
+    if (!prevHasEssay && hasEssay && !hasFeedback) {
+      setMessages(m => [...m, {
+        role: "assistant",
+        content: "I can see you've started writing. Keep going — share what you have and I'll give you targeted feedback on it.",
+      }]);
+    } else if (hasFeedback) {
+      setMessages(m => [...m, {
+        role: "assistant",
+        content: "Your feedback is in. Ask me to explain any score, or share a sentence you want to improve.",
+      }]);
     }
   }, [hasEssay, hasFeedback, taskType]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
+  }, [messages, streamingContent]);
+
+  // Cleanup typewriter on unmount
+  useEffect(() => () => {
+    if (streamTimerRef.current) clearInterval(streamTimerRef.current);
+  }, []);
+
+  const startTypewriter = useCallback((text: string) => {
+    if (streamTimerRef.current) clearInterval(streamTimerRef.current);
+    let pos = 0;
+    setStreamingContent("");
+    streamTimerRef.current = setInterval(() => {
+      pos = Math.min(pos + 6, text.length);
+      setStreamingContent(text.slice(0, pos));
+      if (pos >= text.length) {
+        clearInterval(streamTimerRef.current!);
+        streamTimerRef.current = null;
+        setMessages(prev => [...prev, { role: "assistant", content: text }]);
+        setStreamingContent(null);
+      }
+    }, 18);
+  }, []);
 
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -199,9 +240,11 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
     document.addEventListener("mouseup", onUp);
   }, [width]);
 
+  const isBusy = isLoading || streamingContent !== null;
+
   const sendMessage = async () => {
     const text = input.trim();
-    if (!text || isLoading) return;
+    if (!text || isBusy) return;
 
     const userMsg: Message = { role: "user", content: text };
     const updatedMessages = [...messages, userMsg];
@@ -222,17 +265,13 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
       const apiMessages = firstUserIdx >= 0 ? updatedMessages.slice(firstUserIdx) : updatedMessages;
 
       const { data, error } = await supabase.functions.invoke("ai-chatbot", {
-        body: {
-          messages: apiMessages,
-          language: "en",
-          systemContext,
-        },
+        body: { messages: apiMessages, language: "en", systemContext },
       });
 
       if (error) throw error;
       const reply = data?.data?.reply ?? data?.reply;
       if (!reply) throw new Error("Empty response from tutor");
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      startTypewriter(reply);
     } catch (err) {
       console.error("Writing tutor error:", err);
       setMessages(prev => [...prev, {
@@ -253,7 +292,7 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
 
   return (
     <div style={{ width }} className="relative flex shrink-0">
-      {/* Drag handle — sits between the two panels */}
+      {/* Drag handle */}
       <div
         onMouseDown={onDragStart}
         className="absolute left-0 top-0 bottom-0 w-3 flex items-center justify-center cursor-col-resize group z-10 select-none"
@@ -313,6 +352,7 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
             </div>
           ))}
 
+          {/* Loading dots */}
           {isLoading && (
             <div className="flex gap-2.5">
               <div className="w-6 h-6 rounded-full bg-accent/15 shrink-0 flex items-center justify-center mt-0.5">
@@ -322,6 +362,18 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
                 <div className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: "0ms" }} />
                 <div className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: "150ms" }} />
                 <div className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          )}
+
+          {/* Typewriter streaming message */}
+          {streamingContent !== null && (
+            <div className="flex gap-2.5">
+              <div className="w-6 h-6 rounded-full bg-accent/15 shrink-0 flex items-center justify-center mt-0.5">
+                <Bot className="w-3 h-3 text-accent" />
+              </div>
+              <div className="bg-secondary/40 text-foreground/90 rounded-xl px-3 py-2 max-w-[85%]">
+                <MessageContent content={streamingContent} showCursor />
               </div>
             </div>
           )}
@@ -341,7 +393,7 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
             <Button
               size="sm"
               onClick={sendMessage}
-              disabled={isLoading || !input.trim()}
+              disabled={isBusy || !input.trim()}
               className="shrink-0 h-10 w-10 p-0"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
