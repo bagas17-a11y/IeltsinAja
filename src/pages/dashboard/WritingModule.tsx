@@ -24,6 +24,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
+import { WritingAIChat } from "@/components/writing/WritingAIChat";
 import { generationStore } from "@/stores/generationStore";
 import { useGenerationEntry } from "@/hooks/useGenerationEntry";
 
@@ -1222,9 +1223,12 @@ export default function WritingModule() {
           </>
         )}
 
-        {/* Practice View */}
+        {/* Practice View — split screen: left=content, right=AI chat */}
         {view === "practice" && selectedQuestion && (
-          <>
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6 items-start">
+
+          {/* ── Left column: all practice content ── */}
+          <div>
             {/* Question Section */}
             <div className="glass-card p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
@@ -1426,7 +1430,19 @@ export default function WritingModule() {
                 )}
               </div>
             )}
-          </>
+          </div>
+
+          {/* Right column: AI Writing Tutor */}
+          <div className="sticky top-4">
+            <WritingAIChat
+              taskType={selectedQuestion.task_type}
+              questionPrompt={selectedQuestion.question_prompt}
+              userEssay={essay}
+              feedback={feedback ?? revisionFeedback}
+            />
+          </div>
+
+          </div>
         )}
       </div>
 
