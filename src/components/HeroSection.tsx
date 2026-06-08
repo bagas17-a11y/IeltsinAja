@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
+import { HeroBackground } from "./HeroBackground";
 
 const heroBullets = [
   "AI feedback on every Reading, Listening, Writing & Speaking practice",
@@ -56,6 +57,9 @@ export const HeroSection = () => {
       onMouseMove={handleMouseMove}
       className="hero-spotlight relative min-h-screen flex items-center justify-center bg-atmospheric overflow-hidden"
     >
+      {/* Animated sky background — stars, rocket, aurora */}
+      <HeroBackground />
+
       {/* Film-grain noise overlay */}
       <div className="noise-overlay" />
 

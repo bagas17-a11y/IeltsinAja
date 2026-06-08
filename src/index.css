@@ -453,6 +453,51 @@
   50% { transform: translateY(-10px); }
 }
 
+/* Stars */
+@keyframes twinkle {
+  0%, 100% { opacity: var(--o, 0.5); transform: scale(1); }
+  50%       { opacity: calc(var(--o, 0.5) * 0.12); transform: scale(0.75); }
+}
+.star {
+  animation-name: twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* Rocket flight — from bottom to top, looping */
+@keyframes rocket-soar {
+  0%   { transform: translateY(0px)     translateX(0px)   rotate(-10deg); opacity: 0;    }
+  7%   {                                                                    opacity: 0.65; }
+  88%  {                                                                    opacity: 0.65; }
+  100% { transform: translateY(-125vh)  translateX(-18px) rotate(-7deg);  opacity: 0;    }
+}
+.animate-rocket-soar {
+  animation: rocket-soar 14s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+/* Flame flicker */
+@keyframes flame-flicker {
+  0%, 100% { transform: scaleY(1)    scaleX(1);    }
+  20%       { transform: scaleY(1.18) scaleX(0.88); }
+  40%       { transform: scaleY(0.82) scaleX(1.12); }
+  60%       { transform: scaleY(1.12) scaleX(0.9);  }
+  80%       { transform: scaleY(0.9)  scaleX(1.08); }
+}
+.animate-flame {
+  animation: flame-flicker 0.14s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+/* Drifting aurora orbs */
+@keyframes aurora-drift {
+  0%, 100% { transform: translate(0,     0)     scale(1);    }
+  33%       { transform: translate(40px,  -30px) scale(1.06); }
+  66%       { transform: translate(-25px, 20px)  scale(0.94); }
+}
+.aurora-orb {
+  animation: aurora-drift 22s ease-in-out infinite;
+}
+
 @keyframes pulse-glow {
   0%, 100% { box-shadow: var(--shadow-neumorphic); }
   50% { box-shadow: var(--shadow-neumorphic), var(--shadow-glow); }
@@ -515,6 +560,17 @@
   }
   .hero-spotlight::after {
     display: none;
+  }
+  .star,
+  .aurora-orb {
+    animation: none;
+  }
+  .animate-rocket-soar {
+    animation: none;
+    opacity: 0.5;
+  }
+  .animate-flame {
+    animation: none;
   }
 }
 
