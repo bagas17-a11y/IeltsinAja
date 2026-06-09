@@ -22,6 +22,7 @@ import FlashcardsPage from "./pages/dashboard/FlashcardsPage";
 import FlashcardsTopicPage from "./pages/dashboard/FlashcardsTopicPage";
 import StatsPage from "./pages/dashboard/StatsPage";
 import DiagnosticQuiz from "./pages/dashboard/DiagnosticQuiz";
+import StudyPlanPage from "./pages/dashboard/StudyPlanPage";
 import PricingSelection from "./pages/PricingSelection";
 import PaymentVerification from "./pages/admin/PaymentVerification";
 import ContentManager from "./pages/admin/ContentManager";
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/dashboard/speaking" element={<SpeakingModule />} />
             <Route path="/dashboard/stats" element={<StatsPage />} />
             <Route path="/dashboard/diagnostic" element={<DiagnosticQuiz />} />
+            <Route path="/dashboard/study-plan" element={<StudyPlanPage />} />
             <Route path="/dashboard/consultation" element={<ConsultationHub />} />
             <Route path="/dashboard/materials" element={<MaterialsPage />} />
             <Route path="/dashboard/elite" element={<EliteHubPage />} />

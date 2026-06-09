@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Brain, Target, ArrowRight, Trophy, Edit2 } from "lucide-react";
+import { Brain, Target, ArrowRight, Trophy, Edit2, Crown, Map, Sparkles, CheckCircle } from "lucide-react";
 
 interface FamiliarityQuestion {
   id: string;
@@ -483,13 +483,40 @@ export default function DiagnosticQuiz() {
 
       await refreshProfile();
       toast.success("Diagnostic results saved!");
-      navigate("/dashboard");
+      navigate("/dashboard/study-plan");
     } catch (error) {
       console.error('Error saving result:', error);
       toast.error("Failed to save results");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const getTierConfig = (band: number) => {
+    if (band <= 5.5) return {
+      name: "Foundation",
+      headline: "Start with the fundamentals",
+      description: "Your English foundations need strengthening before exam technique can kick in. Your 8-week plan front-loads grammar and vocabulary, then adds each exam skill one at a time.",
+      goal: "6.0–6.5",
+      badge: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      icon: Brain,
+    };
+    if (band <= 6.5) return {
+      name: "Developing",
+      headline: "Bridge the Band 7 gap",
+      description: "You understand IELTS but need strategic depth. Your 8-week plan targets the exact skills that separate Band 6 from Band 7 — overview writing, data grouping, argument structure, and vocabulary precision.",
+      goal: "7.0–7.5",
+      badge: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+      icon: Target,
+    };
+    return {
+      name: "Polishing",
+      headline: "The final push to Band 8+",
+      description: "You're performing at a high level. Your 6-week plan targets precision vocabulary, advanced grammar variety, and nuanced argument structure to close the Band 8 gap.",
+      goal: "8.0–8.5",
+      badge: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+      icon: Trophy,
+    };
   };
 
   if (phase === 'intro') {
@@ -691,13 +718,75 @@ export default function DiagnosticQuiz() {
             </div>
           )}
 
+          {/* Tier summary */}
+          {(() => {
+            const tier = getTierConfig(result.assignedBand);
+            const TierIcon = tier.icon;
+            return (
+              <div className="glass-card p-6 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
+                    <TierIcon className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${tier.badge}`}>{tier.name} Track</span>
+                      <span className="text-xs text-muted-foreground">→ Target Band {tier.goal}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground mt-0.5">{tier.headline}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{tier.description}</p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    "Week-by-week study roadmap",
+                    "Platform resource links",
+                    "Task completion tracking",
+                  ].map(f => (
+                    <span key={f} className="flex items-center gap-1 text-xs text-muted-foreground bg-secondary/30 px-2.5 py-1 rounded-full border border-border/30">
+                      <CheckCircle className="w-3 h-3 text-accent" /> {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Elite upsell for non-Elite users */}
+          {profile?.subscription_tier !== "elite" && (
+            <div className="glass-card p-5 border border-elite-gold/30 bg-elite-gold/5">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-elite-gold/20 flex items-center justify-center shrink-0">
+                  <Crown className="w-5 h-5 text-elite-gold" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground">Guaranteed +1.5 band increase with Elite</p>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Your roadmap shows the path. Elite gives you the fuel — 1-on-1 coaching sessions, AI feedback on every submission, MudahinAja interactive tutorials, and full mock exams.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Button size="sm"
+                      className="bg-elite-gold/20 text-elite-gold border border-elite-gold/30 hover:bg-elite-gold/30"
+                      onClick={() => navigate("/pricing-selection")}>
+                      Upgrade to Elite <Crown className="w-3.5 h-3.5 ml-1.5" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-muted-foreground"
+                      onClick={saveResult} disabled={isSubmitting}>
+                      {isSubmitting ? "Saving..." : "Save & continue free"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <Button
             onClick={saveResult}
             disabled={isSubmitting}
             className="w-full btn-neumorphic-primary"
           >
-            {isSubmitting ? "Saving..." : "Save Results & View Dashboard"}
-            <ArrowRight className="w-4 h-4 ml-2" />
+            {isSubmitting ? "Saving..." : "Save Results & View My Study Plan"}
+            <Map className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </DashboardLayout>
