@@ -217,7 +217,7 @@ export const PricingMatrix = () => {
                         className="w-full border-elite-gold/30 text-elite-gold hover:bg-elite-gold/10"
                         disabled={isCurrent}
                       >
-                        {isCurrent ? "You're on Elite" : "Buy Elite"}
+                        {isCurrent ? "You're on Elite" : "Book a Meeting"}
                         {!isCurrent && <ArrowRight className="w-4 h-4 ml-2" />}
                       </Button>
                       <a
