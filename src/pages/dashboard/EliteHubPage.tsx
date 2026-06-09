@@ -227,6 +227,18 @@ export default function EliteHubPage() {
               Resources (The Study Hub)
             </TabsTrigger>
             <TabsTrigger
+              value="revision-notes"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-elite-gold data-[state=active]:text-elite-gold data-[state=active]:bg-transparent px-4 py-3"
+            >
+              Revision Notes
+            </TabsTrigger>
+            <TabsTrigger
+              value="flashcards"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-elite-gold data-[state=active]:text-elite-gold data-[state=active]:bg-transparent px-4 py-3"
+            >
+              Flashcards
+            </TabsTrigger>
+            <TabsTrigger
               value="mudahinaja"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-elite-gold data-[state=active]:text-elite-gold data-[state=active]:bg-transparent px-4 py-3"
             >
@@ -309,13 +321,6 @@ export default function EliteHubPage() {
                     >
                       All topics
                     </Link>
-                    <Link
-                      to="/dashboard/flashcards/topic?topic=parts-of-speech&subtopic=subject"
-                      className="text-sm font-medium text-accent hover:underline"
-                    >
-                      Go to Flashcards
-                      <ChevronRight className="inline h-4 w-4 ml-1" />
-                    </Link>
                   </div>
                 </CardContent>
               </Card>
@@ -346,6 +351,68 @@ export default function EliteHubPage() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+
+          {/* Revision Notes Tab */}
+          <TabsContent value="revision-notes" className="mt-8 focus-visible:outline-none">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Revision Notes</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Concise, high-quality notes to build your understanding of all IELTS topics.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Link to="/dashboard/revision-notes?view=all">
+                <Card className="border-border bg-card hover:border-elite-gold/30 transition-colors cursor-pointer">
+                  <CardContent className="flex items-center gap-4 p-5">
+                    <div className="w-10 h-10 rounded-lg bg-elite-gold/10 flex items-center justify-center shrink-0">
+                      <BookOpen className="h-5 w-5 text-elite-gold" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">All Topics</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Browse the full revision library</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link to="/dashboard/revision-notes?topic=parts-of-speech">
+                <Card className="border-border bg-card hover:border-elite-gold/30 transition-colors cursor-pointer">
+                  <CardContent className="flex items-center gap-4 p-5">
+                    <div className="w-10 h-10 rounded-lg bg-elite-gold/10 flex items-center justify-center shrink-0">
+                      <BookMarked className="h-5 w-5 text-elite-gold" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Continue Learning</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Pick up where you left off</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          </TabsContent>
+
+          {/* Flashcards Tab */}
+          <TabsContent value="flashcards" className="mt-8 focus-visible:outline-none">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Flashcards</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Interactive digital flashcards to reinforce key facts, definitions, and vocabulary.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Link to="/dashboard/flashcards?view=all">
+                <Card className="border-border bg-card hover:border-elite-gold/30 transition-colors cursor-pointer">
+                  <CardContent className="flex items-center gap-4 p-5">
+                    <div className="w-10 h-10 rounded-lg bg-elite-gold/10 flex items-center justify-center shrink-0">
+                      <Layers className="h-5 w-5 text-elite-gold" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">All Topics</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Browse all flashcard sets</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </TabsContent>
 

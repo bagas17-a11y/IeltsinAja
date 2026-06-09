@@ -537,17 +537,6 @@ export default function FlashcardsPage() {
                             <ChevronRight className="h-4 w-4" />
                           </Button>
                         </div>
-                        <Button
-                          variant="link"
-                          className="text-[#3b82f6] mt-4"
-                          onClick={() =>
-                            navigate(
-                              `/dashboard/flashcards/topic?topic=${effectiveTopic.id}&subtopic=${effectiveSubtopic.id}`
-                            )
-                          }
-                        >
-                          Open full study view
-                        </Button>
                       </>
                     )}
                   </div>
