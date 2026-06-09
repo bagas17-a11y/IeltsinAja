@@ -27,6 +27,7 @@ import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
 import { WritingAIChat } from "@/components/writing/WritingAIChat";
 import { generationStore } from "@/stores/generationStore";
 import { useGenerationEntry } from "@/hooks/useGenerationEntry";
+import { useCompletedQuestions } from "@/hooks/useCompletedQuestions";
 
 interface IeltsQuestion {
   id: string;
@@ -145,7 +146,7 @@ export default function WritingModule() {
   const isAnalyzingRevision = analysisEntry.isGenerating && analysisEntry.config?.isRevision === true;
   const [revisionFeedback, setRevisionFeedback] = useState<any>(null);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const { completedIds, markCompleted } = useCompletedQuestions("writing");
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [generateDifficulty, setGenerateDifficulty] = useState<"easy" | "medium" | "hard">("medium");
@@ -159,27 +160,6 @@ export default function WritingModule() {
   const isTask1 = activeTask === "Task 1";
   const minWords = isTask1 ? 150 : 250;
   const currentRubric = isTask1 ? task1Rubric : task2Rubric;
-
-  // Load completed question IDs from localStorage
-  useEffect(() => {
-    if (!user?.id) return;
-    try {
-      const stored = localStorage.getItem(`ielts-writing-completed-${user.id}`);
-      if (stored) setCompletedIds(new Set(JSON.parse(stored)));
-    } catch { /* ignore */ }
-  }, [user?.id]);
-
-  const markCompleted = (questionId: string) => {
-    if (!user?.id) return;
-    setCompletedIds(prev => {
-      const next = new Set(prev);
-      next.add(questionId);
-      try {
-        localStorage.setItem(`ielts-writing-completed-${user.id}`, JSON.stringify([...next]));
-      } catch { /* ignore */ }
-      return next;
-    });
-  };
 
   useEffect(() => {
     fetchQuestions();

@@ -373,6 +373,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_completed_questions: {
+        Row: {
+          completed_at: string
+          id: string
+          module: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          module: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          module?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           band_score: number | null

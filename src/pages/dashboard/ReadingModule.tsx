@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useGenerationContext } from "@/hooks/useGenerationContext";
+import { useCompletedQuestions } from "@/hooks/useCompletedQuestions";
 import { cn } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -147,25 +148,7 @@ export default function ReadingModule() {
   }, []);
 
   // Completed test IDs
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (!userId) return;
-    try {
-      const stored = localStorage.getItem(`ielts-reading-completed-${userId}`);
-      if (stored) setCompletedIds(new Set(JSON.parse(stored)));
-    } catch { }
-  }, [userId]);
-
-  const markReadingCompleted = (testId: string) => {
-    if (!userId) return;
-    setCompletedIds((prev) => {
-      const next = new Set(prev);
-      next.add(testId);
-      try { localStorage.setItem(`ielts-reading-completed-${userId}`, JSON.stringify([...next])); } catch { }
-      return next;
-    });
-  };
+  const { completedIds, markCompleted: markReadingCompleted } = useCompletedQuestions("reading");
 
   // Library browser state
   const [libraryTests, setLibraryTests] = useState<LibraryEntry[]>([]);

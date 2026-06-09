@@ -12,6 +12,7 @@ import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { generationStore } from "@/stores/generationStore";
 import { useGenerationEntry } from "@/hooks/useGenerationEntry";
+import { useCompletedQuestions } from "@/hooks/useCompletedQuestions";
 
 // Fallback IELTS Speaking Questions (used when AI generation is unavailable)
 const FALLBACK_SPEAKING_QUESTIONS = {
@@ -174,30 +175,12 @@ export default function SpeakingModule() {
   const analysisEntry = useGenerationEntry('speaking-analysis');
   const isAnalyzing = analysisEntry.isGenerating;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [completedTopics, setCompletedTopics] = useState<Set<string>>(new Set());
+  const { completedIds: completedTopics, markCompleted: _markCompleted } = useCompletedQuestions("speaking");
+  const markSpeakingCompleted = (part: string, topic: string) => _markCompleted(`${part}-${topic}`);
   const [speakingView, setSpeakingView] = useState<"library" | "practice">("library");
   const [selectedSpeakingQuestion, setSelectedSpeakingQuestion] = useState<any>(null);
   const [selectedSpeakingPart, setSelectedSpeakingPart] = useState<SpeakingPart>("part1");
   const [doneFilter, setDoneFilter] = useState<"all" | "done" | "not-done">("all");
-
-  useEffect(() => {
-    if (!user?.id) return;
-    try {
-      const stored = localStorage.getItem(`ielts-speaking-completed-${user.id}`);
-      if (stored) setCompletedTopics(new Set(JSON.parse(stored)));
-    } catch { }
-  }, [user?.id]);
-
-  const markSpeakingCompleted = (part: string, topic: string) => {
-    if (!user?.id) return;
-    const key = `${part}-${topic}`;
-    setCompletedTopics((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      try { localStorage.setItem(`ielts-speaking-completed-${user.id}`, JSON.stringify([...next])); } catch { }
-      return next;
-    });
-  };
 
   const [activeQuestions, setActiveQuestions] = useState(FALLBACK_SPEAKING_QUESTIONS);
   const [dbQuestionsLoaded, setDbQuestionsLoaded] = useState(false);

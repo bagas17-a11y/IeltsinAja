@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useSessionStorage } from "@/hooks/useLocalStorage";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useCompletedQuestions } from "@/hooks/useCompletedQuestions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListeningCheatsheet } from "@/components/listening/ListeningCheatsheet";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -351,6 +352,7 @@ export default function ListeningModule() {
     null
   );
   const { saveProgress } = useUserProgress();
+  const { completedIds: completedTestIds, markCompleted: markListeningCompleted } = useCompletedQuestions("listening");
 
   // Fetch tests from DB on mount
   useEffect(() => {
@@ -831,6 +833,7 @@ export default function ListeningModule() {
     setScore(correctCount);
     setResults(newResults);
     setIsSubmitted(true);
+    markListeningCompleted(currentTest.id);
 
     if (user) {
       try {
@@ -1409,7 +1412,7 @@ export default function ListeningModule() {
                 <button
                   key={test.id}
                   onClick={() => startTest(test)}
-                  className="glass-card p-6 text-left hover:scale-[1.01] transition-all group border border-transparent hover:border-accent/20"
+                  className={`glass-card p-6 text-left hover:scale-[1.01] transition-all group border hover:border-accent/20 ${completedTestIds.has(test.id) ? "border-green-500/30 bg-green-500/5" : "border-transparent"}`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -1418,6 +1421,12 @@ export default function ListeningModule() {
                         <Badge variant={DIFFICULTY_BADGE[test.difficulty] ?? "default"} className="flex-shrink-0">
                           {test.difficulty}
                         </Badge>
+                        {completedTestIds.has(test.id) && (
+                          <span className="text-xs px-2 py-0.5 rounded flex items-center gap-1 bg-green-500/15 text-green-500 flex-shrink-0">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Done
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1.5">
