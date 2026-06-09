@@ -24,6 +24,7 @@ import {
   ExaminerTip,
 } from "@/pages/dashboard/revision-notes/RevisionNoteContent";
 import { WritingTask1Tutorial } from "./WritingTask1Tutorial";
+import { WritingTask2Tutorial } from "./WritingTask2Tutorial";
 
 interface MCQQuestion {
   id: string;
@@ -958,53 +959,7 @@ export function WritingCheatsheet() {
         </TabsContent>
 
         <TabsContent value="task2" className="mt-0">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Task 2: From Question to Band 7+ Essay</h3>
-              <div className="flex gap-2">
-                <Button
-                  variant={task2View === "tips" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTask2View("tips")}
-                >
-                  Tips Slides
-                </Button>
-                <Button
-                  variant={task2View === "practice" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTask2View("practice")}
-                >
-                  Practice MCQs
-                </Button>
-              </div>
-            </div>
-
-            {task2View === "tips" ? (
-              <>
-                <Task2Tips />
-                <div className="text-center py-6 border-t border-border/30">
-                  <h4 className="text-lg font-semibold mb-2">Ready to Test Your Knowledge?</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Apply what you've learned with 10 interactive MCQs based on a Band 9 model essay.
-                  </p>
-                  <Button onClick={() => setTask2View("practice")}>
-                    Practise Task 2 Now
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="p-6 bg-secondary/20 rounded-lg border border-border/30">
-                <h4 className="text-base font-semibold mb-4">Task 2 Practice – MCQs Based on Band 9 Model Essay</h4>
-                <MCQPractice 
-                  questions={task2MCQs} 
-                  taskName="Task 2"
-                  introImage={task2IntroImage}
-                  modelAnswerImage={task2ModelImage}
-                />
-              </div>
-            )}
-          </div>
+          <WritingTask2Tutorial />
         </TabsContent>
       </Tabs>
     </div>
