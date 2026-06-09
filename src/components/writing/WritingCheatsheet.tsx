@@ -23,6 +23,7 @@ import {
   WorkedExample,
   ExaminerTip,
 } from "@/pages/dashboard/revision-notes/RevisionNoteContent";
+import { WritingTask1Tutorial } from "./WritingTask1Tutorial";
 
 interface MCQQuestion {
   id: string;
@@ -953,33 +954,7 @@ export function WritingCheatsheet() {
         </TabsList>
 
         <TabsContent value="task1" className="mt-0">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Task 1: Bar Chart Band 9 Guided Notes</h3>
-              {task1View === "practice" && (
-                <Button variant="outline" size="sm" onClick={() => setTask1View("tips")}>
-                  Back to Notes
-                </Button>
-              )}
-            </div>
-
-            <Task1RevisionNotes
-              task1IntroImage={task1IntroImage}
-              task1ModelImage={task1ModelImage}
-              onStartQuiz={() => setTask1View("practice")}
-              showQuizInline={task1View === "practice"}
-              mcqPractice={
-                <div className="p-6 rounded-lg border border-[#334155] bg-[#1e293b]/40">
-                  <MCQPractice
-                    questions={task1MCQs}
-                    taskName="Task 1"
-                    introImage={task1IntroImage}
-                    modelAnswerImage={task1ModelImage}
-                  />
-                </div>
-              }
-            />
-          </div>
+          <WritingTask1Tutorial />
         </TabsContent>
 
         <TabsContent value="task2" className="mt-0">
