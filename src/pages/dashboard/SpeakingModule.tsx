@@ -176,7 +176,12 @@ export default function SpeakingModule() {
   const isAnalyzing = analysisEntry.isGenerating;
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { completedIds: completedTopics, markCompleted: _markCompleted } = useCompletedQuestions("speaking");
-  const markSpeakingCompleted = (part: string, topic: string) => _markCompleted(`${part}-${topic}`);
+  // Part 1 cards share topic names, so key on the unique question text instead
+  const getSpeakingKey = (part: string, q: any): string => {
+    const text = part === "part1" ? (q.question ?? q.topic) : q.topic;
+    return `${part}-${text}`;
+  };
+  const markSpeakingCompleted = (part: string, q: any) => _markCompleted(getSpeakingKey(part, q));
   const [speakingView, setSpeakingView] = useState<"library" | "practice">("library");
   const [selectedSpeakingQuestion, setSelectedSpeakingQuestion] = useState<any>(null);
   const [selectedSpeakingPart, setSelectedSpeakingPart] = useState<SpeakingPart>("part1");
@@ -481,7 +486,7 @@ export default function SpeakingModule() {
       if (isMountedRef.current) {
         generationStore.clearEntry('speaking-analysis');
         setFeedback(unwrappedData);
-        markSpeakingCompleted(currentPart, ((selectedSpeakingQuestion ?? currentQuestion) as any).topic ?? "");
+        markSpeakingCompleted(currentPart, selectedSpeakingQuestion ?? currentQuestion);
       } else {
         // Component unmounted — store result for remount to apply
         generationStore.finishGen('speaking-analysis', { feedbackData: unwrappedData });
@@ -627,8 +632,8 @@ export default function SpeakingModule() {
     const bankQuestions = activeQuestions[selectedSpeakingPart] as any[];
     const filteredBank = bankQuestions.filter(q =>
       doneFilter === "all" || (doneFilter === "done"
-        ? completedTopics.has(`${selectedSpeakingPart}-${q.topic}`)
-        : !completedTopics.has(`${selectedSpeakingPart}-${q.topic}`))
+        ? completedTopics.has(getSpeakingKey(selectedSpeakingPart, q))
+        : !completedTopics.has(getSpeakingKey(selectedSpeakingPart, q)))
     );
     return (
       <DashboardLayout>
@@ -648,7 +653,7 @@ export default function SpeakingModule() {
           <div className="flex gap-2">
             {(['part1', 'part2', 'part3'] as const).map(part => {
               const partQs = activeQuestions[part] as Array<{topic: string}>;
-              const doneCount = partQs.filter(q => completedTopics.has(`${part}-${q.topic}`)).length;
+              const doneCount = partQs.filter(q => completedTopics.has(getSpeakingKey(part, q))).length;
               return (
                 <Button key={part}
                   variant={selectedSpeakingPart === part ? "default" : "outline"}
@@ -680,7 +685,7 @@ export default function SpeakingModule() {
           {/* Question grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredBank.map((q: any, i: number) => {
-              const isDone = completedTopics.has(`${selectedSpeakingPart}-${q.topic}`);
+              const isDone = completedTopics.has(getSpeakingKey(selectedSpeakingPart, q));
               return (
                 <div key={i}
                   onClick={() => {
@@ -757,7 +762,7 @@ export default function SpeakingModule() {
         <div className="flex gap-2 mb-6">
           {(['part1', 'part2', 'part3'] as const).map((part) => {
             const partQuestions = activeQuestions[part] as Array<{ topic: string }>;
-            const doneCount = partQuestions.filter(q => completedTopics.has(`${part}-${q.topic}`)).length;
+            const doneCount = partQuestions.filter(q => completedTopics.has(getSpeakingKey(part, q))).length;
             return (
               <Button
                 key={part}
@@ -784,7 +789,7 @@ export default function SpeakingModule() {
               <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
                 {(activeQ as any).topic}
               </span>
-              {completedTopics.has(`${currentPart}-${(activeQ as any).topic}`) && (
+              {completedTopics.has(getSpeakingKey(currentPart, activeQ)) && (
                 <span className="flex items-center gap-1 text-xs text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">
                   <CheckCircle className="w-3 h-3" />
                   Done
