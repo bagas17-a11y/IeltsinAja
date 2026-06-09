@@ -42,6 +42,7 @@ import {
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
 import { SpeakingTutorial } from "@/components/speaking/SpeakingTutorial";
 import { ReadingTutorial } from "@/components/reading/ReadingTutorial";
+import { ListeningTutorial } from "@/components/listening/ListeningTutorial";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -425,13 +426,13 @@ export default function EliteHubPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-foreground mb-1">MudahinAja — Interactive Tutorials</h2>
                   <p className="text-sm text-muted-foreground">
-                    Choose a module to start your step-by-step tutorial. Reading, Writing, and Speaking are available now — Listening coming soon.
+                    Choose a module to start your step-by-step tutorial. All four modules are available now.
                   </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {[
                     { id: "reading", label: "Reading", icon: BookOpen, available: true },
-                    { id: "listening", label: "Listening", icon: Headphones, available: false },
+                    { id: "listening", label: "Listening", icon: Headphones, available: true },
                     { id: "writing", label: "Writing", icon: PenTool, available: true },
                     { id: "speaking", label: "Speaking", icon: Mic, available: true },
                   ].map((mod) => (
@@ -462,6 +463,16 @@ export default function EliteHubPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            ) : mudahinajaModule === "listening" ? (
+              <div className="space-y-6">
+                <button
+                  onClick={() => setMudahinajaModule(null)}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Back to modules
+                </button>
+                <ListeningTutorial />
               </div>
             ) : mudahinajaModule === "reading" ? (
               <div className="space-y-6">
