@@ -40,6 +40,7 @@ import {
   Construction,
 } from "lucide-react";
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
+import { SpeakingTutorial } from "@/components/speaking/SpeakingTutorial";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -431,7 +432,7 @@ export default function EliteHubPage() {
                     { id: "reading", label: "Reading", icon: BookOpen, available: false },
                     { id: "listening", label: "Listening", icon: Headphones, available: false },
                     { id: "writing", label: "Writing", icon: PenTool, available: true },
-                    { id: "speaking", label: "Speaking", icon: Mic, available: false },
+                    { id: "speaking", label: "Speaking", icon: Mic, available: true },
                   ].map((mod) => (
                     <button
                       key={mod.id}
@@ -460,6 +461,16 @@ export default function EliteHubPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            ) : mudahinajaModule === "speaking" ? (
+              <div className="space-y-6">
+                <button
+                  onClick={() => setMudahinajaModule(null)}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Back to modules
+                </button>
+                <SpeakingTutorial />
               </div>
             ) : mudahinajaModule === "writing" ? (
               <div className="space-y-6">
