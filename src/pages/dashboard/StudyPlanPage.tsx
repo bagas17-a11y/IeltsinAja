@@ -8,8 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   ChevronDown, CheckCircle2, Circle, Clock, ArrowRight,
   Crown, BookOpen, Headphones, PenTool, Mic, Brain,
-  Home, ChevronRight, Target, Sparkles, Trophy,
+  Home, ChevronRight, Target, Sparkles, Trophy, Lock,
 } from "lucide-react";
+import { buildWhatsAppLink } from "@/lib/contact";
 import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
@@ -526,29 +527,33 @@ export default function StudyPlanPage() {
           </div>
         </div>
 
-        {/* Elite upsell for non-Elite users */}
+        {/* Week cards — gated for non-Elite */}
+        <div className="relative">
         {profile?.subscription_tier !== "elite" && (
-          <div className="glass-card p-5 border border-elite-gold/30 bg-elite-gold/5">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-elite-gold/20 flex items-center justify-center shrink-0">
-                <Crown className="w-5 h-5 text-elite-gold" />
+          <div className="absolute inset-0 z-10 flex items-center justify-center">
+            <div className="glass-card p-7 border border-elite-gold/40 bg-card/95 shadow-xl text-center max-w-sm mx-4 space-y-4">
+              <div className="w-14 h-14 rounded-full bg-elite-gold/20 flex items-center justify-center mx-auto">
+                <Lock className="w-7 h-7 text-elite-gold" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground">Guaranteed +1.5 band increase</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  This roadmap shows you what to study. Elite gives you 1-on-1 coaching, AI feedback on every submission, MudahinAja interactive tutorials, and mock exams — so you actually achieve it.
+              <div>
+                <p className="text-lg font-bold text-foreground">Elite members only</p>
+                <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                  Unlock your full {plan.weeks.length}-week personalised roadmap.
+                  Guaranteed +1.5 band increase — or we coach you for free until you hit it.
                 </p>
-                <Button size="sm" className="mt-3 bg-elite-gold/20 text-elite-gold border border-elite-gold/30 hover:bg-elite-gold/30"
-                  onClick={() => navigate("/pricing-selection")}>
-                  Upgrade to Elite <Crown className="w-3.5 h-3.5 ml-1.5" />
-                </Button>
               </div>
+              <a
+                href={buildWhatsAppLink("Hi IELTSinAja team, I'd like to upgrade to Elite to unlock my full Study Plan and get the +1.5 band guarantee.")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-xl bg-elite-gold/20 text-elite-gold border border-elite-gold/40 hover:bg-elite-gold/30 transition-colors text-sm font-semibold"
+              >
+                <Crown className="w-4 h-4" /> Upgrade to Elite via WhatsApp
+              </a>
             </div>
           </div>
         )}
-
-        {/* Week cards */}
-        <div className="space-y-3">
+        <div className={cn("space-y-3", profile?.subscription_tier !== "elite" && "blur-sm pointer-events-none select-none")}>
           {plan.weeks.map(week => {
             const weekTasks = week.tasks;
             const weekDone = weekTasks.filter(t => completedTasks.has(t.id)).length;
@@ -653,6 +658,7 @@ export default function StudyPlanPage() {
               </div>
             );
           })}
+        </div>
         </div>
 
         {/* Bottom retake CTA */}
