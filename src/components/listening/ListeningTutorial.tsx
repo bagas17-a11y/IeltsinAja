@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight, ChevronLeft, CheckCircle, X,
-  Volume2, AlertCircle, Lightbulb,
+  Volume2, AlertCircle, Lightbulb, Play, Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,18 +15,6 @@ const slideVariants = {
 };
 
 // ─── shared primitives ────────────────────────────────────────
-function Pill({ label, color = "blue" }: { label: string; color?: "blue" | "green" | "amber" | "purple" | "red" | "sky" }) {
-  const cls: Record<string, string> = {
-    blue:   "bg-blue-100 text-blue-700 border-blue-300",
-    green:  "bg-green-100 text-green-700 border-green-300",
-    amber:  "bg-amber-100 text-amber-700 border-amber-300",
-    purple: "bg-purple-100 text-purple-700 border-purple-300",
-    red:    "bg-red-100 text-red-700 border-red-300",
-    sky:    "bg-sky-100 text-sky-700 border-sky-300",
-  };
-  return <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${cls[color]}`}>{label}</span>;
-}
-
 function Tip({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
@@ -36,17 +24,14 @@ function Tip({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Dark-styled block simulating an audio transcript
-function Transcript({ label = "Audio Transcript", children }: { label?: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-gray-700 bg-gray-900 overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 border-b border-gray-700">
-        <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-        <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-400">{label}</span>
-      </div>
-      <div className="p-4 space-y-2.5">{children}</div>
-    </div>
-  );
+// Inline highlight inside transcript text
+function Mark({ children, color = "yellow" }: { children: React.ReactNode; color?: "yellow" | "green" | "red" }) {
+  const cls = {
+    yellow: "bg-yellow-300/20 text-yellow-200 rounded px-0.5",
+    green:  "bg-emerald-400/20 text-emerald-300 rounded px-0.5",
+    red:    "bg-red-400/20 text-red-300 rounded px-0.5 line-through",
+  }[color];
+  return <span className={cls}>{children}</span>;
 }
 
 const SPEAKER_COLORS: Record<string, string> = {
@@ -58,23 +43,128 @@ const SPEAKER_COLORS: Record<string, string> = {
   Guide:    "text-cyan-400",
 };
 
-function Speaker({ name, children }: { name: string; children: React.ReactNode }) {
-  return (
-    <p className="text-sm font-mono text-gray-200 leading-relaxed">
-      <span className={cn("font-bold mr-2", SPEAKER_COLORS[name] ?? "text-gray-400")}>{name}:</span>
-      {children}
-    </p>
-  );
+// Pitch per speaker for TTS voice variation
+const SPEAKER_PITCH: Record<string, number> = {
+  Agent: 1.0, Caller: 1.15, Tom: 1.0, Lisa: 1.2, Lecturer: 0.85, Guide: 0.95,
+};
+
+// ─── PlayableTranscript ───────────────────────────────────────
+interface Line {
+  speaker: string;
+  text: string;            // plain text fed to SpeechSynthesis
+  jsx?: React.ReactNode;   // optional rich display (with Mark highlights)
 }
 
-// Inline mark inside a dark Transcript
-function Mark({ children, color = "yellow" }: { children: React.ReactNode; color?: "yellow" | "green" | "red" }) {
-  const cls = {
-    yellow: "bg-yellow-300/20 text-yellow-200 rounded px-0.5",
-    green:  "bg-emerald-400/20 text-emerald-300 rounded px-0.5",
-    red:    "bg-red-400/20 text-red-300 rounded px-0.5 line-through",
-  }[color];
-  return <span className={cls}>{children}</span>;
+function PlayableTranscript({ label = "Audio Transcript", lines }: { label?: string; lines: Line[] }) {
+  const [playing, setPlaying] = useState(false);
+  const [currentLine, setCurrentLine] = useState<number | null>(null);
+  const [waveH, setWaveH] = useState<number[]>(Array(8).fill(3));
+  const activeRef = useRef(false);
+
+  // cancel speech when component unmounts (slide navigated away)
+  useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
+
+  // animate waveform bars while playing
+  useEffect(() => {
+    if (!playing) { setWaveH(Array(8).fill(3)); return; }
+    const id = setInterval(() => {
+      setWaveH(Array(8).fill(0).map(() => Math.floor(Math.random() * 15) + 3));
+    }, 120);
+    return () => clearInterval(id);
+  }, [playing]);
+
+  const play = () => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    activeRef.current = true;
+    setPlaying(true);
+
+    const speakLine = (i: number) => {
+      if (!activeRef.current || i >= lines.length) {
+        setPlaying(false);
+        setCurrentLine(null);
+        activeRef.current = false;
+        return;
+      }
+      setCurrentLine(i);
+      const utt = new SpeechSynthesisUtterance(lines[i].text);
+      utt.rate = 0.88;
+      utt.pitch = SPEAKER_PITCH[lines[i].speaker] ?? 1.0;
+      utt.onend  = () => { if (activeRef.current) speakLine(i + 1); };
+      utt.onerror = () => { if (activeRef.current) speakLine(i + 1); };
+      window.speechSynthesis.speak(utt);
+    };
+
+    speakLine(0);
+  };
+
+  const stop = () => {
+    activeRef.current = false;
+    window.speechSynthesis?.cancel();
+    setPlaying(false);
+    setCurrentLine(null);
+  };
+
+  return (
+    <div className="rounded-xl border border-gray-700 bg-gray-900 overflow-hidden">
+      {/* Header row */}
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-gray-800 border-b border-gray-700">
+        <div className="flex items-center gap-3">
+          <Volume2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-400">{label}</span>
+          {/* animated waveform */}
+          <div className="flex items-end gap-px h-4">
+            {waveH.map((h, i) => (
+              <div
+                key={i}
+                className="w-[3px] bg-emerald-400 rounded-full transition-all duration-[120ms]"
+                style={{ height: `${h}px` }}
+              />
+            ))}
+          </div>
+          {playing && currentLine !== null && (
+            <span className="text-[10px] text-gray-400 font-mono hidden sm:block">
+              {lines[currentLine]?.speaker} speaking…
+            </span>
+          )}
+        </div>
+        <button
+          onClick={playing ? stop : play}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0",
+            playing
+              ? "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+              : "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+          )}
+        >
+          {playing
+            ? <><Square className="w-3 h-3 fill-current" /> Stop</>
+            : <><Play  className="w-3 h-3 fill-current" /> Play</>
+          }
+        </button>
+      </div>
+
+      {/* Dialogue lines */}
+      <div className="p-4 space-y-2.5">
+        {lines.map((line, i) => (
+          <div
+            key={i}
+            className={cn(
+              "rounded-lg px-2 py-1 -mx-2 transition-all duration-200",
+              currentLine === i && "bg-emerald-500/10 ring-1 ring-emerald-500/20"
+            )}
+          >
+            <p className="text-sm font-mono text-gray-200 leading-relaxed">
+              <span className={cn("font-bold mr-2", SPEAKER_COLORS[line.speaker] ?? "text-gray-400")}>
+                {line.speaker}:
+              </span>
+              {line.jsx ?? line.text}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ─── SLIDE 0 — 4 Sections ────────────────────────────────────
@@ -318,23 +408,26 @@ function Slide2Paraphrase({ onComplete }: { onComplete: () => void }) {
 }
 
 // ─── SLIDE 3 — Distractor Alert ──────────────────────────────
+const SLIDE3_LINES: Line[] = [
+  { speaker: "Agent",  text: "Good afternoon, City Dental. How can I help?" },
+  {
+    speaker: "Caller",
+    text: "Hi, I'd like to book a check-up. Is Tuesday available?",
+    jsx: <>Hi, I'd like to book a check-up. Is <Mark color="red">Tuesday</Mark> available?</>,
+  },
+  { speaker: "Agent",  text: "Let me check… Tuesday is fully booked I'm afraid. How about Thursday?" },
+  {
+    speaker: "Caller",
+    text: "Thursday… yes. Actually — could you do Friday instead? No, you know what, Thursday is fine. I'll take Thursday.",
+    jsx: <>Thursday… yes. Actually — could you do <Mark color="red">Friday</Mark> instead? No, you know what, <Mark color="green">Thursday is fine</Mark>. I'll take Thursday.</>,
+  },
+  { speaker: "Agent",  text: "Perfect. Thursday it is." },
+];
+
 function Slide3Distractors({ onComplete }: { onComplete: () => void }) {
   const [choice, setChoice] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
-
   const correct = "B";
-
-  const confirm = () => {
-    if (!choice) return;
-    setConfirmed(true);
-    if (choice === correct) onComplete();
-  };
-
-  const opts = [
-    { val: "A", text: "Tuesday" },
-    { val: "B", text: "Thursday" },
-    { val: "C", text: "Friday" },
-  ];
 
   return (
     <div className="space-y-5">
@@ -347,13 +440,13 @@ function Slide3Distractors({ onComplete }: { onComplete: () => void }) {
 
       <div className="flex items-start gap-2 p-3 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-800">
         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-orange-500" />
-        <span>Read the question below, then study the transcript — watch for the trap.</span>
+        <span>Read the question, then press Play to hear the conversation. Watch out for the trap.</span>
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
         <p className="text-sm font-semibold text-gray-700">Question: On which day would the caller like to book the appointment?</p>
         <div className="space-y-1.5">
-          {opts.map(o => (
+          {[{ val: "A", text: "Tuesday" }, { val: "B", text: "Thursday" }, { val: "C", text: "Friday" }].map(o => (
             <button
               key={o.val}
               onClick={() => !confirmed && setChoice(o.val)}
@@ -372,23 +465,11 @@ function Slide3Distractors({ onComplete }: { onComplete: () => void }) {
         </div>
       </div>
 
-      <Transcript>
-        <Speaker name="Agent">Good afternoon, City Dental. How can I help?</Speaker>
-        <Speaker name="Caller">
-          Hi, I'd like to book a check-up. Is{" "}
-          <Mark color="red">Tuesday</Mark> available?
-        </Speaker>
-        <Speaker name="Agent">Let me check… Tuesday is fully booked I'm afraid. How about Thursday?</Speaker>
-        <Speaker name="Caller">
-          Thursday… yes. Actually — could you do <Mark color="red">Friday</Mark> instead? No,
-          you know what, <Mark color="green">Thursday is fine</Mark>. I'll take Thursday.
-        </Speaker>
-        <Speaker name="Agent">Perfect. Thursday it is.</Speaker>
-      </Transcript>
+      <PlayableTranscript lines={SLIDE3_LINES} />
 
       {!confirmed ? (
         <button
-          onClick={confirm}
+          onClick={() => { if (choice) { setConfirmed(true); if (choice === correct) onComplete(); } }}
           disabled={!choice}
           className={cn(
             "w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
@@ -403,7 +484,7 @@ function Slide3Distractors({ onComplete }: { onComplete: () => void }) {
           choice === correct ? "bg-green-50 border border-green-200 text-green-800" : "bg-red-50 border border-red-200 text-red-800"
         )}>
           <p className="font-semibold">{choice === correct ? "Correct — Thursday (B)" : "Answer: Thursday (B)"}</p>
-          <p>Tuesday and Friday were both mentioned but rejected. The caller's confirmed final choice was Thursday. Red highlights show distractors; green shows the answer.</p>
+          <p>Tuesday and Friday were both mentioned but rejected. The caller's confirmed final choice was Thursday. Red shows distractors; green shows the answer.</p>
         </div>
       )}
     </div>
@@ -411,16 +492,43 @@ function Slide3Distractors({ onComplete }: { onComplete: () => void }) {
 }
 
 // ─── SLIDE 4 — Form Completion ───────────────────────────────
+const SLIDE4_LINES: Line[] = [
+  { speaker: "Agent",  text: "Good morning, FitLife Gym. How can I help you?" },
+  {
+    speaker: "Caller",
+    text: "Hi, I'd like to enquire about membership. My name is Sarah Mitchell.",
+    jsx: <>Hi, I'd like to enquire about membership. My name is Sarah <Mark>Mitchell</Mark>.</>,
+  },
+  { speaker: "Agent",  text: "And your contact number?" },
+  {
+    speaker: "Caller",
+    text: "It's 07891 442 350.",
+    jsx: <>It's <Mark>07891 442 350</Mark>.</>,
+  },
+  { speaker: "Agent",  text: "Which membership are you interested in?" },
+  {
+    speaker: "Caller",
+    text: "The annual one — sorry, I mean the monthly membership.",
+    jsx: <>The <Mark color="red">annual</Mark> one — sorry, I mean the <Mark color="green">monthly</Mark> membership.</>,
+  },
+  { speaker: "Agent",  text: "And how did you hear about us?" },
+  {
+    speaker: "Caller",
+    text: "My colleague recommended you.",
+    jsx: <>My <Mark>colleague</Mark> recommended you.</>,
+  },
+];
+
 function Slide4FormCompletion({ onComplete }: { onComplete: () => void }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
   const [results, setResults] = useState<Record<string, boolean>>({});
 
-  const fields: { id: string; label: string; unit?: string; accepted: string[] }[] = [
-    { id: "name",       label: "Surname",                  accepted: ["mitchell"] },
-    { id: "phone",      label: "Phone number",             accepted: ["07891 442 350", "07891442350"] },
-    { id: "membership", label: "Membership type",          accepted: ["monthly"] },
-    { id: "source",     label: "How heard about gym",      accepted: ["colleague"] },
+  const fields: { id: string; label: string; accepted: string[] }[] = [
+    { id: "name",       label: "Surname",             accepted: ["mitchell"] },
+    { id: "phone",      label: "Phone number",        accepted: ["07891 442 350", "07891442350"] },
+    { id: "membership", label: "Membership type",     accepted: ["monthly"] },
+    { id: "source",     label: "How heard about gym", accepted: ["colleague"] },
   ];
 
   const checkAnswers = () => {
@@ -441,21 +549,10 @@ function Slide4FormCompletion({ onComplete }: { onComplete: () => void }) {
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-bold text-gray-800">Form Completion — Section 1</h2>
-        <p className="text-sm text-gray-500 mt-1">Read the form, study the transcript, fill in the gaps. Write NO MORE THAN TWO WORDS AND/OR A NUMBER.</p>
+        <p className="text-sm text-gray-500 mt-1">Press Play to listen, then fill in the form. Write NO MORE THAN TWO WORDS AND/OR A NUMBER.</p>
       </div>
 
-      <Transcript>
-        <Speaker name="Agent">Good morning, FitLife Gym. How can I help you?</Speaker>
-        <Speaker name="Caller">Hi, I'd like to enquire about membership. My name is Sarah <Mark>Mitchell</Mark>.</Speaker>
-        <Speaker name="Agent">And your contact number?</Speaker>
-        <Speaker name="Caller">It's <Mark>07891 442 350</Mark>.</Speaker>
-        <Speaker name="Agent">Which membership are you interested in?</Speaker>
-        <Speaker name="Caller">
-          The <Mark color="red">annual</Mark> one — sorry, I mean the <Mark color="green">monthly</Mark> membership.
-        </Speaker>
-        <Speaker name="Agent">And how did you hear about us?</Speaker>
-        <Speaker name="Caller">My <Mark>colleague</Mark> recommended you.</Speaker>
-      </Transcript>
+      <PlayableTranscript lines={SLIDE4_LINES} />
 
       <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">FitLife Gym — Membership Enquiry Form</p>
@@ -504,14 +601,10 @@ function Slide4FormCompletion({ onComplete }: { onComplete: () => void }) {
           )}>
             {numCorrect === 4
               ? "All correct! Notice the distractor on membership type — the caller said 'annual' first, then corrected to 'monthly'."
-              : `${numCorrect}/4 correct. Correct answers appear in red on the right. Fix them and try again.`
-            }
+              : `${numCorrect}/4 correct. Fix the red fields and try again — listen again if needed.`}
           </div>
           {numCorrect < 4 && (
-            <button
-              onClick={() => { setChecked(false); setResults({}); }}
-              className="text-sm text-sky-600 hover:underline"
-            >
+            <button onClick={() => { setChecked(false); setResults({}); }} className="text-sm text-sky-600 hover:underline">
               Try again
             </button>
           )}
@@ -519,121 +612,102 @@ function Slide4FormCompletion({ onComplete }: { onComplete: () => void }) {
       )}
 
       {checked && numCorrect === 4 && (
-        <Tip>Listen for correction signals: "sorry, I mean…", "actually…", "no wait…" — these always announce that the previous word was a distractor.</Tip>
+        <Tip>Correction signals — "sorry, I mean…", "actually…", "no wait…" — always announce that the word you just heard was a distractor.</Tip>
       )}
     </div>
   );
 }
 
 // ─── SLIDE 5 — Multiple Choice ────────────────────────────────
+const SLIDE5_LINES: Line[] = [
+  {
+    speaker: "Tom",
+    text: "Should we focus on solar panels or wind turbines for the energy section?",
+    jsx: <>Should we focus on <Mark color="red">solar panels</Mark> or wind turbines for the energy section?</>,
+  },
+  {
+    speaker: "Lisa",
+    text: "I was thinking solar panels at first, but actually wind turbines fit our coastal location study better.",
+    jsx: <>I was thinking <Mark color="red">solar panels</Mark> at first, but actually <Mark color="green">wind turbines</Mark> fit our coastal location study better.</>,
+  },
+  { speaker: "Tom",  text: "Good point — and they're cheaper to model too." },
+  {
+    speaker: "Lisa",
+    text: "Exactly. Wind turbines it is.",
+    jsx: <>Exactly. <Mark color="green">Wind turbines</Mark> it is.</>,
+  },
+  {
+    speaker: "Tom",
+    text: "What's the main goal? I assumed it was about reducing costs, but the brief says something else.",
+    jsx: <>What's the main goal? I assumed it was about <Mark color="red">reducing costs</Mark>, but the brief says something else.</>,
+  },
+  {
+    speaker: "Lisa",
+    text: "No — the primary objective is to reduce carbon emissions. Cost is only a secondary concern.",
+    jsx: <>No — the primary objective is to <Mark color="green">reduce carbon emissions</Mark>. Cost is only a secondary concern.</>,
+  },
+];
+
 function Slide5MultipleChoice({ onComplete }: { onComplete: () => void }) {
   const [q1, setQ1] = useState<string | null>(null);
   const [q2, setQ2] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
-
-  const q1Correct = "B";
-  const q2Correct = "A";
+  const q1Correct = "B", q2Correct = "A";
 
   const confirm = () => {
     setConfirmed(true);
     if (q1 === q1Correct && q2 === q2Correct) onComplete();
   };
 
-  const optBtn = (val: string, text: string, chosen: string | null, correctVal: string) => (
-    <button
-      key={val}
-      onClick={() => {
-        if (confirmed) return;
-        if (chosen === q1) setQ1(val); else setQ2(val);
-      }}
-      className={cn(
-        "w-full text-left px-3 py-2 rounded-lg border text-sm transition-all",
-        !confirmed && chosen === val && "border-sky-400 bg-sky-50 text-sky-800",
-        !confirmed && chosen !== val && "border-gray-200 bg-white hover:border-gray-300",
-        confirmed && val === correctVal && "border-green-400 bg-green-50 text-green-800 font-medium",
-        confirmed && chosen === val && val !== correctVal && "border-red-400 bg-red-50 text-red-800",
-        confirmed && chosen !== val && val !== correctVal && "border-gray-200 bg-white opacity-50",
-      )}
-    >
-      {val}) {text}
-    </button>
-  );
-
   return (
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-bold text-gray-800">Multiple Choice — Sections 2 & 3</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Several options are mentioned in the recording. Only one is the correct final answer. Watch for speakers changing their minds.
+          Press Play to hear the conversation, then answer both questions. Watch for distractors.
         </p>
       </div>
 
-      <Transcript>
-        <Speaker name="Tom">Should we focus on <Mark color="red">solar panels</Mark> or wind turbines for the energy section?</Speaker>
-        <Speaker name="Lisa">
-          I was thinking <Mark color="red">solar panels</Mark> at first, but actually <Mark color="green">wind turbines</Mark> fit our coastal location study better.
-        </Speaker>
-        <Speaker name="Tom">Good point — and they're cheaper to model too.</Speaker>
-        <Speaker name="Lisa">Exactly. <Mark color="green">Wind turbines</Mark> it is.</Speaker>
-        <Speaker name="Tom">
-          What's the main goal? I assumed it was about <Mark color="red">reducing costs</Mark>, but the brief says something else.
-        </Speaker>
-        <Speaker name="Lisa">
-          No — the primary objective is to <Mark color="green">reduce carbon emissions</Mark>. Cost is only a secondary concern.
-        </Speaker>
-      </Transcript>
+      <PlayableTranscript lines={SLIDE5_LINES} />
 
       <div className="space-y-4">
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-gray-700">1. What type of energy do the students decide to focus on?</p>
-          {[["A", "Solar panels"], ["B", "Wind turbines"], ["C", "Hydroelectric power"]].map(([val, text]) => (
-            <button
-              key={val}
-              onClick={() => !confirmed && setQ1(val)}
-              className={cn(
-                "w-full text-left px-3 py-2 rounded-lg border text-sm transition-all",
-                !confirmed && q1 === val && "border-sky-400 bg-sky-50 text-sky-800",
-                !confirmed && q1 !== val && "border-gray-200 bg-white hover:border-gray-300",
-                confirmed && val === q1Correct && "border-green-400 bg-green-50 text-green-800 font-medium",
-                confirmed && q1 === val && val !== q1Correct && "border-red-400 bg-red-50 text-red-800",
-                confirmed && q1 !== val && val !== q1Correct && "border-gray-200 bg-white opacity-50",
-              )}
-            >
-              {val}) {text}
-            </button>
-          ))}
-        </div>
-
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-gray-700">2. What is the primary objective of the assignment?</p>
-          {[["A", "Reduce carbon emissions"], ["B", "Reduce costs"], ["C", "Improve energy efficiency"]].map(([val, text]) => (
-            <button
-              key={val}
-              onClick={() => !confirmed && setQ2(val)}
-              className={cn(
-                "w-full text-left px-3 py-2 rounded-lg border text-sm transition-all",
-                !confirmed && q2 === val && "border-sky-400 bg-sky-50 text-sky-800",
-                !confirmed && q2 !== val && "border-gray-200 bg-white hover:border-gray-300",
-                confirmed && val === q2Correct && "border-green-400 bg-green-50 text-green-800 font-medium",
-                confirmed && q2 === val && val !== q2Correct && "border-red-400 bg-red-50 text-red-800",
-                confirmed && q2 !== val && val !== q2Correct && "border-gray-200 bg-white opacity-50",
-              )}
-            >
-              {val}) {text}
-            </button>
-          ))}
-        </div>
+        {[
+          {
+            label: "1. What type of energy do the students decide to focus on?",
+            opts: [["A","Solar panels"],["B","Wind turbines"],["C","Hydroelectric power"]],
+            val: q1, set: setQ1, correct: q1Correct,
+          },
+          {
+            label: "2. What is the primary objective of the assignment?",
+            opts: [["A","Reduce carbon emissions"],["B","Reduce costs"],["C","Improve energy efficiency"]],
+            val: q2, set: setQ2, correct: q2Correct,
+          },
+        ].map((q, qi) => (
+          <div key={qi} className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-2">
+            <p className="text-sm font-semibold text-gray-700">{q.label}</p>
+            {q.opts.map(([v, text]) => (
+              <button key={v} onClick={() => !confirmed && q.set(v)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-lg border text-sm transition-all",
+                  !confirmed && q.val === v && "border-sky-400 bg-sky-50 text-sky-800",
+                  !confirmed && q.val !== v && "border-gray-200 bg-white hover:border-gray-300",
+                  confirmed && v === q.correct && "border-green-400 bg-green-50 text-green-800 font-medium",
+                  confirmed && q.val === v && v !== q.correct && "border-red-400 bg-red-50 text-red-800",
+                  confirmed && q.val !== v && v !== q.correct && "border-gray-200 bg-white opacity-50",
+                )}
+              >
+                {v}) {text}
+              </button>
+            ))}
+          </div>
+        ))}
       </div>
 
       {!confirmed ? (
-        <button
-          onClick={confirm}
-          disabled={!q1 || !q2}
-          className={cn(
-            "w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
+        <button onClick={confirm} disabled={!q1 || !q2}
+          className={cn("w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
             q1 && q2 ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          )}
-        >
+          )}>
           Check Answers
         </button>
       ) : (
@@ -643,8 +717,8 @@ function Slide5MultipleChoice({ onComplete }: { onComplete: () => void }) {
             : "bg-amber-50 border border-amber-200 text-amber-800"
         )}>
           <p className="font-semibold">{q1 === q1Correct && q2 === q2Correct ? "Both correct!" : "Review:"}</p>
-          <p>Q1: Wind turbines (B) — Lisa proposed solar panels first, then settled on wind turbines. The first option mentioned is almost always a distractor.</p>
-          <p>Q2: Reduce carbon emissions (A) — Tom assumed cost reduction, but Lisa corrected him with the actual objective from the brief.</p>
+          <p>Q1: Wind turbines (B) — Lisa first said solar panels, then settled on wind turbines.</p>
+          <p>Q2: Reduce carbon emissions (A) — Tom assumed cost reduction, but Lisa corrected him.</p>
         </div>
       )}
     </div>
@@ -652,16 +726,34 @@ function Slide5MultipleChoice({ onComplete }: { onComplete: () => void }) {
 }
 
 // ─── SLIDE 6 — Note Completion ────────────────────────────────
+const SLIDE6_LINES: Line[] = [
+  {
+    speaker: "Lecturer",
+    text: "Today we examine three types of memory. First: sensory memory — it stores information for just one or two seconds before it fades completely.",
+    jsx: <>Today we examine three types of memory. First: sensory memory — it stores information for just <Mark>one or two seconds</Mark> before it fades completely.</>,
+  },
+  {
+    speaker: "Lecturer",
+    text: "Second: short-term memory, also referred to as working memory. Research shows it can hold approximately seven items at any one time, though this varies between individuals.",
+    jsx: <>Second: short-term memory, also referred to as <Mark>working memory</Mark>. Research shows it can hold approximately <Mark>seven</Mark> items at any one time, though this varies between individuals.</>,
+  },
+  {
+    speaker: "Lecturer",
+    text: "Finally, long-term memory can hold unlimited information for decades. And the key mechanism for transferring from short-term to long-term storage? Sleep. During sleep, the brain consolidates what we learned during the day.",
+    jsx: <>Finally, long-term memory can hold unlimited information for decades. And the key mechanism for transferring from short-term to long-term storage? <Mark>Sleep</Mark>. During sleep, the brain consolidates what we learned during the day.</>,
+  },
+];
+
 function Slide6NoteCompletion({ onComplete }: { onComplete: () => void }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
   const [results, setResults] = useState<Record<string, boolean>>({});
 
   const fields: { id: string; label: string; accepted: string[] }[] = [
-    { id: "duration",  label: "Sensory memory lasts:",         accepted: ["1-2", "one or two", "one to two", "1 or 2", "a second", "1 or 2 seconds"] },
+    { id: "duration",  label: "Sensory memory lasts:",          accepted: ["1-2", "one or two", "one to two", "1 or 2", "a second"] },
     { id: "capacity",  label: "Short-term memory holds about:", accepted: ["7", "seven"] },
     { id: "alias",     label: "Short-term memory also called:", accepted: ["working"] },
-    { id: "mechanism", label: "Transfer mechanism:",           accepted: ["sleep"] },
+    { id: "mechanism", label: "Transfer mechanism:",            accepted: ["sleep"] },
   ];
 
   const checkAnswers = () => {
@@ -672,8 +764,7 @@ function Slide6NoteCompletion({ onComplete }: { onComplete: () => void }) {
     });
     setResults(r);
     setChecked(true);
-    const n = Object.values(r).filter(Boolean).length;
-    if (n >= 3) onComplete();
+    if (Object.values(r).filter(Boolean).length >= 3) onComplete();
   };
 
   const allFilled = fields.every(f => (answers[f.id] ?? "").trim().length > 0);
@@ -683,23 +774,10 @@ function Slide6NoteCompletion({ onComplete }: { onComplete: () => void }) {
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-bold text-gray-800">Note Completion — Section 4</h2>
-        <p className="text-sm text-gray-500 mt-1">Academic lecture — the hardest section. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each gap.</p>
+        <p className="text-sm text-gray-500 mt-1">Academic lecture. Press Play, then fill in the gaps. Write NO MORE THAN TWO WORDS AND/OR A NUMBER.</p>
       </div>
 
-      <Transcript label="Section 4 — Academic Lecture">
-        <Speaker name="Lecturer">
-          Today we examine three types of memory. First: sensory memory — it stores information for just{" "}
-          <Mark>one or two seconds</Mark> before it fades completely.
-        </Speaker>
-        <Speaker name="Lecturer">
-          Second: short-term memory, also referred to as <Mark>working memory</Mark>. Research shows it can hold approximately{" "}
-          <Mark>seven</Mark> items at any one time, though this varies between individuals.
-        </Speaker>
-        <Speaker name="Lecturer">
-          Finally, long-term memory can hold unlimited information for decades. And the key mechanism for transferring from short-term to long-term storage?{" "}
-          <Mark>Sleep</Mark>. During sleep, the brain consolidates what we learned during the day.
-        </Speaker>
-      </Transcript>
+      <PlayableTranscript label="Section 4 — Academic Lecture" lines={SLIDE6_LINES} />
 
       <div className="rounded-xl border-2 border-dashed border-gray-300 bg-white p-4 space-y-3">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Lecture Notes — Types of Memory</p>
@@ -731,14 +809,10 @@ function Slide6NoteCompletion({ onComplete }: { onComplete: () => void }) {
       </div>
 
       {!checked ? (
-        <button
-          onClick={checkAnswers}
-          disabled={!allFilled}
-          className={cn(
-            "w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
+        <button onClick={checkAnswers} disabled={!allFilled}
+          className={cn("w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
             allFilled ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          )}
-        >
+          )}>
           Check Answers
         </button>
       ) : (
@@ -746,9 +820,8 @@ function Slide6NoteCompletion({ onComplete }: { onComplete: () => void }) {
           numCorrect >= 3 ? "bg-green-50 border border-green-200 text-green-800" : "bg-amber-50 border border-amber-200 text-amber-800"
         )}>
           {numCorrect >= 3
-            ? `${numCorrect}/4 correct — great work! Section 4 is the hardest section; missing one is still a strong result.`
-            : `${numCorrect}/4 correct. Review the transcript and trace exactly where each answer appeared.`
-          }
+            ? `${numCorrect}/4 correct — great work! Section 4 is the hardest section; missing one is still strong.`
+            : `${numCorrect}/4 — press Play again and trace exactly where each answer appeared.`}
         </div>
       )}
     </div>
@@ -756,6 +829,29 @@ function Slide6NoteCompletion({ onComplete }: { onComplete: () => void }) {
 }
 
 // ─── SLIDE 7 — Map Labeling ──────────────────────────────────
+const SLIDE7_LINES: Line[] = [
+  {
+    speaker: "Guide",
+    text: "As you enter through the main entrance at the bottom of the building, the reception desk is immediately on your left.",
+    jsx: <>As you enter through the main entrance at the bottom of the building, the <Mark>reception desk</Mark> is immediately on your left.</>,
+  },
+  {
+    speaker: "Guide",
+    text: "Directly to your right — on the east side — you will find the café, perfect for grabbing a coffee before your session.",
+    jsx: <>Directly to your right — on the east side — you will find the <Mark>café</Mark>, perfect for grabbing a coffee before your session.</>,
+  },
+  {
+    speaker: "Guide",
+    text: "Head to the back of the building now. In the rear-left corner you will find the library — floor to ceiling shelves with an impressive collection.",
+    jsx: <>Head to the back of the building now. In the rear-left corner you will find the <Mark>library</Mark> — floor to ceiling shelves with an impressive collection.</>,
+  },
+  {
+    speaker: "Guide",
+    text: "And the study room is in the rear-right corner. It has twenty individual workstations, ideal for focused exam practice.",
+    jsx: <>And the <Mark>study room</Mark> is in the rear-right corner. It has twenty individual workstations, ideal for focused exam practice.</>,
+  },
+];
+
 function Slide7MapLabeling({ onComplete }: { onComplete: () => void }) {
   const [sel, setSel] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
@@ -789,37 +885,20 @@ function Slide7MapLabeling({ onComplete }: { onComplete: () => void }) {
       <div>
         <h2 className="text-xl font-bold text-gray-800">Map / Plan Labeling — Section 2</h2>
         <p className="text-sm text-gray-500 mt-1">
-          A guide describes a building layout. Label each location (A–D) using the word bank below. Two options are distractors.
+          Press Play to hear the guide, then label each location. Two words in the bank are distractors.
         </p>
       </div>
 
       <div className="flex items-start gap-2 p-3 rounded-xl bg-sky-50 border border-sky-200 text-sm text-sky-800">
         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-sky-500" />
-        <span>Strategy: identify the entrance first, then follow each directional word step by step (left, right, behind, straight ahead).</span>
+        <span>Strategy: anchor at the entrance first, then follow each directional word step by step.</span>
       </div>
 
-      <Transcript label="Section 2 — Community Centre Tour">
-        <Speaker name="Guide">
-          As you enter through the main entrance at the bottom of the building, the{" "}
-          <Mark>reception desk</Mark> is immediately on your left.
-        </Speaker>
-        <Speaker name="Guide">
-          Directly to your right — on the east side — you will find the <Mark>café</Mark>, perfect for grabbing a coffee before your session.
-        </Speaker>
-        <Speaker name="Guide">
-          Head to the back of the building now. In the rear-left corner you will find the{" "}
-          <Mark>library</Mark> — floor to ceiling shelves with an impressive collection.
-        </Speaker>
-        <Speaker name="Guide">
-          And the <Mark>study room</Mark> is in the rear-right corner. It has twenty individual workstations, ideal for focused exam practice.
-        </Speaker>
-      </Transcript>
+      <PlayableTranscript label="Section 2 — Community Centre Tour" lines={SLIDE7_LINES} />
 
-      {/* Floor plan grid */}
       <div className="space-y-2">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Floor Plan — Community Centre</p>
         <div className="bg-gray-100 rounded-xl p-3 space-y-2">
-          {/* Top row (rear of building) */}
           {grid.map((row, ri) => (
             <div key={ri} className="flex gap-2">
               {row.map(loc => (
@@ -846,14 +925,13 @@ function Slide7MapLabeling({ onComplete }: { onComplete: () => void }) {
               ))}
             </div>
           ))}
-          {/* Entrance indicator */}
           <div className="flex justify-center pt-1">
             <div className="bg-sky-100 border border-sky-300 rounded-lg px-4 py-1 text-xs text-sky-700 font-semibold">
               ↑ Main Entrance
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-1.5 mt-1">
+        <div className="flex flex-wrap gap-1.5">
           <span className="text-[10px] text-gray-400 uppercase tracking-wide mr-1">Word bank:</span>
           {options.map(o => (
             <span key={o} className="text-xs bg-gray-100 border border-gray-200 text-gray-600 px-2 py-0.5 rounded">{o}</span>
@@ -862,14 +940,10 @@ function Slide7MapLabeling({ onComplete }: { onComplete: () => void }) {
       </div>
 
       {!checked ? (
-        <button
-          onClick={checkAnswers}
-          disabled={!allFilled}
-          className={cn(
-            "w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
+        <button onClick={checkAnswers} disabled={!allFilled}
+          className={cn("w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
             allFilled ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          )}
-        >
+          )}>
           Check Map Labels
         </button>
       ) : (
@@ -877,9 +951,8 @@ function Slide7MapLabeling({ onComplete }: { onComplete: () => void }) {
           numCorrect >= 3 ? "bg-green-50 border border-green-200 text-green-800" : "bg-amber-50 border border-amber-200 text-amber-800"
         )}>
           {numCorrect >= 3
-            ? `${numCorrect}/4 correct. Key strategy: anchor at the entrance, then trace each directional word one step at a time.`
-            : `${numCorrect}/4 — re-read the transcript and follow each direction from the entrance. Correct labels are shown in green.`
-          }
+            ? `${numCorrect}/4 correct. Key: anchor at the entrance, then trace each directional word one step at a time.`
+            : `${numCorrect}/4 — press Play again and follow each direction from the entrance. Correct answers shown in green.`}
         </div>
       )}
     </div>
@@ -889,34 +962,25 @@ function Slide7MapLabeling({ onComplete }: { onComplete: () => void }) {
 // ─── SLIDE 8 — Final Quiz ─────────────────────────────────────
 function Slide8Quiz({ onComplete }: { onComplete: () => void }) {
   const questions = [
-    {
-      q: "How many sections does IELTS Listening have?",
-      opts: ["3", "4", "5", "6"],
-      answer: "4",
-    },
+    { q: "How many sections does IELTS Listening have?", opts: ["3","4","5","6"], answer: "4" },
     {
       q: 'The word limit is "NO MORE THAN TWO WORDS". Which answer is acceptable?',
-      opts: ["a monthly plan", "monthly plan", "the monthly plan", "monthly planning"],
+      opts: ["a monthly plan","monthly plan","the monthly plan","monthly planning"],
       answer: "monthly plan",
     },
     {
       q: 'A caller says "Could we do Tuesday? Actually no — Thursday." What do you write?',
-      opts: ["Tuesday", "Thursday", "Tuesday or Thursday", "Wait for further confirmation"],
+      opts: ["Tuesday","Thursday","Tuesday or Thursday","Wait for further confirmation"],
       answer: "Thursday",
     },
     {
-      q: "Which section of IELTS Listening typically features a university lecture?",
-      opts: ["Section 1", "Section 2", "Section 3", "Section 4"],
+      q: "Which section typically features a university lecture?",
+      opts: ["Section 1","Section 2","Section 3","Section 4"],
       answer: "Section 4",
     },
     {
       q: "What is the best use of the 30-second preview time before each section?",
-      opts: [
-        "Rest your ears and relax",
-        "Read ahead and predict answer types",
-        "Check spelling from the previous section",
-        "Count the total questions remaining",
-      ],
+      opts: ["Rest your ears and relax","Read ahead and predict answer types","Check spelling from the previous section","Count the total questions remaining"],
       answer: "Read ahead and predict answer types",
     },
   ];
@@ -926,8 +990,7 @@ function Slide8Quiz({ onComplete }: { onComplete: () => void }) {
 
   const submit = () => {
     setSubmitted(true);
-    const correct = questions.filter((q, i) => choices[i] === q.answer).length;
-    if (correct >= 4) onComplete();
+    if (questions.filter((q, i) => choices[i] === q.answer).length >= 4) onComplete();
   };
 
   const numCorrect = submitted ? questions.filter((q, i) => choices[i] === q.answer).length : 0;
@@ -936,7 +999,7 @@ function Slide8Quiz({ onComplete }: { onComplete: () => void }) {
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-bold text-gray-800">Final Quiz</h2>
-        <p className="text-sm text-gray-500 mt-1">5 questions covering everything you have learned. Score 4/5 to complete the tutorial.</p>
+        <p className="text-sm text-gray-500 mt-1">5 questions. Score 4/5 to complete the tutorial.</p>
       </div>
       <div className="space-y-4">
         {questions.map((q, qi) => (
@@ -944,12 +1007,9 @@ function Slide8Quiz({ onComplete }: { onComplete: () => void }) {
             <p className="text-sm font-semibold text-gray-700">{qi + 1}. {q.q}</p>
             <div className="space-y-1.5">
               {q.opts.map(opt => {
-                const chosen = choices[qi] === opt;
-                const correct = opt === q.answer;
+                const chosen = choices[qi] === opt, correct = opt === q.answer;
                 return (
-                  <button
-                    key={opt}
-                    onClick={() => !submitted && setChoices(c => ({ ...c, [qi]: opt }))}
+                  <button key={opt} onClick={() => !submitted && setChoices(c => ({ ...c, [qi]: opt }))}
                     className={cn(
                       "w-full text-left px-3 py-2 rounded-lg border text-sm transition-all",
                       !submitted && chosen && "border-sky-400 bg-sky-50 text-sky-800",
@@ -957,8 +1017,7 @@ function Slide8Quiz({ onComplete }: { onComplete: () => void }) {
                       submitted && correct && "border-green-400 bg-green-50 text-green-800 font-medium",
                       submitted && chosen && !correct && "border-red-400 bg-red-50 text-red-800",
                       submitted && !chosen && !correct && "border-gray-200 bg-white opacity-50",
-                    )}
-                  >
+                    )}>
                     {opt}
                   </button>
                 );
@@ -967,30 +1026,22 @@ function Slide8Quiz({ onComplete }: { onComplete: () => void }) {
           </div>
         ))}
       </div>
-
       {!submitted ? (
-        <button
-          onClick={submit}
-          disabled={Object.keys(choices).length < questions.length}
-          className={cn(
-            "w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
-            Object.keys(choices).length === questions.length
-              ? "bg-sky-600 text-white hover:bg-sky-700"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          )}
-        >
+        <button onClick={submit} disabled={Object.keys(choices).length < questions.length}
+          className={cn("w-full py-2.5 rounded-xl text-sm font-semibold transition-all",
+            Object.keys(choices).length === questions.length ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          )}>
           Submit Quiz
         </button>
       ) : (
-        <div className={cn(
-          "rounded-xl p-5 text-center space-y-1",
+        <div className={cn("rounded-xl p-5 text-center space-y-1",
           numCorrect >= 4 ? "bg-green-50 border border-green-200 text-green-800" : "bg-amber-50 border border-amber-200 text-amber-800"
         )}>
           <p className="text-3xl font-bold">{numCorrect}/5</p>
           <p className="text-sm">
             {numCorrect >= 4
-              ? "Excellent — you have mastered the IELTS Listening fundamentals. Now apply these skills in the Listening module."
-              : "Good effort. Review the slides on any topics you missed and try again to complete the tutorial."}
+              ? "Excellent — fundamentals mastered. Now apply these skills in the Listening module."
+              : "Good effort. Review any missed topics and try again to complete."}
           </p>
         </div>
       )}
@@ -1000,18 +1051,10 @@ function Slide8Quiz({ onComplete }: { onComplete: () => void }) {
 
 // ─── constants ────────────────────────────────────────────────
 const SLIDE_TITLES = [
-  "The 4 Sections",
-  "Golden Rules",
-  "Paraphrase Training",
-  "Distractor Alert",
-  "Form Completion",
-  "Multiple Choice",
-  "Note Completion",
-  "Map Labeling",
-  "Final Quiz",
+  "The 4 Sections","Golden Rules","Paraphrase Training","Distractor Alert",
+  "Form Completion","Multiple Choice","Note Completion","Map Labeling","Final Quiz",
 ];
-
-const SECTION_LABELS = ["Sections", "Rules", "Paraphrase", "Distractors", "Form", "MCQ", "Notes", "Map", "Quiz"];
+const SECTION_LABELS = ["Sections","Rules","Paraphrase","Distractors","Form","MCQ","Notes","Map","Quiz"];
 
 // ─── main export ──────────────────────────────────────────────
 export function ListeningTutorial() {
@@ -1021,159 +1064,109 @@ export function ListeningTutorial() {
   const [completed, setCompleted] = useState<boolean[]>(Array(9).fill(false));
 
   const markComplete = (i: number) => {
-    setCompleted(prev => {
-      if (prev[i]) return prev;
-      const next = [...prev];
-      next[i] = true;
-      return next;
-    });
+    setCompleted(prev => { if (prev[i]) return prev; const next = [...prev]; next[i] = true; return next; });
   };
 
   const canNext = completed[slide] && slide < 8;
 
-  const go = (dir: number) => {
-    setDirection(dir);
-    setSlide(s => s + dir);
-  };
+  const go = (dir: number) => { setDirection(dir); setSlide(s => s + dir); };
 
   const jumpTo = (i: number) => {
     if (i === slide) return;
-    if (i <= slide || completed[i]) {
-      setDirection(i > slide ? 1 : -1);
-      setSlide(i);
-    }
+    if (i <= slide || completed[i]) { setDirection(i > slide ? 1 : -1); setSlide(i); }
   };
 
   const slides = [
-    <Slide0Sections onComplete={() => markComplete(0)} />,
-    <Slide1Rules    onComplete={() => markComplete(1)} />,
-    <Slide2Paraphrase onComplete={() => markComplete(2)} />,
-    <Slide3Distractors onComplete={() => markComplete(3)} />,
-    <Slide4FormCompletion onComplete={() => markComplete(4)} />,
-    <Slide5MultipleChoice onComplete={() => markComplete(5)} />,
-    <Slide6NoteCompletion onComplete={() => markComplete(6)} />,
-    <Slide7MapLabeling    onComplete={() => markComplete(7)} />,
-    <Slide8Quiz           onComplete={() => markComplete(8)} />,
+    <Slide0Sections key={0} onComplete={() => markComplete(0)} />,
+    <Slide1Rules    key={1} onComplete={() => markComplete(1)} />,
+    <Slide2Paraphrase key={2} onComplete={() => markComplete(2)} />,
+    <Slide3Distractors key={3} onComplete={() => markComplete(3)} />,
+    <Slide4FormCompletion key={4} onComplete={() => markComplete(4)} />,
+    <Slide5MultipleChoice key={5} onComplete={() => markComplete(5)} />,
+    <Slide6NoteCompletion key={6} onComplete={() => markComplete(6)} />,
+    <Slide7MapLabeling    key={7} onComplete={() => markComplete(7)} />,
+    <Slide8Quiz           key={8} onComplete={() => markComplete(8)} />,
   ];
 
-  const portal = open
-    ? createPortal(
-        <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white shrink-0">
-            <div className="flex items-center gap-3">
-              <Volume2 className="w-5 h-5 text-sky-500" />
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">IELTS Listening · MudahinAja</p>
-                <p className="text-sm font-semibold text-gray-800">{SLIDE_TITLES[slide]}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Close tutorial"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+  const portal = open ? createPortal(
+    <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white shrink-0">
+        <div className="flex items-center gap-3">
+          <Volume2 className="w-5 h-5 text-sky-500" />
+          <div>
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">IELTS Listening · MudahinAja</p>
+            <p className="text-sm font-semibold text-gray-800">{SLIDE_TITLES[slide]}</p>
           </div>
+        </div>
+        <button onClick={() => { window.speechSynthesis?.cancel(); setOpen(false); }}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Close tutorial">
+          <X className="w-5 h-5 text-gray-500" />
+        </button>
+      </div>
 
-          {/* Section label bar */}
-          <div className="flex overflow-x-auto border-b border-gray-100 bg-gray-50 shrink-0">
-            {SECTION_LABELS.map((label, i) => (
-              <button
-                key={i}
-                onClick={() => jumpTo(i)}
-                className={cn(
-                  "px-4 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 shrink-0",
-                  slide === i
-                    ? "border-sky-500 text-sky-700 bg-sky-50"
-                    : completed[i]
-                    ? "border-green-300 text-green-600 hover:bg-green-50"
-                    : i <= slide
-                    ? "border-transparent text-gray-500 hover:bg-gray-100"
-                    : "border-transparent text-gray-300 cursor-default"
-                )}
-              >
-                {completed[i] ? "✓ " : ""}{label}
-              </button>
-            ))}
-          </div>
+      <div className="flex overflow-x-auto border-b border-gray-100 bg-gray-50 shrink-0">
+        {SECTION_LABELS.map((label, i) => (
+          <button key={i} onClick={() => jumpTo(i)}
+            className={cn(
+              "px-4 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 shrink-0",
+              slide === i ? "border-sky-500 text-sky-700 bg-sky-50"
+                : completed[i] ? "border-green-300 text-green-600 hover:bg-green-50"
+                : i <= slide ? "border-transparent text-gray-500 hover:bg-gray-100"
+                : "border-transparent text-gray-300 cursor-default"
+            )}>
+            {completed[i] ? "✓ " : ""}{label}
+          </button>
+        ))}
+      </div>
 
-          {/* Slide content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative max-w-2xl mx-auto px-6 py-8">
-              <AnimatePresence custom={direction} mode="wait">
-                <motion.div
-                  key={slide}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                >
-                  {slides[slide]}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="relative max-w-2xl mx-auto px-6 py-8">
+          <AnimatePresence custom={direction} mode="wait">
+            <motion.div key={slide} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit">
+              {slides[slide]}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
 
-          {/* Footer nav */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-white shrink-0">
-            <button
-              onClick={() => go(-1)}
-              disabled={slide === 0}
-              className={cn(
-                "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all",
-                slide > 0 ? "text-gray-600 hover:bg-gray-100" : "text-gray-300 cursor-not-allowed"
-              )}
-            >
-              <ChevronLeft className="w-4 h-4" /> Back
-            </button>
+      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-white shrink-0">
+        <button onClick={() => go(-1)} disabled={slide === 0}
+          className={cn("flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all",
+            slide > 0 ? "text-gray-600 hover:bg-gray-100" : "text-gray-300 cursor-not-allowed"
+          )}>
+          <ChevronLeft className="w-4 h-4" /> Back
+        </button>
 
-            <div className="flex gap-1.5">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "h-2 rounded-full transition-all",
-                    i === slide ? "bg-sky-500 w-4" : completed[i] ? "bg-green-400 w-2" : "bg-gray-200 w-2"
-                  )}
-                />
-              ))}
-            </div>
+        <div className="flex gap-1.5">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className={cn("h-2 rounded-full transition-all",
+              i === slide ? "bg-sky-500 w-4" : completed[i] ? "bg-green-400 w-2" : "bg-gray-200 w-2"
+            )} />
+          ))}
+        </div>
 
-            {slide < 8 ? (
-              <button
-                onClick={() => canNext && go(1)}
-                disabled={!canNext}
-                className={cn(
-                  "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all",
-                  canNext ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next <ChevronRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-all"
-              >
-                <CheckCircle className="w-4 h-4" /> Finish
-              </button>
-            )}
-          </div>
-        </div>,
-        document.body
-      )
-    : null;
+        {slide < 8 ? (
+          <button onClick={() => canNext && go(1)} disabled={!canNext}
+            className={cn("flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all",
+              canNext ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            )}>
+            Next <ChevronRight className="w-4 h-4" />
+          </button>
+        ) : (
+          <button onClick={() => { window.speechSynthesis?.cancel(); setOpen(false); }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-all">
+            <CheckCircle className="w-4 h-4" /> Finish
+          </button>
+        )}
+      </div>
+    </div>,
+    document.body
+  ) : null;
 
   return (
     <>
       {portal}
-      <div
-        className="glass-card p-6 cursor-pointer hover:shadow-lg transition-all border border-sky-200/50"
-        onClick={() => setOpen(true)}
-      >
+      <div className="glass-card p-6 cursor-pointer hover:shadow-lg transition-all border border-sky-200/50" onClick={() => setOpen(true)}>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
             <Volume2 className="w-6 h-6 text-sky-600" />
