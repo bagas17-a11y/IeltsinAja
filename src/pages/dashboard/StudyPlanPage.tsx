@@ -20,6 +20,17 @@ import { cn } from "@/lib/utils";
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
+interface VocabExample {
+  label: string;    // e.g. "Writing Task 2", "Speaking Part 3"
+  sentence: string;
+}
+
+interface VocabItem {
+  term: string;
+  replaces?: string; // weaker word this upgrades
+  examples: VocabExample[];
+}
+
 interface StudyTask {
   id: string;
   label: string;
@@ -27,6 +38,7 @@ interface StudyTask {
   resourcePath?: string;
   resourceLabel?: string;
   minutes: number;
+  vocabList?: VocabItem[];  // optional expandable word list with examples
 }
 
 interface StudyWeek {
@@ -259,83 +271,338 @@ const POLISHING_PLAN: TierPlan = {
   bandRange: "7.0–8.0",
   targetBand: "8.0–8.5",
   headline: "The final push to Band 8+",
-  description: "You are already performing at a high level. The gap to Band 8 is precision — precise vocabulary, varied grammar, and nuanced argument. Six focused weeks, one key skill per week, will close the remaining distance.",
+  description: "You are already at a high level. The gap to Band 8 is precision — exact vocabulary choices, varied grammar, and nuanced argument. Four focused weeks, one skill cluster per week.",
   color: "amber",
   weeks: [
     {
-      week: 1, theme: "Advanced Vocabulary — Precision & Register", focus: "Vocabulary",
+      week: 1, theme: "Precision Vocabulary", focus: "Vocabulary",
       color: "blue",
-      rationale: "The lexical gap between Band 7 and Band 8 is precision. At Band 7, vocabulary is 'flexible and precise.' At Band 8, you use 'uncommon lexical items with awareness of style and collocation.' Add hedging language (which signals critical thinking), replace all generic adjectives, and master nominalization.",
+      rationale: "The difference between Band 7 and Band 8 vocabulary is not more words — it is precision and collocation. Replace overused adjectives, add hedging language that signals critical thinking, and master nominalization. These three upgrades affect every sentence you write.",
       tasks: [
-        { id: "p-w1-t1", label: "Vocabulary Audit: Replace the 30 Most Overused Words", description: "In your last writing submission, find and replace every instance of: good → beneficial/advantageous/substantial; bad → detrimental/harmful/adverse; important → pivotal/paramount/critical; very → considerably/significantly/markedly; people think → a growing body of opinion suggests.", minutes: 30 },
-        { id: "p-w1-t2", label: "Vocabulary: Hedging Language — 10 Essential Phrases", description: "Memorise: 'It could be argued that…', 'There is a tendency to…', 'Evidence suggests that…', 'One might contend that…', 'It remains to be seen whether…', 'This is not to say that…', 'To varying degrees…', 'In certain contexts…'. Use at least 3 per essay.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 20 },
-        { id: "p-w1-t3", label: "Vocabulary: Nominalization — Verbs to Nouns", description: "Convert verb structures to noun phrases for academic register: 'governments increase spending' → 'an increase in government spending'; 'technology helps solve' → 'the contribution of technology to solving'; 'people fail to consider' → 'a failure to consider'. Nominalization makes writing denser and more academic.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 20 },
-        { id: "p-w1-t4", label: "Flashcards: Advanced Topic Vocabulary", description: "Focus on low-frequency IELTS vocabulary from your 3 weakest topic areas. Aim to learn 10 new collocations per topic that you have never used in an essay before.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 25 },
-        { id: "p-w1-t5", label: "Writing Practice: Zero Generic Words, 3+ Hedging Phrases", description: "Submit a Task 2 with these personal rules: no generic adjectives (good/bad/important), no 'very' or 'a lot', and at least 3 hedging phrases. Count them before submitting.", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 45 },
+        {
+          id: "p-w1-t1",
+          label: "Upgrade: Replace Your 5 Most Overused Words",
+          description: "Each word below is almost certainly in every essay you write. Use the slideshow to see the precise replacement and how it fits naturally in a Task 2 sentence and a Speaking Part 3 answer.",
+          minutes: 25,
+          vocabList: [
+            {
+              term: "beneficial / advantageous",
+              replaces: "good",
+              examples: [
+                { label: "Writing Task 2", sentence: "Stricter environmental regulations are undeniably beneficial for future generations, even if they impose short-term economic costs." },
+                { label: "Speaking Part 3", sentence: "I think it's highly advantageous for students to study abroad, since exposure to different cultures builds real independence." },
+              ],
+            },
+            {
+              term: "detrimental / adverse",
+              replaces: "bad",
+              examples: [
+                { label: "Writing Task 2", sentence: "Excessive screen time has a detrimental impact on children's social development and academic performance." },
+                { label: "Speaking Part 3", sentence: "The adverse effects of social media on mental health are well-documented, particularly among teenagers." },
+              ],
+            },
+            {
+              term: "pivotal / paramount",
+              replaces: "important",
+              examples: [
+                { label: "Writing Task 2", sentence: "Access to quality education is paramount in addressing long-term economic inequality." },
+                { label: "Speaking Part 1", sentence: "Family plays a pivotal role in shaping a person's values from an early age." },
+              ],
+            },
+            {
+              term: "considerably / markedly",
+              replaces: "very",
+              examples: [
+                { label: "Writing Task 2", sentence: "Urban populations have grown considerably faster than rural areas over the past three decades." },
+                { label: "Writing Task 1", sentence: "Renewable energy output increased markedly between 2010 and 2020, rising from 18% to 34% of total generation." },
+              ],
+            },
+            {
+              term: "a growing body of opinion suggests",
+              replaces: "people think",
+              examples: [
+                { label: "Writing Task 2", sentence: "A growing body of opinion suggests that remote working will permanently reshape urban planning and commuter infrastructure." },
+                { label: "Speaking Part 3", sentence: "A growing body of opinion suggests that traditional schooling is no longer sufficient preparation for a technology-driven economy." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "p-w1-t2",
+          label: "Hedging Language: 6 Phrases That Signal Band 8 Thinking",
+          description: "Hedging phrases show the examiner you understand nuance — a key Band 8 quality. Each phrase below softens an argument without weakening your position. Use the slideshow to see each one in context.",
+          minutes: 20,
+          vocabList: [
+            {
+              term: "It could be argued that…",
+              examples: [
+                { label: "Writing Task 2 (counter-argument)", sentence: "It could be argued that stricter gun laws infringe on individual freedoms; however, public safety must ultimately take precedence." },
+                { label: "Speaking Part 3", sentence: "It could be argued that universities are losing relevance, though I personally think they still provide irreplaceable social learning." },
+              ],
+            },
+            {
+              term: "Evidence suggests that…",
+              examples: [
+                { label: "Writing Task 2 (body paragraph)", sentence: "Evidence suggests that children who read for pleasure outperform their peers academically across all subjects, not just literacy." },
+                { label: "Speaking Part 3", sentence: "Evidence suggests that hybrid working models actually increase productivity, contrary to initial employer concerns." },
+              ],
+            },
+            {
+              term: "This is not to say that…",
+              examples: [
+                { label: "Writing Task 2 (concession)", sentence: "This is not to say that economic growth is irrelevant — merely that it cannot be pursued at the expense of environmental sustainability." },
+                { label: "Speaking Part 3", sentence: "This is not to say that tradition has no value, but rather that it must adapt alongside societal change." },
+              ],
+            },
+            {
+              term: "To varying degrees…",
+              examples: [
+                { label: "Writing Task 2 (qualification)", sentence: "To varying degrees, all developed nations have implemented some form of carbon pricing mechanism over the last decade." },
+                { label: "Speaking Part 3", sentence: "To varying degrees, people across different cultures place importance on collectivism over individual achievement." },
+              ],
+            },
+            {
+              term: "One might contend that…",
+              examples: [
+                { label: "Writing Task 2 (introducing other view)", sentence: "One might contend that automation leads to unemployment; in reality, history shows it tends to shift rather than eliminate work." },
+                { label: "Speaking Part 3", sentence: "One might contend that young people are less politically engaged, though online activism suggests otherwise." },
+              ],
+            },
+            {
+              term: "It remains to be seen whether…",
+              examples: [
+                { label: "Writing Task 2 (conclusion)", sentence: "It remains to be seen whether artificial intelligence will ultimately create more jobs than it displaces." },
+                { label: "Speaking Part 3", sentence: "It remains to be seen whether electric vehicles will achieve the price parity needed for mass adoption within this decade." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "p-w1-t3",
+          label: "Writing Practice: Apply All Upgrades in One Essay",
+          description: "Submit a Task 2 with these non-negotiable rules: no 'good', 'bad', 'important', or 'very'; at least 3 hedging phrases; at least one nominalized structure (e.g. 'the failure of governments to act' instead of 'governments do not act').",
+          resourcePath: "/dashboard/writing",
+          resourceLabel: "Open Writing Module",
+          minutes: 45,
+        },
       ],
     },
     {
-      week: 2, theme: "Writing Task 1 — Band 9 Data Selection", focus: "Writing",
+      week: 2, theme: "Task 1 Mastery", focus: "Writing",
       color: "green",
-      rationale: "At Band 7 you group data well. At Band 9 you select only the 3–5 most significant data points. The skill is knowing what NOT to include. Your overview captures the single most striking overall trend in 1–2 precise sentences. Every word earns its place.",
+      rationale: "At Band 7 you describe data accurately. At Band 8 you select only the most significant patterns and describe them with pinpoint language. The overview is one precise sentence per major trend; the body groups data by pattern, not by order. This week you perfect both.",
       tasks: [
-        { id: "p-w2-t1", label: "Writing Practice: Task 1 — Selective Data Only", description: "Before writing: identify the 3–5 most striking data points. Ask: 'If I could only tell someone 3 things about this data, what would they be?' Write those 3 things only. Submit and check if the model agrees.", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 45 },
-        { id: "p-w2-t2", label: "Vocabulary: High-Precision Comparison Phrases", description: "Memorise: 'constituted approximately', 'accounted for roughly', 'equivalent to just over', 'in excess of', 'fell considerably short of', 'was dwarfed by', 'peaked at', 'bottomed out at', 'levelled off at around'. These replace 'was about' and 'was more than'.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 20 },
-        { id: "p-w2-t3", label: "Grammar: Passive Voice in Academic Description", description: "Practice these structures: 'was recorded at', 'can be observed that', 'is illustrated by', 'were attributed to', 'were distributed across', 'was subsequently surpassed by'. Passive voice is preferred in formal data description.", minutes: 20 },
-        { id: "p-w2-t4", label: "Overview Quality Check", description: "Read your last 3 Task 1 overviews. For each: does it contain any specific numbers? (It shouldn't.) Does it identify the most striking feature of the data? Does it use precise language rather than vague descriptions?", minutes: 20 },
-        { id: "p-w2-t5", label: "Writing Practice: Second Task 1 — Under 180 Words", description: "Challenge: write a Task 1 response in fewer than 180 words that still earns full marks. This forces you to be selective — every sentence must earn its place.", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 35 },
+        {
+          id: "p-w2-t1",
+          label: "Data Language: High-Precision Comparison Phrases",
+          description: "Replace vague phrases like 'was more than' or 'went up a lot' with precise academic language. Use the slideshow to see each phrase in an authentic Task 1 context.",
+          minutes: 20,
+          vocabList: [
+            {
+              term: "constituted approximately / accounted for roughly",
+              examples: [
+                { label: "Task 1 (pie chart)", sentence: "Oil and gas constituted approximately 68% of total energy consumption in 2005, making them by far the dominant sources." },
+                { label: "Task 1 (bar chart)", sentence: "Renewable sources accounted for roughly a quarter of electricity generation by 2020, up from just 9% a decade earlier." },
+              ],
+            },
+            {
+              term: "was dwarfed by / fell considerably short of",
+              examples: [
+                { label: "Task 1 (comparison)", sentence: "China's manufacturing output was dwarfed by its services sector by 2015, which had grown to nearly three times its size." },
+                { label: "Task 1 (contrast)", sentence: "Public transport usage in rural areas fell considerably short of urban levels throughout the period shown." },
+              ],
+            },
+            {
+              term: "peaked at / bottomed out at / levelled off at around",
+              examples: [
+                { label: "Task 1 (line graph — peak)", sentence: "Tourist arrivals peaked at just over 4.2 million in 2008 before declining sharply during the global recession." },
+                { label: "Task 1 (line graph — trough + plateau)", sentence: "After falling steadily for three years, unemployment bottomed out at 4.1% in 2015, then levelled off at around 5% through 2019." },
+              ],
+            },
+            {
+              term: "in excess of / a fraction of",
+              examples: [
+                { label: "Task 1 (high value)", sentence: "By 2020, annual spending on healthcare had reached in excess of $10,000 per capita in the United States." },
+                { label: "Task 1 (small proportion)", sentence: "Funding for the arts represented a fraction of defence spending, at just 0.3% of GDP compared to 3.8%." },
+              ],
+            },
+            {
+              term: "roughly equivalent to / marginally higher than",
+              examples: [
+                { label: "Task 1 (close comparison)", sentence: "In 2010, expenditure on education was roughly equivalent to that on healthcare, at approximately 5.2% and 5.5% of GDP respectively." },
+                { label: "Task 1 (small difference)", sentence: "Female graduation rates were marginally higher than male rates throughout the decade, averaging 63% versus 61%." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "p-w2-t2",
+          label: "Writing Practice: Task 1 — Selective Data, Under 185 Words",
+          description: "Before writing, identify the 3 most striking data points only. Ask: 'If I could tell someone just 3 things about this chart, what would they be?' Write only those. Use at least 2 phrases from the slideshow above.",
+          resourcePath: "/dashboard/writing",
+          resourceLabel: "Open Writing Module",
+          minutes: 35,
+        },
       ],
     },
     {
-      week: 3, theme: "Writing Task 2 — Band 9 Argument", focus: "Writing",
-      color: "green",
-      rationale: "Band 8 essays state a clear position and develop it well. Band 9 essays have a qualified, nuanced position — acknowledging complexity while maintaining a clear stance. The conclusion synthesises a new insight rather than summarising the body paragraphs.",
-      tasks: [
-        { id: "p-w3-t1", label: "Study: Qualified Thesis Writing", description: "A Band 9 thesis acknowledges complexity: 'While both perspectives have some validity, the evidence strongly suggests that X, particularly when one considers Y and Z.' Practice writing 5 qualified thesis statements for different essay prompts before writing a full essay.", minutes: 30 },
-        { id: "p-w3-t2", label: "Vocabulary: Sophisticated Conclusion Language", description: "Memorise: 'Ultimately, the evidence overwhelmingly suggests…', 'On balance, the arguments in favour of X significantly outweigh those against…', 'This analysis leads to the inescapable conclusion that…', 'The weight of evidence clearly supports…'.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 15 },
-        { id: "p-w3-t3", label: "Grammar: Advanced Conditionals for Nuanced Argument", description: "Practice: 'Were governments to invest more heavily in…', 'Should this trend continue unchecked…', 'Had policymakers acted sooner, the consequences…', 'Only if substantial resources are committed…'. These conditionals signal sophisticated reasoning.", minutes: 25 },
-        { id: "p-w3-t4", label: "Writing Practice: Synthesis Conclusion Challenge", description: "Submit a Task 2. Write a conclusion that: (1) does NOT simply repeat your introduction, (2) offers a new insight or implication that follows from your argument, (3) begins with 'Ultimately' or 'On balance'.", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 50 },
-        { id: "p-w3-t5", label: "Analysis: Compare Your Thesis to Band 9 Model", description: "After receiving feedback, compare your thesis to the model. Does your thesis acknowledge complexity before taking a position? Is your conclusion genuinely different from your introduction?", minutes: 20 },
-      ],
-    },
-    {
-      week: 4, theme: "Advanced Grammar — Range & Accuracy", focus: "Grammar",
+      week: 3, theme: "Task 2 + Advanced Grammar", focus: "Writing",
       color: "purple",
-      rationale: "Band 9 grammar: 'uses a wide range of structures with full flexibility and accuracy.' That means cleft sentences, inversion, participial clauses, and fronted adverbials — used accurately and naturally, not as memorised templates. Count the distinct grammar structures in your last essay. If fewer than 6, this week is critical.",
+      rationale: "Band 9 grammar means a wide range of structures used with full flexibility and accuracy — not as memorised templates, but naturally woven into your argument. This week you add cleft sentences, inversion, and participial clauses, then write an essay that uses all three.",
       tasks: [
-        { id: "p-w4-t1", label: "Grammar: Cleft Sentences", description: "Master 3 patterns: 'What I believe is that…' / 'What makes this issue particularly complex is…' / 'It is the widespread adoption of technology that has transformed…' / 'It was not until recently that governments began to…'. Use in both Writing and Speaking.", minutes: 25 },
-        { id: "p-w4-t2", label: "Grammar: Inversion for Emphasis", description: "Master: 'Rarely has this been more evident than…' / 'Not only does this exacerbate inequality, but it also…' / 'Under no circumstances should governments neglect…' / 'Only by investing substantially can societies hope to…'. These instantly signal Band 8+ grammar.", minutes: 25 },
-        { id: "p-w4-t3", label: "Grammar: Participial & Absolute Clauses", description: "Master: 'Having examined both perspectives, it is clear that…' / 'Driven largely by economic factors, this trend…' / 'Fuelled by technological advances, society has…' / 'Viewed from this angle, the policy appears…'. These replace weak 'Because' openings.", minutes: 25 },
-        { id: "p-w4-t4", label: "Practice: Write 12 Sentences Using Advanced Structures", description: "Write 4 sentences using cleft structures, 4 using inversion, and 4 using participial clauses. Try NOT to use any structure more than once. The variety itself is what earns the mark.", minutes: 35 },
-        { id: "p-w4-t5", label: "Writing Practice: 6+ Distinct Grammar Structures", description: "Submit a Task 2. Before submitting, highlight 6 or more structurally distinct sentence types. If you find fewer than 6, revise and add more varied constructions.", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 45 },
+        {
+          id: "p-w3-t1",
+          label: "Advanced Grammar: 3 Structures That Signal Band 8+",
+          description: "These three grammar structures appear consistently in Band 8–9 model answers. Use the slideshow to study each structure with real Task 2 examples — then try writing one of each before your essay.",
+          minutes: 30,
+          vocabList: [
+            {
+              term: "Cleft sentences: What… is / It is… that",
+              examples: [
+                { label: "Writing Task 2 (emphasis)", sentence: "What makes this issue particularly complex is the extent to which economic growth and environmental protection appear to conflict." },
+                { label: "Writing Task 2 (thesis)", sentence: "It is the widening gap between urban and rural opportunity, rather than any single policy failure, that underpins persistent inequality." },
+                { label: "Speaking Part 3", sentence: "What I find most troubling about this trend is not the technology itself, but the speed at which society is being asked to adapt." },
+              ],
+            },
+            {
+              term: "Inversion: Rarely… / Not only… but also / Only by…",
+              examples: [
+                { label: "Writing Task 2 (introduction)", sentence: "Rarely has the need for international cooperation on climate change been more urgent than it is today." },
+                { label: "Writing Task 2 (body)", sentence: "Not only does this exacerbate wealth inequality, but it also creates a two-tier healthcare system that disadvantages the most vulnerable." },
+                { label: "Writing Task 2 (conclusion)", sentence: "Only by investing substantially in early childhood education can societies hope to break the cycle of intergenerational poverty." },
+              ],
+            },
+            {
+              term: "Participial clauses: Having… / Driven by… / Viewed from…",
+              examples: [
+                { label: "Writing Task 2 (body)", sentence: "Driven largely by technological disruption, the modern labour market demands a degree of adaptability that previous generations never faced." },
+                { label: "Writing Task 2 (conclusion)", sentence: "Having examined both the economic and social dimensions of this issue, it is clear that a balanced approach is the only viable solution." },
+                { label: "Writing Task 2 (body)", sentence: "Viewed from a long-term perspective, the short-term cost of renewable energy infrastructure represents a sound investment." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "p-w3-t2",
+          label: "Writing Practice: Task 2 with 6+ Distinct Structures",
+          description: "Submit a Task 2 essay. Before submitting, underline each sentence and label its type. Aim for at least 6 distinct types: simple, complex, compound, cleft, inverted, participial, conditional, nominalized.",
+          resourcePath: "/dashboard/writing",
+          resourceLabel: "Open Writing Module",
+          minutes: 50,
+        },
       ],
     },
     {
-      week: 5, theme: "Speaking — Band 8+ Naturalness", focus: "Speaking",
-      color: "amber",
-      rationale: "At Band 8, the examiner should barely notice your preparation — your language sounds spontaneous, precise, and effortlessly varied. Cleft sentences and sophisticated linkers flow naturally. Connected speech features (linking, assimilation, elision) make fluency sound native-level. And you NEVER use memorised openers.",
-      tasks: [
-        { id: "p-w5-t1", label: "MudahinAja: Speaking — Reread Part 3 & Concession Technique", description: "Review the Part 3 section of the Speaking tutorial. The 'That said…' concession + qualified conclusion structure is the mark of a Band 8 Part 3 answer. Re-read the model answers on slides 8 and 9.", resourcePath: "/dashboard/elite", resourceLabel: "Open MudahinAja", minutes: 20 },
-        { id: "p-w5-t2", label: "Pronunciation: Connected Speech", description: "Practice these connected speech features: (1) Linking: 'turn_off', 'went_away', 'used_it'. (2) Elision: 'nex(t) day', 'mos(t) people'. (3) Assimilation: 'ten_pens' → 'tem pens'. These features are what separate Band 7 and Band 8 pronunciation.", minutes: 30 },
-        { id: "p-w5-t3", label: "Strategy: Avoid ALL Memorised Openers", description: "Red flags for Band 8 examiners: 'That's a very interesting question', 'This is a good question', 'I'm glad you asked this'. These signal memorised responses and can cap your score at Band 6.5. Replace with natural alternatives: 'Right, so…', 'Let me think…', 'That's something I find quite…'", minutes: 10 },
-        { id: "p-w5-t4", label: "Speaking Practice: Record & Critical Self-Listen", description: "Complete a full Part 1, 2, 3 session. Record yourself. Listen back and ask: Does it sound natural and spontaneous? Do I use varied vocabulary? Do I vary my sentence structures? How is my pronunciation on connected speech?", resourcePath: "/dashboard/speaking", resourceLabel: "Open Speaking Module", minutes: 40 },
-        { id: "p-w5-t5", label: "Practice: Part 3 with Cleft Openers", description: "Answer 5 Part 3 questions, each opening with a cleft sentence: 'What I find particularly noteworthy is…', 'What strikes me most about this issue is…', 'What I believe to be the most critical factor is…'. Record yourself and compare to your natural speech.", minutes: 25 },
-      ],
-    },
-    {
-      week: 6, theme: "Full Mock + Final Precision Targeting", focus: "Mock & Review",
+      week: 4, theme: "Speaking + Full Mock", focus: "Speaking & Mock",
       color: "red",
-      rationale: "Five weeks of targeted practice have addressed your known gaps. A full timed mock under exam conditions reveals your remaining weak points clearly. The final days of your preparation should focus entirely on the single module where the Band 8 gap is largest.",
+      rationale: "Your language should now sound effortlessly natural. This final week targets the fluency gap between Band 7 and Band 8 in Speaking, then a full timed mock under real exam conditions gives you a clear picture of where you stand.",
       tasks: [
-        { id: "p-w6-t1", label: "Elite Hub: Full Timed Mock (Strict Conditions)", description: "Reading: 60 minutes. Listening: 30 minutes. Writing: 60 minutes (20 min Task 1 + 40 min Task 2). No pausing. Phone face-down. No checking answers mid-test. This is your final practice before the real thing.", resourcePath: "/dashboard/elite", resourceLabel: "Open Elite Hub", minutes: 150 },
-        { id: "p-w6-t2", label: "Self-Assessment Against Band 8 Descriptors", description: "Score each module using official Band 8 descriptors: Writing (Task Achievement, Coherence, Lexical Resource, Grammatical Range); Speaking (Fluency, Lexical, Grammatical, Pronunciation). Which is furthest from Band 8?", minutes: 30 },
-        { id: "p-w6-t3", label: "Targeted 90-Minute Review of Weakest Module", description: "Identify your lowest-scoring module from the mock. Spend 90 focused minutes on it: re-read the relevant study plan weeks, attempt 2 more practice questions, and apply the specific strategies that were missing in the mock.", resourcePath: "/dashboard/reading", resourceLabel: "Open Your Weakest Module", minutes: 90 },
-        { id: "p-w6-t4", label: "Final Vocabulary Check: Zero Weak Words", description: "Read your mock Task 2 submission. Highlight any remaining generic words (good, bad, important, many, very, a lot, people think, things). Replace every single one.", minutes: 25 },
-        { id: "p-w6-t5", label: "Final Grammar Check: 6+ Structures Confirmed", description: "Read your mock Task 2. Annotate each sentence with its grammatical type: simple, compound, complex, cleft, inverted, participial, conditional, nominalized. Count the distinct types — you need 6+.", minutes: 20 },
+        {
+          id: "p-w4-t1",
+          label: "Speaking: Natural Part 3 Openers (Replace All Memorised Phrases)",
+          description: "Memorised openers like 'That's a very interesting question' are red flags for examiners and can cap your score. The phrases in the slideshow below are natural alternatives — each shown in a complete Part 3 response.",
+          minutes: 20,
+          vocabList: [
+            {
+              term: "Right, so… / Well, I suppose…",
+              examples: [
+                { label: "Speaking Part 3 (natural start)", sentence: "Right, so when it comes to climate change, I think what's often overlooked is the role of individual consumption habits rather than just government policy." },
+                { label: "Speaking Part 3 (thinking aloud)", sentence: "Well, I suppose the most significant factor driving urbanisation is economic opportunity — people simply follow the jobs." },
+              ],
+            },
+            {
+              term: "What I find… is that / What strikes me is…",
+              examples: [
+                { label: "Speaking Part 3 (PER opener)", sentence: "What I find particularly interesting about this is that countries with the strongest social safety nets also tend to have the highest levels of entrepreneurship." },
+                { label: "Speaking Part 3 (position)", sentence: "What strikes me most is that the debate around education funding rarely centres on outcomes — it's almost always about budgets." },
+              ],
+            },
+            {
+              term: "That said… / Having said that…",
+              examples: [
+                { label: "Speaking Part 3 (concession)", sentence: "I do think technology has genuinely improved access to education. That said, the digital divide means millions of students are still being left behind." },
+                { label: "Speaking Part 3 (balanced view)", sentence: "Remote work clearly offers flexibility. Having said that, something important is lost when colleagues rarely meet face to face." },
+              ],
+            },
+            {
+              term: "I'd argue that… / I'm fairly convinced that…",
+              examples: [
+                { label: "Speaking Part 3 (clear position)", sentence: "I'd argue that the real driver behind rising inequality isn't globalisation itself, but the failure to redistribute the gains from it equitably." },
+                { label: "Speaking Part 3 (confident view)", sentence: "I'm fairly convinced that within two decades most routine cognitive work will be automated — the question is whether we're preparing people for that shift." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "p-w4-t2",
+          label: "Speaking Practice: Full Session with Critical Self-Listen",
+          description: "Complete a full Part 1, 2, 3 session. Record yourself. Listen back and check: natural-sounding openers, varied vocabulary, at least one cleft sentence in Part 3, and at least one 'That said…' concession.",
+          resourcePath: "/dashboard/speaking",
+          resourceLabel: "Open Speaking Module",
+          minutes: 35,
+        },
+        {
+          id: "p-w4-t3",
+          label: "Elite Hub: Full Timed Mock (Strict Conditions)",
+          description: "Reading: 60 minutes. Listening: 30 minutes. Writing: 60 minutes (20 min Task 1 + 40 min Task 2). No pausing, no phone. After finishing, score each module against Band 8 descriptors and identify the single remaining gap.",
+          resourcePath: "/dashboard/elite",
+          resourceLabel: "Open Elite Hub",
+          minutes: 150,
+        },
       ],
     },
   ],
 };
+
+// ─────────────────────────────────────────────
+// VocabSlideshow
+// ─────────────────────────────────────────────
+function VocabSlideshow({ items }: { items: VocabItem[] }) {
+  const [idx, setIdx] = useState(0);
+  const item = items[idx];
+  return (
+    <div className="mt-3 rounded-lg border border-border/30 bg-card/60 overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/20 bg-card/40">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Vocabulary Examples</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-muted-foreground">{idx + 1} / {items.length}</span>
+          <div className="flex gap-0.5">
+            <button
+              onClick={() => setIdx(i => Math.max(0, i - 1))}
+              disabled={idx === 0}
+              className="w-5 h-5 flex items-center justify-center rounded text-base leading-none text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+            >‹</button>
+            <button
+              onClick={() => setIdx(i => Math.min(items.length - 1, i + 1))}
+              disabled={idx === items.length - 1}
+              className="w-5 h-5 flex items-center justify-center rounded text-base leading-none text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+            >›</button>
+          </div>
+        </div>
+      </div>
+      <div className="p-3 space-y-2.5">
+        <div>
+          <p className="text-sm font-semibold text-foreground">{item.term}</p>
+          {item.replaces && (
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Replaces: <span className="line-through opacity-60">{item.replaces}</span>
+            </p>
+          )}
+        </div>
+        <div className="space-y-2">
+          {item.examples.map((ex, i) => (
+            <div key={i} className="rounded-md bg-card/80 border border-border/20 p-2.5">
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/20">
+                {ex.label}
+              </span>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed italic">"{ex.sentence}"</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const PLANS: Record<string, TierPlan> = {
   foundation: FOUNDATION_PLAN,
@@ -633,6 +900,7 @@ export default function StudyPlanPage() {
                                     {task.label}
                                   </p>
                                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{task.description}</p>
+                                  {task.vocabList && <VocabSlideshow items={task.vocabList} />}
                                   <div className="flex items-center gap-3 mt-2">
                                     <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
                                       <Clock className="w-3 h-3" /> ~{task.minutes} min
