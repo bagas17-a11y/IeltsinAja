@@ -160,12 +160,20 @@ const parseTranscriptToTurns = (transcript: string): SpeakerTurn[] => {
 
 // ─── Module-level audio utilities ─────────────────────────────────────────────
 
+const TTS_URL = import.meta.env.DEV
+  ? "https://api.openai.com/v1/audio/speech"
+  : "/api/tts";
+
 const fetchTTSBuffer = async (text: string, voice: string, signal: AbortSignal, attempt = 0): Promise<ArrayBuffer> => {
-  const key = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!key) throw new Error("OpenAI API key not configured (VITE_OPENAI_API_KEY missing)");
-  const res = await fetch("https://api.openai.com/v1/audio/speech", {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (import.meta.env.DEV) {
+    const key = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!key) throw new Error("OpenAI API key not configured (VITE_OPENAI_API_KEY missing)");
+    headers["Authorization"] = `Bearer ${key}`;
+  }
+  const res = await fetch(TTS_URL, {
     method: "POST", signal,
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ model: "tts-1-hd", input: text.slice(0, 4096), voice, speed: 0.88 }),
   });
   if (res.status === 429 && attempt < 2) {
