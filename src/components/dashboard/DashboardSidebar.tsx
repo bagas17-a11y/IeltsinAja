@@ -135,7 +135,7 @@ export function DashboardSidebar() {
             {isCollapsed ? (
               <span className="text-accent font-medium">IA</span>
             ) : (
-              <>IELTS<span className="text-accent font-medium">inAja</span></>
+              <>Eng<span className="text-accent font-medium">InAja</span></>
             )}
           </a>
         </div>

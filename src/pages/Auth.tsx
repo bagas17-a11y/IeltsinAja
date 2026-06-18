@@ -170,7 +170,7 @@ export default function Auth() {
           {/* Logo */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-light tracking-tight">
-              IELTS<span className="text-accent font-medium">inAja</span>
+              Eng<span className="text-accent font-medium">InAja</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-2">
               {isLogin ? "Welcome back" : "Create your account"}
