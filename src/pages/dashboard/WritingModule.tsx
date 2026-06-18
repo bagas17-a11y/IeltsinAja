@@ -677,10 +677,15 @@ export default function WritingModule() {
     // ── Bar chart ──────────────────────────────────────────────
     if (visualType === "bar_chart") {
       return (
-        <div className="space-y-2">
-          {title && <p className="text-xs font-medium text-accent">{title}{unit ? ` (${unit})` : ""}</p>}
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
+        <div className="space-y-1">
+          {title && <p className="text-xs font-medium text-accent">{title}</p>}
+          {(yAxisLabel || unit) && (
+            <p className="text-xs text-muted-foreground">
+              {yAxisLabel}{yAxisLabel && unit ? ` — ` : ""}{unit ? `unit: ${unit}` : ""}
+            </p>
+          )}
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 4, bottom: 44 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
               <XAxis
                 dataKey="name"
@@ -688,14 +693,14 @@ export default function WritingModule() {
                 angle={-35}
                 textAnchor="end"
                 interval={0}
-                height={56}
+                height={60}
               />
-              <YAxis
-                tick={tickStyle}
-                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: "insideLeft", style: { fontSize: 9, fill: "hsl(var(--muted-foreground))" }, offset: 8 } : undefined}
-                width={52}
+              <YAxis tick={tickStyle} width={48} />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value: number) => [`${value}${unit ? " " + unit : ""}`, undefined]}
+                cursor={{ fill: "hsl(var(--accent))", opacity: 0.08 }}
               />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "hsl(var(--accent))", opacity: 0.08 }} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
               {series.map((s, i) => (
                 <Bar key={s.label} dataKey={s.label} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[2, 2, 0, 0]} />
@@ -709,18 +714,22 @@ export default function WritingModule() {
     // ── Line graph ─────────────────────────────────────────────
     if (visualType === "line_graph") {
       return (
-        <div className="space-y-2">
-          {title && <p className="text-xs font-medium text-accent">{title}{unit ? ` (${unit})` : ""}</p>}
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 8 }}>
+        <div className="space-y-1">
+          {title && <p className="text-xs font-medium text-accent">{title}</p>}
+          {(yAxisLabel || unit) && (
+            <p className="text-xs text-muted-foreground">
+              {yAxisLabel}{yAxisLabel && unit ? ` — ` : ""}{unit ? `unit: ${unit}` : ""}
+            </p>
+          )}
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={chartData} margin={{ top: 4, right: 16, left: 4, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
               <XAxis dataKey="name" tick={tickStyle} />
-              <YAxis
-                tick={tickStyle}
-                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: "insideLeft", style: { fontSize: 9, fill: "hsl(var(--muted-foreground))" }, offset: 8 } : undefined}
-                width={52}
+              <YAxis tick={tickStyle} width={48} />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value: number) => [`${value}${unit ? " " + unit : ""}`, undefined]}
               />
-              <Tooltip contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
               {series.map((s, i) => (
                 <Line
@@ -1171,7 +1180,9 @@ export default function WritingModule() {
               </div>
               
               <div className="p-4 bg-secondary/30 rounded-lg border border-border/30 mb-4">
-                <p className="text-sm text-foreground whitespace-pre-wrap">{selectedQuestion.question_prompt}</p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">
+                  {selectedQuestion.question_prompt.replace(/\n\nDATA\s*[—-][\s\S]*/i, "").trim()}
+                </p>
               </div>
 
               {/* Question Image */}
