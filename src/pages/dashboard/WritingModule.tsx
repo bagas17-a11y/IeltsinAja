@@ -674,18 +674,17 @@ export default function WritingModule() {
       color: "hsl(var(--foreground))",
     };
 
+    const yLabel = yAxisLabel
+      ? { value: yAxisLabel, angle: -90, position: "insideLeft" as const, style: { fontSize: 9, fill: "hsl(var(--muted-foreground))" }, offset: 14 }
+      : undefined;
+
     // ── Bar chart ──────────────────────────────────────────────
     if (visualType === "bar_chart") {
       return (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {title && <p className="text-xs font-medium text-accent">{title}</p>}
-          {(yAxisLabel || unit) && (
-            <p className="text-xs text-muted-foreground">
-              {yAxisLabel}{yAxisLabel && unit ? ` — ` : ""}{unit ? `unit: ${unit}` : ""}
-            </p>
-          )}
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 4, bottom: 44 }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={chartData} margin={{ top: 4, right: 8, left: yAxisLabel ? 16 : 4, bottom: 44 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
               <XAxis
                 dataKey="name"
@@ -695,7 +694,7 @@ export default function WritingModule() {
                 interval={0}
                 height={60}
               />
-              <YAxis tick={tickStyle} width={48} />
+              <YAxis tick={tickStyle} width={yAxisLabel ? 78 : 48} label={yLabel} />
               <Tooltip
                 contentStyle={tooltipStyle}
                 formatter={(value: number) => [`${value}${unit ? " " + unit : ""}`, undefined]}
@@ -714,18 +713,13 @@ export default function WritingModule() {
     // ── Line graph ─────────────────────────────────────────────
     if (visualType === "line_graph") {
       return (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {title && <p className="text-xs font-medium text-accent">{title}</p>}
-          {(yAxisLabel || unit) && (
-            <p className="text-xs text-muted-foreground">
-              {yAxisLabel}{yAxisLabel && unit ? ` — ` : ""}{unit ? `unit: ${unit}` : ""}
-            </p>
-          )}
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chartData} margin={{ top: 4, right: 16, left: 4, bottom: 8 }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={chartData} margin={{ top: 4, right: 16, left: yAxisLabel ? 16 : 4, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
               <XAxis dataKey="name" tick={tickStyle} />
-              <YAxis tick={tickStyle} width={48} />
+              <YAxis tick={tickStyle} width={yAxisLabel ? 78 : 48} label={yLabel} />
               <Tooltip
                 contentStyle={tooltipStyle}
                 formatter={(value: number) => [`${value}${unit ? " " + unit : ""}`, undefined]}
