@@ -1,0 +1,2 @@
+-- Placeholder: this migration was applied directly to the remote database.
+-- The Sports Centre Membership listening test was seeded via this migration.

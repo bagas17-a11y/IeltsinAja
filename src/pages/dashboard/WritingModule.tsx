@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import {
+  BarChart, Bar, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -577,6 +581,11 @@ export default function WritingModule() {
     }
   };
 
+  const CHART_COLORS = [
+    "#3b82f6", "#f97316", "#22c55e", "#a855f7",
+    "#ef4444", "#eab308", "#06b6d4", "#ec4899",
+  ];
+
   const VisualDataRenderer = ({ visualType, data }: { visualType: string; data: Record<string, unknown> }) => {
     if (visualType === "map") {
       const features = (data.key_features as string[]) ?? [];
@@ -617,12 +626,13 @@ export default function WritingModule() {
       );
     }
 
-    // For bar_chart, line_graph, table, pie_chart, bar_line_combo — render a data table
     const series = (data.series as Array<{ label: string; values: Record<string, number> }>) ?? [];
     const segments = (data.segments as Array<{ label: string; percentage: number }>) ?? [];
     const title = data.title as string ?? "";
     const unit = data.unit as string ?? "";
+    const yAxisLabel = data.y_axis as string ?? "";
 
+    // Pie / segment fallback
     if (segments.length > 0) {
       return (
         <div className="space-y-2">
@@ -639,34 +649,116 @@ export default function WritingModule() {
       );
     }
 
-    if (series.length > 0) {
-      const allKeys = Object.keys(series[0]?.values ?? {});
+    if (series.length === 0) {
       return (
-        <div className="space-y-2 overflow-x-auto">
-          {title && <p className="text-xs font-medium text-accent">{title}{unit ? ` (${unit})` : ""}</p>}
-          <table className="text-xs w-full border-collapse">
-            <thead>
-              <tr>
-                <th className="text-left px-2 py-1 text-muted-foreground font-normal border-b border-border/30"></th>
-                {allKeys.map(k => <th key={k} className="px-2 py-1 text-muted-foreground font-normal border-b border-border/30 text-right">{k}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {series.map((s, i) => (
-                <tr key={i} className="border-b border-border/20">
-                  <td className="px-2 py-1 text-foreground/80">{s.label}</td>
-                  {allKeys.map(k => <td key={k} className="px-2 py-1 text-accent text-right">{s.values[k]}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex items-center justify-center h-16">
+          <p className="text-xs text-muted-foreground">Data not available for this question type</p>
         </div>
       );
     }
 
+    // Build recharts-compatible flat array from series
+    const allKeys = Object.keys(series[0]?.values ?? {});
+    const chartData = allKeys.map(key => {
+      const point: Record<string, string | number> = { name: key };
+      series.forEach(s => { point[s.label] = s.values[key] ?? 0; });
+      return point;
+    });
+
+    const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
+    const tooltipStyle = {
+      backgroundColor: "hsl(var(--card))",
+      border: "1px solid hsl(var(--border))",
+      borderRadius: 6,
+      fontSize: 11,
+      color: "hsl(var(--foreground))",
+    };
+
+    // ── Bar chart ──────────────────────────────────────────────
+    if (visualType === "bar_chart") {
+      return (
+        <div className="space-y-2">
+          {title && <p className="text-xs font-medium text-accent">{title}{unit ? ` (${unit})` : ""}</p>}
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+              <XAxis
+                dataKey="name"
+                tick={tickStyle}
+                angle={-35}
+                textAnchor="end"
+                interval={0}
+                height={56}
+              />
+              <YAxis
+                tick={tickStyle}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: "insideLeft", style: { fontSize: 9, fill: "hsl(var(--muted-foreground))" }, offset: 8 } : undefined}
+                width={52}
+              />
+              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "hsl(var(--accent))", opacity: 0.08 }} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
+              {series.map((s, i) => (
+                <Bar key={s.label} dataKey={s.label} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[2, 2, 0, 0]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    // ── Line graph ─────────────────────────────────────────────
+    if (visualType === "line_graph") {
+      return (
+        <div className="space-y-2">
+          {title && <p className="text-xs font-medium text-accent">{title}{unit ? ` (${unit})` : ""}</p>}
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+              <XAxis dataKey="name" tick={tickStyle} />
+              <YAxis
+                tick={tickStyle}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: "insideLeft", style: { fontSize: 9, fill: "hsl(var(--muted-foreground))" }, offset: 8 } : undefined}
+                width={52}
+              />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
+              {series.map((s, i) => (
+                <Line
+                  key={s.label}
+                  type="monotone"
+                  dataKey={s.label}
+                  stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    // ── Plain data table fallback (for visual_type = "table") ──
     return (
-      <div className="flex items-center justify-center h-16">
-        <p className="text-xs text-muted-foreground">Data not available for this question type</p>
+      <div className="space-y-2 overflow-x-auto">
+        {title && <p className="text-xs font-medium text-accent">{title}{unit ? ` (${unit})` : ""}</p>}
+        <table className="text-xs w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="text-left px-2 py-1 text-muted-foreground font-normal border-b border-border/30"></th>
+              {allKeys.map(k => <th key={k} className="px-2 py-1 text-muted-foreground font-normal border-b border-border/30 text-right">{k}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {series.map((s, i) => (
+              <tr key={i} className="border-b border-border/20">
+                <td className="px-2 py-1 text-foreground/80">{s.label}</td>
+                {allKeys.map(k => <td key={k} className="px-2 py-1 text-accent text-right">{s.values[k]}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   };
