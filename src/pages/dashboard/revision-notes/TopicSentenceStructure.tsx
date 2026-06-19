@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   DefinitionCard,
   SectionTitle,
@@ -37,11 +38,23 @@ export function TopicSentenceStructure() {
         <p className="mb-2">Two independent clauses joined with <strong className="text-white">and, but, so, or, yet, for</strong>.</p>
         <WorkedExample><>&quot;Many students study abroad, <strong>but</strong> studying overseas can be expensive.&quot;</></WorkedExample>
         <p className="text-sm text-slate-400 mt-2">Pattern: Clause 1 + , + coordinating conjunction + Clause 2</p>
+        <Link
+          to="?topic=linking-words-coherence"
+          className="inline-flex items-center gap-1 mt-2 text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2"
+        >
+          See: Coordinating Conjunctions &rarr;
+        </Link>
 
         <SubSectionTitle title="2.3 Basic complex sentences" />
         <p className="mb-2">One main clause + one dependent clause introduced by <strong className="text-white">because, although, while, if, when, since</strong>, etc.</p>
         <WorkedExample><>&quot;<strong>Although</strong> studying abroad is expensive, many students believe it is worth the cost.&quot;</></WorkedExample>
         <WorkedExample><>&quot;People are healthier <strong>because</strong> they have better access to medical care.&quot;</></WorkedExample>
+        <Link
+          to="?topic=linking-words-coherence"
+          className="inline-flex items-center gap-1 mt-2 text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2"
+        >
+          See: Subordinating Conjunctions &rarr;
+        </Link>
       </DefinitionCard>
 
       <SectionTitle number={3} title="Example paragraph with mixed structures" />

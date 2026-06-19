@@ -3,6 +3,7 @@ import {
   SectionTitle,
   SubSectionTitle,
   KeyList,
+  RevisionTable,
   WorkedExample,
   MiniPractice,
   ExaminerTip,
@@ -11,132 +12,57 @@ import {
 export function TopicLinkingWordsCoherence() {
   return (
     <div className="space-y-6">
-      <SectionTitle number={1} title="Why cohesion is important" />
+      <SectionTitle number={1} title="Coordinating Conjunctions" />
       <DefinitionCard>
-        <p className="mb-3"><strong className="text-white">Coherence</strong> = your ideas are logical and easy to follow.</p>
-        <p className="mb-3"><strong className="text-white">Cohesion</strong> = your sentences are connected with linking words and referencing (pronouns, this/that, etc.).</p>
-        <p>Coherence and Cohesion is 25% of your Writing band score. Using linkers and referencing correctly helps the examiner follow your argument.</p>
+        <p className="mb-3">Connecting words that join phrases or independent clauses that are <strong className="text-white">grammatically equal</strong>.</p>
+        <KeyList
+          items={[
+            "They join two complete thoughts without making one depend on the other.",
+            <>Punctuation Rule: When joining two independent clauses (complete sentences), always place a <strong className="text-white">comma before</strong> the coordinating conjunction.</>,
+            <>Useful Acronym: <strong className="text-white">FANBOYS</strong> (For, And, Nor, But, Or, Yet, So)</>,
+          ]}
+        />
       </DefinitionCard>
+      <RevisionTable
+        headers={["Conjunction", "When to Use It", "Quick Example"]}
+        rows={[
+          ["For", "To show a reason or cause (similar to \"because\")", "We stayed inside, for it was storming."],
+          ["And", "To add information or connect similar ideas", "She loves writing, and he loves reading."],
+          ["Nor", "To present a second negative alternative", "They don't eat meat, nor do they eat dairy."],
+          ["But", "To show contrast or an exception", "The shoes are pretty but uncomfortable."],
+          ["Or", "To offer a choice between options", "You can have the soup or the salad."],
+          ["Yet", "To introduce a surprising or contrasting fact", "It was freezing outside, yet she wore a t-shirt."],
+          ["So", "To show a result or consequence", "I forgot my keys, so I had to call home."],
+        ]}
+      />
 
-      <SectionTitle number={2} title="Linking words (categories and examples)" />
-      <SubSectionTitle title="2.1 Addition" />
+      <SectionTitle number={2} title="Subordinating Conjunctions" />
       <DefinitionCard>
-        <p className="mb-2">Use these to add another idea: <strong className="text-white">and</strong>, <strong className="text-white">moreover</strong>, <strong className="text-white">in addition</strong>, <strong className="text-white">furthermore</strong>, <strong className="text-white">additionally</strong>.</p>
-      </DefinitionCard>
-      <SubSectionTitle title="2.1.1 General placement rules" />
-      <DefinitionCard>
-        <p className="mb-2 font-semibold text-slate-200">At the start of a new sentence — Use comma after the linking word:</p>
-        <WorkedExample>
-          <>
-            <p className="mb-1">&quot;<strong>Furthermore,</strong> it helps people make better decisions.&quot;</p>
-            <p className="mb-1">&quot;<strong>In addition,</strong> I like watching films in English.&quot;</p>
-            <p>&quot;<strong>Moreover,</strong> the results were consistent.&quot;</p>
-          </>
-        </WorkedExample>
-        <p className="text-sm text-slate-300 mb-3">Best for: essays / formal writing / clear structure</p>
-        <p className="mb-2 font-semibold text-slate-200">Mid-sentence (more formal) — Usually set off with commas:</p>
-        <WorkedExample>
-          <>
-            <p className="mb-1">&quot;Education improves job prospects and, <strong>in addition</strong>, it builds confidence.&quot;</p>
-            <p className="mb-1">&quot;The plan is expensive and, <strong>moreover</strong>, it is risky.&quot;</p>
-            <p>&quot;The solution is simple and, <strong>furthermore</strong>, it is fast.&quot;</p>
-          </>
-        </WorkedExample>
-        <p className="text-sm text-slate-300 mb-3">Best for: formal tone, adding emphasis. Don&apos;t overuse &mdash; it can sound heavy.</p>
-        <p className="mb-2 font-semibold text-slate-200">With semicolon (very formal) — Use when you want two connected sentences:</p>
-        <WorkedExample>
-          <>&quot;Education improves job prospects<strong>; furthermore,</strong> it helps people make better decisions.&quot;</>
-        </WorkedExample>
-      </DefinitionCard>
-      <SubSectionTitle title="2.1.2 &quot;And&quot; exception rules" />
-      <DefinitionCard>
+        <p className="mb-3">Connecting words that introduce a <strong className="text-white">dependent clause</strong> (a fragment that cannot stand alone) and join it to an independent clause.</p>
         <KeyList
           items={[
-            <>No comma before &quot;and&quot; when it joins two words/phrases: &quot;I like tea and coffee.&quot; / &quot;She studies at night and on weekends.&quot;</>,
-            <>Use comma before &quot;and&quot; only if both sides are complete sentences: &quot;Education improves job prospects, and it helps people make better decisions.&quot;</>,
+            "Used to establish a relationship of time, cause, condition, or contrast, making one part of the sentence less important than the main part.",
+            <>Punctuation Rules:
+              <ul className="list-disc pl-4 mt-1 space-y-1">
+                <li>If the subordinating conjunction <strong className="text-white">starts</strong> the sentence, use a comma after the dependent clause.</li>
+                <li>If it falls <strong className="text-white">in the middle</strong>, you generally do not need a comma.</li>
+              </ul>
+            </>,
+            <>Examples: <em>Because, although, since, if, while, until, unless, though.</em></>,
           ]}
         />
       </DefinitionCard>
-      <SubSectionTitle title="2.1.3 &quot;In addition&quot; vs &quot;In addition to&quot;" />
-      <DefinitionCard>
-        <KeyList
-          items={[
-            <>&quot;In addition&quot; + comma (adds new point): &quot;In addition, I joined a club.&quot;</>,
-            <>&quot;In addition to&quot; + noun/verb-ing + comma (replacement for &quot;besides&quot;): &quot;In addition to studying, I work part-time.&quot;</>,
-          ]}
-        />
-      </DefinitionCard>
-
-      <SubSectionTitle title="2.2 Contrast" />
-      <DefinitionCard>
-        <p className="mb-2">Use these to show a different idea: <strong className="text-white">however</strong>, <strong className="text-white">although</strong>, <strong className="text-white">on the other hand</strong>, <strong className="text-white">whereas</strong>, <strong className="text-white">but</strong>, <strong className="text-white">yet</strong>, <strong className="text-white">nevertheless</strong>, <strong className="text-white">in contrast</strong>.</p>
-        <p className="mb-3 text-sm text-slate-300">However and although have different punctuation rules:</p>
-        <p className="mb-2 font-semibold text-slate-200">However (contrast between two sentences/ideas):</p>
-        <KeyList
-          items={[
-            <>Start of a new sentence: &quot;however&quot; + comma + main clause — &quot;Online learning is convenient. However, some students miss face-to-face contact.&quot; (the phrase before &quot;However&quot; is the first idea; the phrase after is the contrasting idea)</>,
-            <>Mid-sentence (more formal): semi-colon + &quot;however&quot; + comma + main clause — &quot;Online learning is convenient; however, some students miss face-to-face contact.&quot;</>,
-            <>Common mistake: Replacing semi-colon with comma when both sides are complete sentences.</>,
-          ]}
-        />
-        <p className="mb-2 mt-4 font-semibold text-slate-200">Although (subordinate clause &rarr; main idea):</p>
-        <KeyList
-          items={[
-            <>Start of sentence: &quot;Although&quot; + clause + comma + main clause — &quot;Although public transport is cheap, it is often crowded.&quot; (the clause before the comma is the concession; the phrase after is the main idea)</>,
-            <>Mid-sentence: main clause + comma + &quot;although&quot; + secondary clause — &quot;It was a good movie, although it was long.&quot;</>,
-          ]}
-        />
-        <p className="mb-2 mt-4 font-semibold text-slate-200">Whereas (direct comparison):</p>
-        <KeyList
-          items={[
-            <>Mid-sentence: clause + comma + &quot;whereas&quot; + clause — &quot;Online learning is flexible, whereas in-person classes offer more interaction.&quot;</>,
-            <>Often used in more formal writing. Best for comparing two clear sides.</>,
-          ]}
-        />
-        <p className="mb-2 mt-4 font-semibold text-slate-200">On the other hand (second side of a comparison):</p>
-        <KeyList
-          items={[
-            <>Start of second sentence: &quot;On the other hand&quot; + comma + main clause — &quot;Some students prefer studying at home. On the other hand, others focus better in a library.&quot;</>,
-          ]}
-        />
-      </DefinitionCard>
-
-      <SubSectionTitle title="2.3 Cause and result" />
-      <DefinitionCard>
-        <p className="mb-2">Use these to show cause or result: <strong className="text-white">because</strong>, <strong className="text-white">since</strong>, <strong className="text-white">as</strong>, <strong className="text-white">therefore</strong>, <strong className="text-white">as a result</strong>, <strong className="text-white">consequently</strong>.</p>
-      </DefinitionCard>
-      <SubSectionTitle title="2.3.1 Punctuation and placement" />
-      <DefinitionCard>
-        <p className="mb-2 font-semibold text-slate-200">Because / Since / As — introduce reason clause:</p>
-        <KeyList
-          items={[
-            <>Pattern A (start of sentence): &quot;Because/Since/As&quot; + clause + comma + main clause — &quot;Since public transport is limited, many people drive.&quot;</>,
-            <>Pattern B (between clauses): main clause + &quot;because/since/as&quot; + clause — &quot;People drive more since public transport is limited.&quot;</>,
-          ]}
-        />
-        <p className="mb-2 mt-4 font-semibold text-slate-200">Therefore / Consequently — transition signal:</p>
-        <WorkedExample>
-          <>sentence + period/semicolon + &quot;Therefore/Consequently&quot; + comma + sentence — &quot;Traffic is getting worse. Therefore, governments must improve public transport.&quot;</>
-        </WorkedExample>
-        <p className="mb-2 mt-4 font-semibold text-slate-200">As a result / As a result of — result phrase:</p>
-        <WorkedExample>
-          <>&quot;Many factories were closed. <strong>As a result</strong>, unemployment rose sharply.&quot;</>
-        </WorkedExample>
-      </DefinitionCard>
-
-      <SubSectionTitle title="2.4 Example" />
-      <DefinitionCard>
-        <p className="mb-2">Use these to give examples: <strong className="text-white">for example</strong>, <strong className="text-white">for instance</strong>.</p>
-        <WorkedExample><>&quot;Many countries face environmental problems. <strong>For example</strong>, air pollution is a major issue in big cities.&quot;</></WorkedExample>
-      </DefinitionCard>
-      <SubSectionTitle title="2.5 Sequence" />
-      <DefinitionCard>
-        <p className="mb-2">Use these to show order: <strong className="text-white">firstly</strong>, <strong className="text-white">secondly</strong>, <strong className="text-white">finally</strong>.</p>
-        <WorkedExample><>&quot;<strong>Firstly</strong>, I will discuss the benefits. <strong>Secondly</strong>, I will look at the disadvantages. <strong>Finally</strong>, I will give my opinion.&quot;</></WorkedExample>
-      </DefinitionCard>
-      <ExaminerTip>
-        Do not start every sentence with &quot;And&quot;, &quot;But&quot;, or &quot;So&quot;. Vary your linkers. Also avoid informal linkers like &quot;plus&quot; or &quot;and so on&quot; in Academic Writing.
-      </ExaminerTip>
+      <RevisionTable
+        headers={["Conjunction", "When to Use It", "Quick Example"]}
+        rows={[
+          ["Because / Since", "To explain the cause or reason for something", "We paused the game because it started raining."],
+          ["Although / Though", "To show a concession, contrast, or unexpected obstacle", "Although she practiced hard, she missed the shot."],
+          ["If / Unless", "To state a condition required for something to happen", "You won't pass unless you study the notes."],
+          ["While / As", "To show two actions happening at the same time", "I listened to music while I cleaned my room."],
+          ["Until", "To indicate the point in time when an action stops", "Wait here until the bus arrives."],
+          ["Before / After", "To establish a specific chronological order of events", "Wash your hands before you eat dinner."],
+        ]}
+      />
 
       <SectionTitle number={3} title="Referencing: pronouns, this/that, substitution" />
       <DefinitionCard>

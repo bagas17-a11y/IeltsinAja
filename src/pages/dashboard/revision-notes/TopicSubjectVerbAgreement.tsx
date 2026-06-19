@@ -178,6 +178,40 @@ export function TopicSubjectVerbAgreement() {
         <WorkedExample><>&quot;Do you <strong>live</strong> in Jakarta?&quot;</></WorkedExample>
         <WorkedExample><>&quot;Have you <strong>finished</strong> your homework?&quot;</></WorkedExample>
       </DefinitionCard>
+
+      <SectionTitle number={7} title="Mini practice – subject-verb agreement" />
+      <MiniPractice
+        title="Mini practice"
+        prompt={
+          <>
+            <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-300">
+              <li>
+                <span className="text-slate-200">Choose the correct verb form:</span>
+                <p className="mt-1 italic">&quot;The number of students who study abroad _____ (has / have) increased significantly in recent years.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Choose the correct verb form:</span>
+                <p className="mt-1 italic">&quot;Many people in the city _____ (believe / believes) that public transport should be improved.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Fix the subject-verb agreement error:</span>
+                <p className="mt-1 italic">&quot;The government have introduced new policies to reduce pollution.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Fix the error:</span>
+                <p className="mt-1 italic">&quot;There is several reasons why people prefer working from home.&quot;</p>
+              </li>
+            </ol>
+          </>
+        }
+        modelLabel="Model answers"
+        modelItems={[
+          <>&quot;has&quot; — the subject is &quot;the number&quot; (singular), not &quot;students&quot;. The prepositional phrase &quot;of students&quot; does not change the subject.</>,
+          <>&quot;believe&quot; — &quot;many people&quot; is plural, so no &quot;s&quot; on the verb.</>,
+          <>&quot;The government <strong>has</strong> introduced new policies to reduce pollution.&quot; — &quot;government&quot; is a singular collective noun.</>,
+          <>&quot;There <strong>are</strong> several reasons why people prefer working from home.&quot; — &quot;several reasons&quot; is plural, so use &quot;are&quot;.</>,
+        ]}
+      />
     </div>
   );
 }
