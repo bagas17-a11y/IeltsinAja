@@ -10,7 +10,7 @@ import {
   ChevronDown, CheckCircle2, Circle, Clock, ArrowRight,
   Crown, BookOpen, Headphones, PenTool, Mic, Brain,
   Home, ChevronRight, Target, Sparkles, Trophy, Lock,
-  X, Maximize2,
+  X, Maximize2, PlayCircle, ExternalLink, Newspaper,
 } from "lucide-react";
 import { buildWhatsAppLink } from "@/lib/contact";
 import {
@@ -48,6 +48,12 @@ interface StudyTask {
   vocabList?: VocabItem[];  // optional expandable word list with examples
 }
 
+interface ExternalResource {
+  label: string;
+  url: string;
+  type: "video" | "article";
+}
+
 interface StudyWeek {
   week: number;
   theme: string;
@@ -55,6 +61,8 @@ interface StudyWeek {
   color: "blue" | "green" | "purple" | "amber" | "red";
   rationale: string;
   tasks: StudyTask[];
+  weeklyTheme?: string;
+  externalResources?: ExternalResource[];
 }
 
 interface TierPlan {
@@ -75,630 +83,167 @@ const FOUNDATION_PLAN: TierPlan = {
   bandRange: "4.0–5.5",
   targetBand: "6.0–6.5",
   headline: "Build from the ground up",
-  description: "Your English foundations need strengthening before IELTS technique layers on top. This 8-week plan starts with grammar and vocabulary, then adds each exam skill one at a time. Every week adds one brick.",
+  description: "Your English foundations need strengthening before IELTS technique layers on top. This 4-week plan starts with grammar essentials, then moves into exam strategy and full module practice. Every week adds one brick.",
   color: "blue",
   weeks: [
     {
-      week: 1, theme: "Grammar Foundations", focus: "Grammar",
+      week: 1, theme: "Grammar — Tenses & Agreement", focus: "Grammar",
       color: "blue",
-      rationale: "IELTS penalises systematic grammar errors heavily. Most Band 5 candidates make consistent mistakes with tenses, subject-verb agreement, and articles. Fixing these first creates a stable foundation — you cannot write a coherent Task 2 paragraph without reliable grammar.",
+      weeklyTheme: "Technology",
+      rationale: "Tense consistency and subject-verb agreement are the two most penalised grammar errors at Band 4–5. Fixing these first gives every sentence you write a reliable structure before you layer in exam technique.",
       tasks: [
-        { id: "f-w1-t1", label: "Read: Parts of Speech & Sentence Types", description: "Study simple, compound, and complex sentences. Focus on when to use 'because', 'although', 'which', and 'where' to connect ideas.", resourcePath: "/dashboard/revision-notes?topic=parts-of-speech", resourceLabel: "Open Revision Notes", minutes: 30 },
-        { id: "f-w1-t2", label: "Flashcards: Articles & Prepositions", description: "The most systematic Band 5 error. Work through the flashcard set covering 'a/an/the' rules and common preposition collocations (interested IN, responsible FOR, depend ON).", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 20 },
-        { id: "f-w1-t3", label: "Practice: Simple → Complex Sentences", description: "Write 10 short simple sentences about any topic. Then rewrite each one using a 'because', 'although', 'which', or 'when' clause. Example: 'Cars are fast.' → 'Cars, which emit large amounts of carbon dioxide, are far faster than public transport.'", minutes: 30 },
-        { id: "f-w1-t4", label: "Revision Notes: IELTS Tenses Guide", description: "Learn which tenses are most common in each exam section. Task 1 uses past tenses for historical data and present/future for processes. Task 2 uses present tenses for opinions.", resourcePath: "/dashboard/revision-notes", resourceLabel: "Open Revision Notes", minutes: 20 },
+        {
+          id: "f-w1-t1", label: "Revision Notes: Verb Tenses (Parts 1–5 + Mini Practice)",
+          description: "Work through all five parts of the Verb Tenses notes covering present, past, future, perfect, and continuous tenses. Complete the mini practice at the end to check your understanding.",
+          resourcePath: "/dashboard/revision-notes?topic=verb-tenses", resourceLabel: "Open Verb Tenses", minutes: 45,
+        },
+        {
+          id: "f-w1-t2", label: "Revision Notes: Subject-Verb Agreement (All Parts + Mini Practice)",
+          description: "Study all parts including singular/plural subjects, special patterns (there is/are, subjects joined by 'and'), and the mini practice. Pay attention to collective nouns like 'government' and 'number of'.",
+          resourcePath: "/dashboard/revision-notes?topic=subject-verb-agreement", resourceLabel: "Open SVA Notes", minutes: 40,
+        },
+        {
+          id: "f-w1-t3", label: "Vocabulary Expansion",
+          description: "Read 2–3 of this week's external resources (Technology theme). Note down any new words, look up their collocations, and write one sentence using each.",
+          minutes: 30,
+        },
+        {
+          id: "f-w1-t4", label: "Worksheet Practice: Verb Tenses & SVA",
+          description: "Verb tenses: identify and correct incorrect tenses in a passage, then choose the best tense for different scenarios. SVA: identify and fix agreement errors in sentences and passages, then write a short descriptive paragraph with correct SVA throughout.",
+          minutes: 40,
+        },
+      ],
+      externalResources: [
+        { label: "Electric Cars", url: "https://english-online.at/news-articles/business-economy/ford-to-invest-11-billion-in-electric-cars.htm", type: "article" },
+        { label: "Robot Teachers", url: "https://learnenglish.britishcouncil.org/free-resources/reading/b1/robot-teachers", type: "article" },
+        { label: "AI and Health", url: "https://newsinlevels.com/products/screens-and-ai-toys-hurt-children-level-3/", type: "article" },
+        { label: "Technology and Health", url: "https://youtu.be/2FZEznNC-Fs?si=MLZJwqXKzIIblxVt", type: "video" },
+        { label: "AI and the Future", url: "https://youtu.be/-T__YWoq45I?si=s5NFNTBqV0qu74nU", type: "video" },
       ],
     },
     {
-      week: 2, theme: "Vocabulary: Top IELTS Topics (Part 1)", focus: "Vocabulary",
+      week: 2, theme: "Grammar — Articles & Sentence Structures", focus: "Grammar",
       color: "purple",
-      rationale: "The single biggest jump from Band 5 to 6 is vocabulary range. You need 20–25 words per IELTS topic that go beyond basics. Start with the 3 most frequently tested topics. Don't just memorise words — learn them in collocations (groups of words that go together naturally).",
+      weeklyTheme: "Health",
+      rationale: "Articles (a/an/the) are the most systematic Band 4–5 error in writing. Sentence structure variety is required to reach Band 6. Adding conjunctions and linking words directly addresses two of the four IELTS Writing criteria.",
       tasks: [
         {
-          id: "f-w2-t1", label: "Flashcards: Environment Vocabulary", description: "Learn 25 topic words + collocations: 'environmental degradation', 'carbon emissions', 'renewable energy', 'biodiversity', 'sustainable development'. Practise using 3 in one sentence.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 25,
-          vocabList: [
-            {
-              term: "environmental degradation",
-              why: "This noun phrase appears in nearly every IELTS environment essay. It collocates with 'causes', 'leads to', 'contributes to', and 'accelerates'. Band 6 candidates write 'damage to the environment' — Band 7 candidates write 'environmental degradation'. The difference signals topic vocabulary range, which is directly assessed under Lexical Resource.",
-              pattern: "Environmental degradation [caused by / resulting from / accelerated by] [specific human activity].\n[Activity] contributes significantly to environmental degradation, particularly [in / through / when]...",
-              mistake: "Don't write 'environmental degradation is bad' — this word deserves a specific cause and consequence attached to it. The phrase should anchor a claim: 'Environmental degradation caused by deforestation threatens biodiversity in ways that are difficult to reverse within a human timescale.'",
-              practice: "Write one sentence about environmental degradation that names a specific cause AND a specific consequence. Do not use the words 'bad' or 'harmful'.",
-              workedExample: [
-                "Rapid industrial expansion, particularly in emerging economies with limited regulatory oversight, has accelerated environmental degradation to the point where several major river systems and coastal ecosystems face collapse within decades rather than generations.",
-                "Environmental degradation caused by large-scale agricultural monocultures extends well beyond soil erosion, encompassing the collapse of pollinator populations whose contribution to global food security is estimated to be worth trillions of dollars annually.",
-                "The relationship between poverty and environmental degradation is circular rather than linear: communities that depend on natural resources for subsistence are simultaneously most vulnerable to their depletion and least able to afford the alternatives.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Rapid industrialisation in developing nations has accelerated environmental degradation to a degree that threatens long-term economic stability in the very communities that depend on natural resources for their livelihoods." },
-                { label: "Writing Task 2 (introduction)", sentence: "While economic development remains a priority for many governments, the environmental degradation it generates raises serious questions about whether current growth models are sustainable beyond the next generation." },
-                { label: "Speaking Part 3", sentence: "I think environmental degradation is one of those issues where the costs are diffuse and long-term, but the political incentives favour short-term economic gains — which is why it's so difficult to address through normal democratic processes." },
-              ],
-            },
-            {
-              term: "carbon emissions",
-              why: "This is the single most tested phrase in IELTS climate and environment essays. It collocates with 'reduce', 'cut', 'limit', 'curb', 'offset', and 'generate'. Knowing the verb collocations is what separates Band 6 ('lower carbon emissions') from Band 7 ('curb / drastically reduce carbon emissions'). It also pairs with 'per capita', 'industrial', 'global', and 'cumulative'.",
-              pattern: "[Country / sector / activity] generates / produces approximately [X tonnes / X% of global] carbon emissions annually.\nReducing / curbing / offsetting carbon emissions from [sector] requires [policy or technology].",
-              mistake: "Don't confuse 'carbon emissions' with 'carbon dioxide' — they are related but not the same. 'Carbon emissions' is the broader, more flexible term and is preferable in IELTS essays. Also avoid 'emit carbons' — the correct form is 'emit carbon emissions' or simply 'produce carbon emissions'.",
-              practice: "Write a sentence about carbon emissions from the transport sector that includes a specific action a government could take to reduce them. Use one of the recommended verb collocations.",
-              workedExample: [
-                "Curbing carbon emissions from the transport sector requires a combination of incentives for electric vehicle adoption, investment in public transit infrastructure, and regulatory pressure on manufacturers to accelerate the phase-out of internal combustion engines.",
-                "Per-capita carbon emissions in high-income nations remain dramatically higher than in developing countries despite decades of efficiency improvements, raising fundamental questions of equity in any negotiated international framework for emissions reduction.",
-                "Offsetting carbon emissions through reforestation programmes, while politically attractive, addresses only a fraction of what industrial and energy sector reform would achieve — and treats the symptom rather than the underlying structural causes of excessive fossil fuel consumption.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Governments that fail to significantly curb carbon emissions from the energy and transport sectors within this decade will face far greater economic costs from climate disruption than the transition to renewable alternatives would have required." },
-                { label: "Writing Task 1 (overview)", sentence: "Overall, carbon emissions from industry represented the largest single source of output throughout the period, though the gap between industrial and transport sector figures narrowed considerably by the final year shown." },
-                { label: "Speaking Part 3", sentence: "I think the most politically underused lever for reducing carbon emissions is actually urban planning — dense, walkable cities with good public transit generate a fraction of the per-capita emissions of car-dependent suburban sprawl." },
-              ],
-            },
-            {
-              term: "renewable energy",
-              why: "This phrase collocates with 'sources', 'capacity', 'investment', 'transition', 'infrastructure', and 'generation'. It pairs with verbs like 'invest in', 'expand', 'accelerate', 'adopt', and 'transition to'. In Task 1, you may need to describe renewable energy data; in Task 2, you argue about energy policy. Both contexts require fluent use of this phrase and its collocations.",
-              pattern: "Invest in / transition to / expand renewable energy [capacity / infrastructure / generation].\nThe share of renewable energy in [national / global] electricity generation [has grown / is projected to reach / levelled off at] [X%].",
-              mistake: "Don't write 'renewable energies' — it's an uncountable concept in this context. The correct form is 'renewable energy' (singular, no article needed when used as a modifier: 'renewable energy sources', 'renewable energy investment'). You can write 'renewables' as an informal shorthand, but 'renewable energies' sounds unnatural in formal writing.",
-              practice: "Write a sentence arguing that governments should prioritise renewable energy investment. Include a specific reason and use one of the collocating verbs above (not 'use' or 'adopt').",
-              workedExample: [
-                "Nations that invest decisively in renewable energy infrastructure during the current decade will benefit from both the energy security advantages of domestic generation and the long-term cost advantages of technologies whose input costs — sunlight and wind — carry no fuel price risk.",
-                "The transition to renewable energy at the scale required to meet net-zero commitments demands not just technological deployment, but a coordinated restructuring of electricity grid infrastructure, regulatory frameworks, and workforce skills that no individual sector can deliver in isolation.",
-                "Expanding renewable energy capacity in developing nations requires international financial mechanisms that make clean infrastructure competitive with fossil fuel alternatives on upfront cost, since the long-term savings that justify the investment accrue over timeframes that exceed most domestic political cycles.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Governments that invest significantly in renewable energy infrastructure now will not only reduce their carbon footprint but also insulate their economies from the price volatility that has historically characterised fossil fuel markets." },
-                { label: "Writing Task 1 (data description)", sentence: "The proportion of electricity generated from renewable energy sources increased from 9% to 31% over the ten-year period, representing the most dramatic shift of any energy category in the dataset." },
-                { label: "Speaking Part 3", sentence: "I think the main barrier to renewable energy adoption in developing countries isn't technology — the technology is increasingly cheap — it's the upfront capital cost and the financing structures that make fossil fuel alternatives still look more attractive in the short term." },
-              ],
-            },
-            {
-              term: "biodiversity loss",
-              why: "This noun phrase is used in high-level environment essays and collocates with 'accelerate', 'threaten', 'contribute to', 'address', 'halt', and 'reverse'. It signals that you are discussing the ecosystem dimension of environmental issues, not just climate change — which shows wider topic knowledge. The verb 'halt biodiversity loss' is a tested IELTS collocation.",
-              pattern: "Biodiversity loss [caused by / driven by / resulting from] [deforestation / pesticide use / habitat destruction / climate change].\nAddressing / halting biodiversity loss requires [policy / international cooperation / land use reform].",
-              mistake: "Don't confuse 'biodiversity loss' with 'extinction' — biodiversity loss is a broader category that includes population decline, habitat fragmentation, and genetic erosion, not just species extinction. Using 'extinction' when 'biodiversity loss' is more accurate will limit your vocabulary range score.",
-              practice: "Write a body paragraph topic sentence about biodiversity loss that names a specific cause and implies a specific consequence. Avoid using the word 'extinction' in this sentence.",
-              workedExample: [
-                "Biodiversity loss driven by intensive monoculture agriculture undermines the very ecosystem services — pollination, soil fertility, natural pest control — on which the same agricultural systems depend for long-term productivity.",
-                "Halting biodiversity loss at the scale required would necessitate protecting approximately 30% of the Earth's land and ocean surface from extractive uses — a target that brings it into direct conflict with existing agricultural, mining, and fishing interests in most signatory nations.",
-                "The economic costs of biodiversity loss are routinely underestimated in policy frameworks that treat ecosystems as external to economic systems, when in reality they provide services — water filtration, flood regulation, carbon sequestration — whose monetary value vastly exceeds the costs of conservation.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Biodiversity loss resulting from deforestation and intensive agriculture threatens not only ecological stability but the agricultural productivity that billions of people depend on for food security." },
-                { label: "Writing Task 2 (introduction)", sentence: "While climate change receives the majority of political attention, many ecologists argue that biodiversity loss poses an equally severe — and considerably less reversible — threat to human welfare." },
-                { label: "Speaking Part 3", sentence: "Biodiversity loss is one of those issues where I think we genuinely don't know what we're losing until it's gone — the interdependencies within ecosystems are complex enough that removing one species can have cascading effects that weren't predictable in advance." },
-              ],
-            },
-            {
-              term: "sustainable development",
-              why: "This is an official international policy concept (the UN's 'Sustainable Development Goals') that refers to economic development which meets present needs without compromising future generations' ability to meet theirs. It collocates with 'achieve', 'promote', 'pursue', 'model', and 'framework'. In IELTS, using this phrase correctly shows you understand the policy landscape, not just abstract environmental concepts.",
-              pattern: "Achieving / pursuing sustainable development requires [balancing / integrating / reconciling] [economic growth] with [environmental protection / social equity].\n[Policy] is a cornerstone of / is incompatible with sustainable development because [reason].",
-              mistake: "Don't use 'sustainable development' as a synonym for 'environmentalism'. Sustainable development explicitly includes economic and social dimensions — it is about maintaining development for future generations, not stopping development now. Confusing these will misrepresent the concept in an essay and signal limited topic knowledge.",
-              practice: "Write one sentence arguing that a specific government policy (your choice) either supports or undermines sustainable development. Make the connection to future generations explicit.",
-              workedExample: [
-                "Achieving sustainable development in rapidly urbanising nations requires investment in mass transit and green building standards from the outset of urban expansion — retrofitting infrastructure is exponentially more expensive than building it correctly the first time.",
-                "The tension between sustainable development and immediate poverty alleviation is the defining dilemma of development policy: communities in acute need cannot reasonably be expected to prioritise environmental outcomes over access to energy, food security, and economic opportunity.",
-                "Sustainable development frameworks that fail to account for indigenous land rights and traditional ecological knowledge consistently underperform those that integrate local communities as active partners in conservation and resource management rather than treating them as obstacles to be managed.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (thesis)", sentence: "Sustainable development represents not a compromise between economic growth and environmental protection, but the recognition that one is ultimately impossible without the other." },
-                { label: "Writing Task 2 (body)", sentence: "Investment in renewable energy infrastructure, affordable housing, and quality education are not competing priorities but the interconnected pillars of any genuinely sustainable development model." },
-                { label: "Speaking Part 3", sentence: "I think sustainable development is one of those concepts that sounds obvious until you start working through the trade-offs — how do you tell a country with 300 million people living in energy poverty that it needs to build wind farms instead of coal plants?" },
-              ],
-            },
-          ],
+          id: "f-w2-t1", label: "Revision Notes: Articles (All Parts + Mini Practice)",
+          description: "Work through all parts covering when to use a/an, the, or no article. Complete the mini practice — focus especially on uncountable nouns and general statements ('Education is important' vs 'The education system…').",
+          resourcePath: "/dashboard/revision-notes?topic=articles", resourceLabel: "Open Articles Notes", minutes: 40,
         },
         {
-          id: "f-w2-t2", label: "Flashcards: Education Vocabulary", description: "Learn 25 topic words: 'academic achievement', 'lifelong learning', 'vocational training', 'higher education', 'critical thinking'. Note which are nouns, verbs, adjectives.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 25,
-          vocabList: [
-            {
-              term: "academic achievement",
-              why: "This noun phrase is tested in Reading passages, Listening lectures, and Writing Task 2 essays about education. It collocates with 'improve', 'measure', 'predict', 'influence', and 'gap'. The 'achievement gap' — a disparity between groups — is a frequent IELTS theme. Band 5 candidates write 'do well in school'; Band 6+ write 'academic achievement'.",
-              pattern: "[Factor] has a significant impact on / significantly influences academic achievement.\nThe academic achievement gap between [Group A] and [Group B] [has widened / persists / is driven by]...",
-              mistake: "Don't write 'academical achievement' — there is no word 'academical' in this context. The adjective form is 'academic'. Also avoid 'achieve academically' when you mean the noun 'academic achievement' — using the noun phrase is more formal and more natural in IELTS writing.",
-              practice: "Write one sentence about a factor that influences students' academic achievement. Do not use the word 'good' in your sentence.",
-              workedExample: [
-                "Socioeconomic background remains the most powerful predictor of academic achievement in most developed nations, consistently outweighing school quality, teaching methods, and curriculum design as determinants of student outcomes.",
-                "The academic achievement gap between students from high- and low-income families has widened in many countries over the past decade, despite increased education spending — suggesting that the resources are not reaching those who most need them.",
-                "Research consistently shows that early childhood intervention programmes have disproportionately large effects on long-term academic achievement, with benefits that compound across primary, secondary, and tertiary education.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Access to private tutoring gives wealthier students a measurable advantage in academic achievement — an advantage that public education systems, regardless of quality, struggle to offset." },
-                { label: "Writing Task 2 (thesis)", sentence: "While educational technology has the potential to improve academic achievement across income groups, its benefits are consistently captured first and most fully by students whose home environments already support learning." },
-                { label: "Speaking Part 3", sentence: "I think academic achievement is one of those metrics that we've over-indexed on in education policy — it measures performance in a system, but not necessarily the qualities that make someone genuinely capable of contributing to society." },
-              ],
-            },
-            {
-              term: "lifelong learning",
-              why: "This noun phrase signals understanding of modern education policy debates. It refers to the concept that learning doesn't end with formal schooling but continues throughout adult life — particularly relevant given the pace of technological change. It collocates with 'promote', 'encourage', 'commit to', 'culture of', and 'opportunities for'. Very common in Writing Task 2 and Speaking Part 3.",
-              pattern: "Promoting / fostering a culture of lifelong learning [within organisations / across society / among workers].\n[Technology / automation / globalisation] has made lifelong learning [essential / increasingly important / a workforce necessity].",
-              mistake: "Lifelong learning refers to continuous self-directed or institutional learning throughout life — not just 'studying for a long time'. Don't write 'students should do lifelong learning' as if it's a school activity. It applies primarily to adults updating skills in a changing economy.",
-              practice: "Write one sentence arguing that employers, not just governments, have a responsibility to support lifelong learning. Include a specific reason.",
-              workedExample: [
-                "In an economy where entire job categories can become obsolete within a decade, a genuine commitment to lifelong learning — supported by employer funding, accessible retraining programmes, and portability of qualifications — is not a luxury but a structural necessity.",
-                "The culture of lifelong learning that distinguishes the most economically resilient workforces is not simply a product of individual motivation but of systems that make retraining financially and practically accessible to workers who lack the time or resources to pursue it independently.",
-                "Promoting lifelong learning through public subsidies for adult education and online credentialling programmes is among the more cost-effective investments a government can make in long-term labour market adaptability.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Governments that invest in lifelong learning infrastructure — retraining programmes, subsidised online courses, and recognition of prior learning — are better positioned to manage the workforce disruptions caused by automation." },
-                { label: "Writing Task 2 (thesis)", sentence: "In a world defined by rapid technological change, lifelong learning is no longer a personal aspiration but an economic imperative that governments and employers have a shared responsibility to enable." },
-                { label: "Speaking Part 3", sentence: "I think the most important shift in education policy over the next twenty years will be away from front-loading all learning into the first twenty-two years of life, and toward lifelong learning systems that support people through multiple career transitions." },
-              ],
-            },
-            {
-              term: "vocational training",
-              why: "This noun phrase refers to education that prepares people for specific trades or technical occupations, as distinct from academic higher education. It collocates with 'invest in', 'expand', 'access to', 'quality of', and 'pathways'. IELTS essays frequently discuss whether vocational training should receive the same status and funding as university education — knowing this phrase fluently is essential for that debate.",
-              pattern: "Investing in / expanding access to vocational training [for school leavers / for unemployed adults / in underserved regions].\nVocational training pathways [offer / provide / lack] [specific benefit or gap].",
-              mistake: "Don't confuse vocational training with 'job training' (which is too informal) or 'technical education' (a slightly different concept). Vocational training specifically prepares people for trades, crafts, and technical occupations — it is the appropriate term when discussing apprenticeships, trade schools, and TVET (Technical and Vocational Education and Training) systems.",
-              practice: "Write one sentence arguing that vocational training should receive equal government funding to university education. Include a specific economic reason.",
-              workedExample: [
-                "Expanding access to high-quality vocational training would address the persistent skills shortages in construction, engineering, and healthcare that university education is structurally unable to fill, while providing a viable and respected career pathway for students whose strengths lie outside academic learning.",
-                "The persistent undervaluation of vocational training relative to university education is both a cultural problem — reflecting a bias toward white-collar careers — and a policy failure, since the occupations that vocational training prepares students for are often more economically resilient and locally rooted than many graduate-level roles.",
-                "Investing in vocational training infrastructure in rural and post-industrial regions offers a more targeted response to structural unemployment than generic university expansion, since it produces graduates whose qualifications directly address the skills gaps in those specific local labour markets.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Governments that channel education funding disproportionately toward universities at the expense of vocational training risk widening the skills gap in trades and technical occupations that modern economies cannot function without." },
-                { label: "Writing Task 2 (counter-argument)", sentence: "Critics of vocational training argue that it limits students' future options by channelling them into a specific occupation too early; however, quality vocational programmes increasingly incorporate transferable skills and pathways to further academic study." },
-                { label: "Speaking Part 3", sentence: "In my view, vocational training carries an unnecessary stigma in many societies that associate it with lower academic ability, when in reality it requires significant technical intelligence and produces graduates who are often more immediately employable than many university graduates." },
-              ],
-            },
-            {
-              term: "higher education",
-              why: "Higher education refers to university-level and post-secondary education. It collocates with 'access to', 'quality of', 'funding for', 'participation in', 'attainment', and 'institutions'. In IELTS essays, it is used to discuss university funding, student debt, graduate unemployment, and the social returns of education. Band 5 candidates write 'going to university'; Band 7 candidates write 'access to higher education'.",
-              pattern: "Access to / participation in higher education [has expanded / remains unequal / is constrained by cost].\nThe social and economic returns of higher education [justify / do not justify] [public funding / individual debt burden].",
-              mistake: "Don't write 'higher education' to mean 'better education'. The phrase has a specific meaning: education at degree level and above. Secondary school is not higher education even if it is high-quality. This is a common error among non-native speakers and will affect your vocabulary range score.",
-              practice: "Write one sentence about the relationship between higher education and social mobility. Include a specific claim about who benefits and who doesn't.",
-              workedExample: [
-                "While higher education participation has expanded significantly in most developed nations over the past thirty years, the benefits of that expansion have accrued disproportionately to students from already-advantaged backgrounds, suggesting that access to a degree is a necessary but not sufficient condition for genuine social mobility.",
-                "The funding model for higher education — whether through public subsidy, graduate taxation, or individual debt — is not merely a fiscal question but a fundamental choice about who society believes should bear the cost of developing a highly skilled workforce.",
-                "Higher education institutions that exclusively prioritise research prestige at the expense of teaching quality are failing the majority of their students, whose primary purpose in attending is to acquire the knowledge and credentials needed to enter productive employment.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "When higher education is funded primarily through student loans rather than public grants, it systematically disadvantages students from lower-income families who are less willing to take on significant debt — regardless of their academic ability." },
-                { label: "Writing Task 2 (thesis)", sentence: "Expanding access to higher education without addressing the structural barriers of cost, geography, and cultural capital will produce credential inflation without the social mobility that educational investment is supposed to generate." },
-                { label: "Speaking Part 3", sentence: "I think the debate about higher education funding often misses the point — the question isn't just who pays, but whether the experience actually prepares graduates for the world they'll be entering, and on that measure many institutions are falling short." },
-              ],
-            },
-            {
-              term: "critical thinking",
-              why: "Critical thinking refers to the capacity to analyse, evaluate, and form independent judgments about information — as distinct from memorising and reproducing facts. It is a central concept in education debates and collocates with 'develop', 'foster', 'teach', 'apply', 'demonstrate', and 'lack'. IELTS essays frequently ask whether schools should prioritise knowledge or skills — critical thinking is the key skills-side vocabulary item.",
-              pattern: "Developing / fostering critical thinking [skills / abilities / capacities] [in students / in the workforce / through education].\nThe ability to / capacity for critical thinking [is essential / has been eroded / cannot be replaced by AI].",
-              mistake: "Don't use 'critical' to mean 'negative' or 'analytical in a disapproving way' in this phrase. Critical thinking means evaluative — assessing evidence and forming reasoned judgments — not finding fault. 'The report was critical' means disapproving; 'the report demonstrated critical thinking' means analytical reasoning. These are completely different uses.",
-              practice: "Write one sentence arguing that schools should prioritise critical thinking over knowledge acquisition. Give one specific reason.",
-              workedExample: [
-                "Schools that prioritise critical thinking over rote knowledge acquisition are better preparing students for an information environment in which facts are abundant and freely accessible, but the capacity to evaluate their reliability and relevance is both scarce and genuinely valuable.",
-                "The erosion of critical thinking skills through an examination system that rewards memorisation and penalises original reasoning produces graduates who are knowledgeable but poorly equipped to apply that knowledge adaptively in novel professional contexts.",
-                "Fostering critical thinking in the early years of schooling requires not just different teaching methods but a different relationship between teacher and student — one in which questioning the teacher's reasoning is encouraged rather than discouraged.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "An education system that rewards the reproduction of factual knowledge over the demonstration of critical thinking is producing graduates well suited to the economy of the twentieth century but poorly prepared for the twenty-first." },
-                { label: "Writing Task 2 (thesis)", sentence: "While digital technology provides access to virtually unlimited information, it simultaneously makes the ability to critically evaluate that information — to distinguish reliable from unreliable sources — more valuable than the information itself." },
-                { label: "Speaking Part 3", sentence: "I think critical thinking is one of those educational goals that everyone agrees on in principle but very few school systems actually prioritise in practice, largely because it's harder to measure than factual recall and doesn't translate as neatly into standardised test scores." },
-              ],
-            },
-          ],
+          id: "f-w2-t2", label: "Revision Notes: Sentence Structure & Conjunctions",
+          description: "Read through the Sentence Structure notes focusing on compound and complex sentences. Pay attention to the 'See: Coordinating/Subordinating Conjunctions' links within those notes.",
+          resourcePath: "/dashboard/revision-notes?topic=sentence-structure", resourceLabel: "Open Sentence Structure", minutes: 35,
         },
         {
-          id: "f-w2-t3", label: "Flashcards: Technology Vocabulary", description: "Learn 25 topic words: 'digital literacy', 'artificial intelligence', 'data privacy', 'automation', 'disruptive innovation'. Practise in sentences.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 25,
-          vocabList: [
-            {
-              term: "digital literacy",
-              why: "Digital literacy means the ability to use, understand, and critically evaluate digital technologies and information. It collocates with 'develop', 'teach', 'lack', 'improve', 'gap in', and 'programme'. It is essential vocabulary for IELTS essays about technology in education, workplace skills, and the digital divide. Band 5 candidates write 'know how to use computers'; Band 7 candidates write 'digital literacy skills'.",
-              pattern: "Developing digital literacy [among / in] [students / elderly populations / low-income communities].\nThe digital literacy gap between [Group A] and [Group B] [has widened / threatens / is driven by]...",
-              mistake: "Digital literacy is not the same as 'computer skills' or 'being good with technology'. It includes the critical dimension — the ability to evaluate online information, understand data privacy, recognise misinformation, and participate safely in digital environments. Omitting the critical dimension undersells the concept.",
-              practice: "Write one sentence about the digital literacy gap between generations. Include a specific consequence of that gap for older adults.",
-              workedExample: [
-                "The digital literacy gap between younger and older generations is not simply a matter of technical skill but of confidence and critical judgment — older adults who lack familiarity with how online information is curated and monetised are disproportionately vulnerable to misinformation and financial fraud.",
-                "Developing digital literacy among school-age children must extend beyond teaching them to navigate software and include the critical skills to evaluate online sources, understand data privacy implications, and recognise the algorithmic systems that shape their information environment.",
-                "Governments that fail to invest in digital literacy programmes for the adult workforce risk creating a two-tier labour market in which technological change accelerates opportunities for the already-skilled while further marginalising those whose work is most susceptible to automation.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Without a concerted effort to develop digital literacy across all age groups and income levels, the benefits of the digital economy will remain concentrated among those who were already advantaged, exacerbating existing inequalities." },
-                { label: "Writing Task 2 (problem-solution)", sentence: "Integrating digital literacy into the school curriculum from an early age is one of the most cost-effective investments a government can make in long-term economic competitiveness." },
-                { label: "Speaking Part 3", sentence: "I think digital literacy is one of the most underfunded priorities in education — schools teach children to use technology, but rarely teach them to question it, which I'd argue is actually the more important skill." },
-              ],
-            },
-            {
-              term: "artificial intelligence",
-              why: "Artificial intelligence (AI) refers to computer systems designed to perform tasks that normally require human intelligence. It collocates with 'develop', 'deploy', 'regulate', 'replace', 'augment', and 'raise concerns about'. In IELTS essays, AI is discussed in the context of employment, ethics, education, and healthcare. You need both the full phrase and the abbreviation 'AI'.",
-              pattern: "Artificial intelligence has the potential to [transform / disrupt / augment / replace] [sector or activity].\nThe deployment / regulation of artificial intelligence [raises / presents / requires] [specific concern or action].",
-              mistake: "Don't write 'artificial intelligences' in the plural — AI is an uncountable concept when used generally. You can write 'AI systems' or 'AI applications' for specific implementations, but 'artificial intelligence' itself does not take a plural in formal writing.",
-              practice: "Write one sentence about artificial intelligence in the workplace that acknowledges both a benefit and a risk. Do not use the words 'good' or 'bad'.",
-              workedExample: [
-                "The deployment of artificial intelligence in diagnostic medicine has demonstrated genuine capacity to identify patterns in medical imaging that human clinicians routinely miss — a benefit whose ethical and regulatory implications are only beginning to be worked through in most healthcare systems.",
-                "While artificial intelligence can automate many routine cognitive tasks at a fraction of the cost of human labour, the transition it requires — in skills, in regulation, and in social safety nets — demands a degree of policy coordination that market forces alone cannot deliver.",
-                "Regulating artificial intelligence presents a distinctly challenging governance problem because its most consequential applications — in surveillance, financial modelling, and military systems — develop faster than the legislative frameworks designed to oversee them.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Artificial intelligence is already reshaping the labour market in ways that are creating new categories of high-value work while simultaneously eliminating large numbers of routine cognitive and manual roles." },
-                { label: "Writing Task 2 (balanced view)", sentence: "While artificial intelligence offers transformative potential in fields such as medical diagnosis and climate modelling, its unregulated deployment in hiring, lending, and criminal justice systems has already produced documented cases of algorithmic bias that perpetuate rather than reduce systemic inequality." },
-                { label: "Speaking Part 3", sentence: "I think artificial intelligence is going to require us to rethink some fairly fundamental assumptions about the relationship between productivity and employment — historically those have moved together, and it's not obvious they will continue to do so." },
-              ],
-            },
-            {
-              term: "data privacy",
-              why: "Data privacy refers to individuals' right to control how their personal information is collected, stored, and used by companies and governments. It collocates with 'protect', 'violate', 'legislation', 'concerns', 'rights', and 'regulations'. This topic appears in IELTS essays about technology, government surveillance, social media, and digital rights. It is increasingly important and frequently tested.",
-              pattern: "Data privacy [concerns / rights / regulations] [have become / are increasingly / remain inadequately protected].\nProtecting / ensuring data privacy requires [specific legislation / user rights / corporate accountability].",
-              mistake: "Data privacy is not the same as 'data security' (which refers to protecting data from unauthorised access by hackers). Data privacy is specifically about individuals' rights over their own information. An essay about whether companies should be allowed to sell user data is about data privacy; an essay about preventing cyberattacks is about data security.",
-              practice: "Write one sentence arguing that social media companies violate users' data privacy for commercial gain. Include a specific mechanism.",
-              workedExample: [
-                "Social media companies routinely monetise detailed behavioural data in ways that most users neither understand nor have meaningfully consented to, making the language of 'privacy agreements' a legal fiction that obscures a fundamental violation of data privacy rights.",
-                "Effective data privacy regulation requires not just legislation specifying what companies cannot do with user data, but enforcement mechanisms with the technical capacity and legal authority to audit algorithmic systems that were specifically designed to be opaque.",
-                "The tension between data privacy and public health — most visible during pandemic contact tracing — illustrates how rights that appear absolute in peacetime reveal genuine ethical trade-offs when weighed against collective interests under conditions of emergency.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "The erosion of data privacy through the commercial surveillance practices of technology companies has created an information asymmetry between corporations and individuals that existing consumer protection frameworks were not designed to address." },
-                { label: "Writing Task 2 (balanced)", sentence: "While stricter data privacy regulations would limit the data-driven business models that have made digital services economically viable, the alternative — allowing unrestricted collection and use of personal data — creates risks of manipulation and exploitation that democratic societies should not accept." },
-                { label: "Speaking Part 3", sentence: "I think data privacy is one of those issues where most people's stated concerns and their actual behaviour are completely disconnected — people say they care deeply about it, and then share every detail of their lives on platforms they know are monetising that data." },
-              ],
-            },
-            {
-              term: "automation",
-              why: "Automation refers to the use of technology to perform tasks previously done by humans. It collocates with 'driven by', 'threatens', 'displaces', 'creates', 'accelerates', 'manage', and 'adapt to'. In IELTS, automation is discussed in essays about employment, inequality, economic growth, and the future of work. It is arguably the most frequently tested technology topic in Writing Task 2.",
-              pattern: "Automation [threatens / has displaced / is transforming] [jobs / manufacturing / service sector roles].\nManaging / adapting to the disruption caused by automation requires [retraining / social safety nets / new regulatory frameworks].",
-              mistake: "Don't use 'automation' to mean only robots on factory floors — it now encompasses AI-driven automation of cognitive tasks, which is the more relevant dimension for most IELTS essays about employment. Limiting your usage to manufacturing examples understates the breadth of the term and the scale of the phenomenon.",
-              practice: "Write one sentence about the effect of automation on employment. Include a specific sector and acknowledge both a negative effect and a possible benefit.",
-              workedExample: [
-                "Automation of routine manufacturing tasks has historically been accompanied by the emergence of new categories of employment in design, maintenance, and coordination — a pattern that optimists cite as evidence that current automation will similarly generate new work, even if the transition is painful and unequal.",
-                "The automation of cognitive tasks — legal drafting, financial analysis, data entry, customer service — is proceeding considerably faster than the retraining programmes designed to support displaced workers, creating a growing structural mismatch between available jobs and available skills.",
-                "Managing the social consequences of automation-driven displacement requires not only workforce retraining but a broader rethinking of how societies distribute the productivity gains that automation generates — since, absent redistribution, those gains flow primarily to capital owners rather than displaced workers.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "The automation of low-skilled manufacturing and service roles disproportionately affects workers who lack the educational credentials or financial resources to retrain for the higher-skilled positions that the same technological shift is creating." },
-                { label: "Writing Task 2 (introduction)", sentence: "The rapid advance of automation threatens to disrupt labour markets on a scale and at a speed that previous waves of technological change did not, raising fundamental questions about the social contract between governments, employers, and workers." },
-                { label: "Speaking Part 3", sentence: "I think the most important question about automation isn't whether it will eliminate jobs — historically it always creates new ones — but whether the new jobs it creates will be accessible to the same workers whose existing jobs it destroys." },
-              ],
-            },
-            {
-              term: "disruptive innovation",
-              why: "Disruptive innovation refers to a new technology or business model that fundamentally changes an industry, often by offering a cheaper, simpler alternative that initially targets underserved markets before eventually displacing established players. It collocates with 'drives', 'enables', 'accelerates', 'poses a threat to', and 'requires adaptation'. It is used in IELTS essays about business, technology, and economic change.",
-              pattern: "Disruptive innovation [in / within] [sector] has [transformed / challenged / created] [specific outcome].\n[Technology] represents a form of disruptive innovation that [undermines / creates / demands] [specific change in response].",
-              mistake: "Disruptive innovation does not simply mean 'new technology' or 'significant change'. The disruption is specific: a simpler, often cheaper innovation that initially seems inferior but eventually redefines what the market values. Using it loosely as a synonym for 'major technological development' will signal to the examiner that you don't understand the term precisely.",
-              practice: "Write one sentence about a specific technology that has been a form of disruptive innovation in an industry of your choice. Name the industry and explain what was disrupted.",
-              workedExample: [
-                "Streaming services represent a form of disruptive innovation in the entertainment industry: initially dismissed by established broadcasters as a niche product for early adopters, they have fundamentally redefined how content is produced, distributed, and monetised — forcing every major media company to restructure its business model.",
-                "Fintech applications offering mobile banking and digital payments constitute a disruptive innovation in financial services, providing access to basic financial tools for populations previously excluded from the banking system while simultaneously challenging the revenue models of established retail banks.",
-                "Electric vehicles initially appeared to be a form of disruptive innovation aimed only at environmentally motivated early adopters, but falling battery costs have now positioned them to displace the internal combustion engine across the mass market — with profound consequences for existing supply chains, skills bases, and regulatory frameworks.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "The rise of gig economy platforms represents a form of disruptive innovation that has created flexible employment opportunities for millions while simultaneously eroding the employment protections and benefits that previous generations of workers spent decades securing." },
-                { label: "Writing Task 2 (thesis)", sentence: "Disruptive innovation, while generating substantial long-term economic value, consistently imposes short-term costs on workers and communities in the industries being displaced — costs that market mechanisms alone are poorly designed to manage equitably." },
-                { label: "Speaking Part 3", sentence: "I think what's most interesting about disruptive innovation is that incumbents almost always see it coming and still fail to respond adequately — not because they lack the information, but because their existing business models create incentives against cannibalising their own revenue streams." },
-              ],
-            },
-          ],
+          id: "f-w2-t3", label: "Revision Notes: Linking Words, Referencing & Coherence",
+          description: "Study coordinating conjunctions (FANBOYS) and subordinating conjunctions. Practise writing 3 compound sentences and 3 complex sentences using different conjunctions from the tables.",
+          resourcePath: "/dashboard/revision-notes?topic=linking-words-coherence", resourceLabel: "Open Linking Words", minutes: 35,
         },
-        { id: "f-w2-t4", label: "Writing Practice: One Sentence Per Topic", description: "Without looking at your notes, write one sentence about each topic using new vocabulary. Example: 'The rapid expansion of digital technology has raised serious concerns about data privacy.' Check, then revise any weak words.", minutes: 20 },
+        {
+          id: "f-w2-t4", label: "Vocabulary Expansion",
+          description: "Read 2–3 of this week's external resources (Health theme). For each article or video, write a 2–3 sentence summary using at least one linking word from your notes.",
+          minutes: 30,
+        },
+        {
+          id: "f-w2-t5", label: "Worksheet Practice: Articles & Sentence Structures",
+          description: "Articles: identify when to use/not use articles in complex passages; choose the correct article; spot incorrect article usage. Sentence structures: switch between active and passive voice; join sentences using conjunctions; identify the type of conjunction; spot punctuation mistakes with conjunctions.",
+          minutes: 45,
+        },
+      ],
+      externalResources: [
+        { label: "Going to the Doctor", url: "https://lingua.com/english/reading/doctor/", type: "article" },
+        { label: "Health & Lifestyle", url: "https://learningenglish.voanews.com/a/how-physical-therapists-can-prevent-future-health-problems/7921334.html", type: "article" },
+        { label: "Exercise and Health", url: "https://learnenglish.britishcouncil.org/free-resources/general/magazine-zone/yoga", type: "article" },
+        { label: "Mental Health", url: "https://youtu.be/R4B9BPBiIHo?si=dRmfnVDHUdIIwJvq", type: "video" },
+        { label: "Personal Health", url: "https://youtu.be/iNyUmbmQQZg?si=8tbpIGJrvt0qSQfc", type: "video" },
       ],
     },
     {
-      week: 3, theme: "Vocabulary: Top IELTS Topics (Part 2)", focus: "Vocabulary",
-      color: "purple",
-      rationale: "Cover the remaining high-frequency IELTS topics. You'll draw on this vocabulary in every section — Reading passages, Listening conversations, Writing essays, and Speaking answers all revolve around these 12 topic areas. The more automatic it is, the less cognitive load during the exam.",
-      tasks: [
-        {
-          id: "f-w3-t1", label: "Flashcards: Health Vocabulary", description: "Key words: 'mental health', 'obesity epidemic', 'healthcare access', 'preventive medicine', 'sedentary lifestyle'. Note: 'health' collocates with 'deteriorate', 'improve', 'maintain', 'promote'.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 25,
-          vocabList: [
-            {
-              term: "mental health",
-              why: "Mental health is one of the most frequently tested IELTS health topics. It collocates with 'promote', 'deteriorate', 'services', 'awareness', 'crisis', 'issues', and 'stigma'. Band 5 candidates write 'people feel sad or stressed'; Band 7 candidates write 'mental health outcomes deteriorate'. Learning the full collocation set is essential for this topic.",
-              pattern: "Mental health [services / outcomes / awareness / stigma] [have improved / remain inadequate / is increasing].\n[Factor] has a significant impact on / adversely affects mental health, particularly [among / in] [specific group].",
-              mistake: "Don't use 'mental health' as a synonym for mental illness. Mental health is a spectrum — everyone has mental health, which can be good or poor. 'He has mental health' is incorrect; 'He has poor mental health' or 'He has mental health issues' is correct. This is a very common error.",
-              practice: "Write one sentence about the impact of social media on the mental health of young people. Include a specific effect.",
-              workedExample: [
-                "Excessive social media use has been linked to measurable deterioration in adolescent mental health outcomes, with longitudinal studies documenting elevated rates of anxiety, depression, and body image dissatisfaction among the heaviest users — particularly adolescent girls.",
-                "The persistent stigma surrounding mental health issues in many societies prevents people from seeking treatment at an early stage, when interventions are most effective, contributing to a pattern of escalation that is both individually damaging and economically costly.",
-                "Investment in workplace mental health programmes generates a return on investment that routinely exceeds the cost of the programmes themselves, primarily through reductions in absenteeism, presenteeism, and staff turnover — suggesting that employers have a clear financial incentive to act, regardless of their ethical obligations.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Governments that underfund mental health services in favour of physical healthcare create a false economy: untreated mental health conditions generate substantial long-term costs in lost productivity, social welfare dependency, and physical health deterioration." },
-                { label: "Writing Task 2 (introduction)", sentence: "The growing mental health crisis among young people — driven by academic pressure, social media comparison culture, and economic uncertainty — represents one of the most significant public health challenges of the current generation." },
-                { label: "Speaking Part 3", sentence: "I think mental health has been dramatically under-resourced relative to physical health for most of modern medicine, largely because symptoms are less visible and the causal links to treatment are harder to demonstrate — though the evidence base has strengthened considerably in recent decades." },
-              ],
-            },
-            {
-              term: "preventive medicine",
-              why: "Preventive medicine refers to healthcare approaches that focus on preventing disease rather than treating it after it develops. It collocates with 'invest in', 'promote', 'prioritise', 'shift toward', and 'public health'. In IELTS, it is used to argue that government health spending is more efficiently directed at prevention than cure. Band 5 write 'stop people getting sick'; Band 7 write 'invest in preventive medicine'.",
-              pattern: "Investing in preventive medicine [reduces / is more cost-effective than / shifts the burden from] [acute treatment / expensive interventions].\nA public health system that prioritises preventive medicine [over / rather than] [reactive treatment] [achieves / delivers]...",
-              mistake: "Don't confuse preventive medicine with 'preventative medicine' — both forms exist but 'preventive' is the more widely accepted medical and academic term. Also don't write 'prevention medicine' — the correct form is 'preventive medicine' (adjective + noun).",
-              practice: "Write one sentence arguing that governments should allocate a higher proportion of health budgets to preventive medicine. Include a specific financial argument.",
-              workedExample: [
-                "Investing in preventive medicine — through vaccination programmes, public health education, and early screening initiatives — is consistently more cost-effective than treating the conditions those interventions prevent, since the cost of managing chronic disease over decades invariably dwarfs the cost of the prevention that would have made it unnecessary.",
-                "A healthcare system that prioritises preventive medicine over reactive treatment does not merely reduce costs — it shifts the distribution of those costs toward a phase in which interventions are less expensive, less invasive, and more successful, improving outcomes across the entire population rather than just those who can access acute care.",
-                "The underinvestment in preventive medicine that characterises many healthcare systems reflects a political incentive problem rather than an evidence problem: the benefits of prevention materialise over decades, while political cycles run on four-year timescales, creating a systematic bias toward visible, immediate treatment over invisible, long-term prevention.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "A shift in government health spending toward preventive medicine — including nutrition education, screening programmes, and mental health early intervention — would generate far greater reductions in population-level disease burden than equivalent investment in acute hospital care." },
-                { label: "Writing Task 2 (thesis)", sentence: "The most cost-effective way to reduce the financial pressure on healthcare systems is not to increase treatment capacity but to invest substantially in preventive medicine that reduces the incidence of conditions requiring treatment in the first place." },
-                { label: "Speaking Part 3", sentence: "I think preventive medicine is one of those areas where the economic case is completely clear but the political will is consistently insufficient, because preventing a disease that doesn't exist yet is invisible to voters in a way that building a new hospital is not." },
-              ],
-            },
-            {
-              term: "sedentary lifestyle",
-              why: "A sedentary lifestyle refers to a pattern of behaviour characterised by prolonged sitting and insufficient physical activity. It collocates with 'lead', 'adopt', 'result in', 'contribute to', 'consequences of', and 'increasingly prevalent'. IELTS essays about health frequently discuss how modern work and technology have made sedentary lifestyles more common, with significant public health consequences.",
-              pattern: "A sedentary lifestyle [leads to / contributes to / increases the risk of] [specific health conditions].\n[Technology / desk-based work / urbanisation] has made sedentary lifestyles [increasingly common / the norm / a widespread public health concern].",
-              mistake: "Don't use 'sedentary' as a general synonym for 'lazy' or 'inactive' in a moral sense. It is a specific behavioural pattern — low physical activity due to the nature of work, technology use, or urban environment — with specific health consequences. Avoid editorialising about sedentary people as having character flaws; frame it as a structural health issue.",
-              practice: "Write one sentence about how modern working patterns have contributed to sedentary lifestyles. Include a specific health consequence.",
-              workedExample: [
-                "The proliferation of desk-based and remote work has normalised sedentary lifestyles across professional populations, contributing to increased rates of cardiovascular disease, type-2 diabetes, and musculoskeletal disorders — conditions that generate substantial individual suffering and collective healthcare costs.",
-                "Addressing the public health consequences of sedentary lifestyles requires structural interventions — in workplace design, urban planning, and transport infrastructure — rather than simply urging individuals to exercise more, since the environments in which most people live actively discourage physical activity.",
-                "The growing prevalence of sedentary lifestyles among children is a particular concern, since the physical activity habits formed in childhood have a strong predictive relationship with adult health outcomes, and the shift toward screen-based leisure has reduced the incidental physical activity that previously characterised childhood play.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "The widespread adoption of sedentary lifestyles — driven by desk-based employment, digital entertainment, and car-dependent urban design — is a primary contributor to rising rates of obesity, cardiovascular disease, and type-2 diabetes in developed nations." },
-                { label: "Writing Task 2 (problem-solution)", sentence: "Reversing the trend toward sedentary lifestyles requires urban planning policies that make walking and cycling safe and convenient alternatives to driving, rather than relying solely on individual motivation to exercise in leisure time." },
-                { label: "Speaking Part 3", sentence: "I think sedentary lifestyles are one of those public health issues where individual behaviour change campaigns have been tried extensively and shown to work poorly at scale — the evidence increasingly points toward changing the environment rather than changing the individual." },
-              ],
-            },
-            {
-              term: "healthcare access",
-              why: "Healthcare access refers to the ability of individuals to obtain health services when needed. It collocates with 'improve', 'limit', 'barriers to', 'equitable', 'universal', and 'disparities in'. It is a central concept in IELTS essays about public health policy, inequality, and government responsibility. Learning this as a fixed phrase prevents the common error of writing 'access to health care' as two words.",
-              pattern: "Improving / ensuring equitable healthcare access [for / among] [specific underserved population] [requires / demands / involves]...\nBarriers to healthcare access — including [cost / geography / cultural factors] — disproportionately affect [group].",
-              mistake: "Healthcare access is about whether people can obtain care — it includes financial, geographical, cultural, and linguistic barriers. Don't confuse it with healthcare quality (which is about whether the care received is effective). A country can have universal healthcare access but poor quality care, or excellent quality care that is inaccessible to the majority.",
-              practice: "Write one sentence about a specific barrier to healthcare access in either rural communities or low-income populations. Name the barrier and its consequence.",
-              workedExample: [
-                "Geographic barriers to healthcare access in rural communities — including distance to facilities, absence of specialist services, and inadequate transport infrastructure — produce measurably worse health outcomes than in comparable urban populations, even where nominal insurance coverage is equivalent.",
-                "Financial barriers to healthcare access are not limited to the uninsured: even individuals with nominal coverage frequently forgo necessary treatment due to out-of-pocket costs, deductibles, and time burdens that make attending appointments economically punishing for those in low-wage employment.",
-                "Improving healthcare access for marginalised communities requires addressing not only financial and geographical barriers but also the cultural and linguistic factors that prevent many individuals from engaging effectively with health systems that were not designed with their needs in mind.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Persistent disparities in healthcare access between urban and rural populations reflect not just geographical distance but decades of underinvestment in rural health infrastructure — a problem that telemedicine can partially address but cannot fully substitute for." },
-                { label: "Writing Task 2 (thesis)", sentence: "Universal healthcare access is not merely a humanitarian objective but an economic one: populations with reliable access to preventive and primary care are more productive, more resilient to epidemics, and less dependent on expensive emergency interventions." },
-                { label: "Speaking Part 3", sentence: "I think healthcare access is one of those areas where the gap between what wealthy and lower-income individuals experience in ostensibly the same system is larger than most people realise — not just in quality but in wait times, specialist availability, and the ability to take time off work for appointments." },
-              ],
-            },
-            {
-              term: "obesity epidemic",
-              why: "The obesity epidemic refers to the dramatic global rise in obesity rates over the past four decades. 'Epidemic' signals the scale and speed of the phenomenon — it is a public health crisis, not just individual weight gain. It collocates with 'contribute to', 'drive', 'address', 'fuel', and 'exacerbate'. IELTS essays frequently ask about causes and solutions to the obesity epidemic, requiring this phrase and its collocations.",
-              pattern: "[Factor] is a primary driver of / has contributed significantly to the obesity epidemic.\nAddressing / tackling the obesity epidemic requires [specific policy or structural change], not simply [inadequate individual-focused approach].",
-              mistake: "The obesity epidemic is a public health and structural issue, not a personal failure narrative. In IELTS essays, arguing that the solution is individual willpower signals weak analysis and a misunderstanding of the epidemiological evidence. Stronger arguments focus on food system design, urban environments, marketing regulation, and economic incentives.",
-              practice: "Write one sentence about a structural cause of the obesity epidemic. Avoid blaming individual choices — focus on a system or policy failure.",
-              workedExample: [
-                "The obesity epidemic is driven less by individual dietary choices than by a food system that makes ultra-processed, energy-dense products cheaper, more widely available, and more heavily marketed than nutritious alternatives — a structural imbalance that no amount of nutritional education can offset without complementary regulatory action.",
-                "Urban environments that prioritise car travel over walkability, and in which fresh food is expensive and scarce while fast food is abundant and cheap, create the conditions for the obesity epidemic through structural design rather than individual failure.",
-                "Addressing the obesity epidemic through taxation on sugar-sweetened beverages and restrictions on junk food marketing to children is not government overreach but a proportionate response to documented market failures that have imposed enormous and inequitably distributed costs on public health systems.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "The obesity epidemic cannot be meaningfully addressed through public health campaigns that appeal to individual responsibility while leaving intact the food marketing practices, economic incentives, and urban designs that drive unhealthy consumption patterns." },
-                { label: "Writing Task 2 (thesis)", sentence: "The obesity epidemic is best understood as a structural rather than individual failure — the product of food environments, economic incentives, and regulatory gaps that systematically make poor dietary choices easier and cheaper than healthy alternatives." },
-                { label: "Speaking Part 3", sentence: "I think the framing of the obesity epidemic as a problem of personal responsibility is not just analytically weak — it's actively harmful as a policy framework, because it directs attention and resources toward individual behaviour change interventions that evidence consistently shows have modest and short-lived effects." },
-              ],
-            },
-          ],
-        },
-        {
-          id: "f-w3-t2", label: "Flashcards: Society & Social Issues", description: "Key words: 'social cohesion', 'wealth inequality', 'urbanisation', 'community values', 'social mobility'. Many Speaking Part 3 questions come from this topic area.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 25,
-          vocabList: [
-            {
-              term: "social cohesion",
-              why: "Social cohesion refers to the bonds of trust, shared values, and mutual support that hold a society together. It collocates with 'strengthen', 'undermine', 'promote', 'erode', 'threat to', and 'sense of'. It appears in IELTS essays about immigration, urbanisation, inequality, and community. Band 5 candidates write 'people get along'; Band 7 candidates write 'social cohesion is undermined'.",
-              pattern: "[Factor] threatens / undermines / erodes social cohesion by [specific mechanism].\nStrengthening social cohesion [in diverse / post-industrial / rapidly changing] societies requires [specific policy or approach].",
-              mistake: "Social cohesion is not the same as conformity or cultural homogeneity. Research consistently shows that diverse societies can maintain high social cohesion when institutions are trusted and inequality is low. Don't conflate 'social cohesion' with 'everyone being the same' — this misrepresents the concept and will weaken any argument built on it.",
-              practice: "Write one sentence about how rising inequality threatens social cohesion. Include a specific mechanism — how exactly does inequality weaken social bonds?",
-              workedExample: [
-                "Rising wealth inequality threatens social cohesion by creating residential segregation between income groups — when wealthy and poor communities no longer share public spaces, schools, or institutions, the mutual recognition and trust that bind societies together atrophy.",
-                "Rapid urbanisation can undermine social cohesion in destination cities by overwhelming existing community infrastructure, creating overcrowded and underserviced neighbourhoods where residents lack the stable relationships and institutional trust that characterise cohesive communities.",
-                "Immigration does not inherently undermine social cohesion — the evidence suggests that the determinant variable is not diversity itself but the degree to which public institutions actively facilitate integration and address the economic anxieties that, when left unaddressed, generate resentment.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Growing income inequality poses a significant threat to social cohesion by generating resentment between economic classes, eroding shared public institutions, and reducing the sense of common fate that motivates civic participation." },
-                { label: "Writing Task 2 (thesis)", sentence: "Social cohesion in diverse, rapidly changing societies is not achieved by minimising difference but by building institutions — in education, healthcare, and civic governance — that generate the shared experiences and mutual trust that difference, absent those institutions, can fracture." },
-                { label: "Speaking Part 3", sentence: "I think social cohesion is one of those things that deteriorates slowly and almost invisibly until a crisis reveals how far it has eroded — at which point the institutions needed to rebuild it have also weakened, making recovery much harder." },
-              ],
-            },
-            {
-              term: "wealth inequality",
-              why: "Wealth inequality refers to the unequal distribution of assets, income, and economic resources across a population. It collocates with 'grow', 'widen', 'address', 'reduce', 'exacerbate', 'measures of', and 'consequences of'. It is one of the most frequently tested IELTS social topics. 'Wealth inequality' is more precise than 'the rich get richer' and immediately signals vocabulary range.",
-              pattern: "Wealth inequality [has grown / widened / persisted] [over the past X years / despite economic growth / across developed nations].\nAddressing wealth inequality requires [specific structural change] rather than simply [inadequate approach].",
-              mistake: "Distinguish wealth inequality (distribution of total assets including property and investments) from income inequality (distribution of earnings from work). They are related but different: a society can have relatively equal incomes but extreme wealth inequality if assets are highly concentrated, as is increasingly the case in many developed nations.",
-              practice: "Write one sentence about the consequences of wealth inequality for social mobility. Include a specific mechanism.",
-              workedExample: [
-                "Wealth inequality undermines social mobility by concentrating the assets — property, investments, education funding, and social networks — that determine life outcomes in the hands of a narrowing elite, making the gap between inherited advantage and earned opportunity steadily wider with each generation.",
-                "The political consequences of widening wealth inequality extend beyond electoral outcomes: when a significant portion of the population perceives that economic systems are designed to serve those who already hold assets, democratic legitimacy itself erodes alongside social trust.",
-                "Addressing wealth inequality through taxation of inherited assets is among the most evidence-supported but politically contested policy options available to governments, since it directly challenges the principle that accumulated advantage should pass undiluted between generations.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Persistent wealth inequality is not merely a moral concern but an economic inefficiency: when talent and potential are distributed randomly across the income spectrum but opportunity is not, societies systematically underinvest in the human capital of their lower-income citizens." },
-                { label: "Writing Task 2 (thesis)", sentence: "The most consequential driver of social immobility is not individual capability or effort but wealth inequality — specifically the compounding advantage that inherited assets, social networks, and educational opportunity confer on those born into affluence." },
-                { label: "Speaking Part 3", sentence: "I think wealth inequality is genuinely more consequential than income inequality in most modern economies, because assets generate returns that compound over time while wages from work don't — so the gap between those who inherit wealth and those who don't tends to widen structurally regardless of economic growth." },
-              ],
-            },
-            {
-              term: "urbanisation",
-              why: "Urbanisation refers to the process by which populations shift from rural to urban areas, and urban areas expand in size. It collocates with 'rapid', 'accelerating', 'consequences of', 'drive', 'accompanied by', and 'challenges of'. It is tested in IELTS essays about environment, infrastructure, housing, community, and economic development. Learning the noun form 'urbanisation' is essential — don't write 'people moving to cities'.",
-              pattern: "Rapid urbanisation [in / across] [developing nations / Asia / sub-Saharan Africa] [has created / is generating / poses] [specific challenge].\nManaging the challenges of urbanisation [demands / requires] [specific policy intervention].",
-              mistake: "Don't use 'urbanisation' as a synonym for 'city development' or 'modernisation'. Urbanisation is specifically the demographic process of population migration from rural to urban areas. City beautification, infrastructure development, or economic growth in cities are not urbanisation unless they involve population movement.",
-              practice: "Write one sentence about a challenge created by rapid urbanisation in developing countries. Name the challenge and connect it to a specific consequence.",
-              workedExample: [
-                "Rapid urbanisation in sub-Saharan Africa and South Asia is creating cities that expand faster than the formal housing stock, infrastructure, and service delivery systems designed to accommodate them — generating informal settlements where residents lack access to clean water, sanitation, and legal tenure.",
-                "The environmental consequences of rapid urbanisation extend beyond the urban footprint itself: as cities expand into agricultural land and natural habitats, they contribute to biodiversity loss and reduce the ecosystem services — flood regulation, air purification, groundwater recharge — that surrounding natural areas provide.",
-                "Managing the social consequences of urbanisation requires not only infrastructure investment but active policies to prevent the residential segregation by income that tends to emerge in rapidly growing cities, and which erodes the social mixing that enables cohesion and opportunity.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Rapid urbanisation in developing nations has generated economic growth and poverty reduction on an unprecedented scale, but the associated pressures on housing, infrastructure, and natural resources threaten to undermine those gains if not managed with considerably greater policy foresight." },
-                { label: "Writing Task 2 (introduction)", sentence: "Urbanisation is among the most consequential demographic shifts of the twenty-first century, concentrating humanity's opportunities and challenges in cities that cover just 3% of the Earth's land surface but house more than half its population." },
-                { label: "Speaking Part 3", sentence: "I think urbanisation is one of those trends where the aggregate economic benefits are real but the distributional consequences are deeply unequal — the people who bear the costs of a growing city are often not the same people who capture its economic benefits." },
-              ],
-            },
-            {
-              term: "community values",
-              why: "Community values refers to the shared beliefs, norms, and principles that define how a community expects its members to behave toward one another and toward the outside world. It collocates with 'preserve', 'undermine', 'reflect', 'challenge', 'erode', and 'reinforce'. In IELTS Speaking Part 3, examiners frequently ask about changes in community and social values. This phrase signals fluency in social discourse.",
-              pattern: "[Force / development] has challenged / is eroding traditional community values by [specific mechanism].\nPreserving community values [while / despite / in the face of] [social change / globalisation / migration] requires [specific approach].",
-              mistake: "Don't use 'community values' to mean only traditional or conservative values — it is a neutral descriptive term that can refer to any community's shared principles, including progressive ones. Conflating 'community values' with nostalgia or traditionalism will limit the nuance of your argument.",
-              practice: "Write one sentence about how globalisation has affected community values. Include a specific aspect of globalisation and a specific effect on values.",
-              workedExample: [
-                "The globalisation of media and digital culture has exposed younger generations to value systems that often conflict with the community values of their parents and grandparents — not necessarily replacing traditional values wholesale, but creating generational tensions that families and institutions must actively navigate.",
-                "Community values that once cohered around shared religious practice, geographic proximity, and occupational identity have fragmented in many societies as residential mobility increases and digital social networks form communities of interest that transcend geography entirely.",
-                "Preserving community values in the face of rapid social change does not require resisting that change but developing the institutions — schools, civic organisations, local government — that allow communities to adapt their values deliberately rather than having them eroded by forces they have no influence over.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "When immigration increases rapidly in communities that have not developed the institutional capacity to support integration, the resulting cultural tension is often framed as a conflict of community values when it is better understood as a failure of social infrastructure." },
-                { label: "Writing Task 2 (balanced)", sentence: "While globalisation has undeniably challenged traditional community values, it has also exposed societies to alternative value systems that have, in many cases, accelerated progress on gender equality, individual rights, and political accountability." },
-                { label: "Speaking Part 3", sentence: "I think community values are more resilient than social change narratives often suggest — people adapt their specific practices while maintaining their core commitments to fairness, mutual support, and belonging, even as the institutional forms through which those values are expressed evolve significantly." },
-              ],
-            },
-            {
-              term: "social mobility",
-              why: "Social mobility refers to the movement of individuals or groups between socioeconomic positions across generations or within their own lifetimes. It collocates with 'promote', 'restrict', 'upward', 'intergenerational', 'declining', and 'barriers to'. It is central to IELTS essays about education, inequality, and opportunity. Understanding the difference between intergenerational (parent to child) and intragenerational (within a lifetime) mobility adds analytical precision.",
-              pattern: "Upward social mobility [is declining / has stalled / remains highest in] [country or region].\nBarriers to social mobility — including [education cost / housing market / social networks] — disproportionately affect [group].",
-              mistake: "Don't use 'social mobility' to mean simply 'moving around socially' or 'social activity'. It is an economic and sociological term specifically about movement between socioeconomic classes or income levels. 'High social mobility' means people frequently move up or down the economic ladder regardless of their starting position — it is about meritocracy, not social activity.",
-              practice: "Write one sentence about how the education system either promotes or restricts social mobility. Be specific about which aspect of the education system and which group of people.",
-              workedExample: [
-                "Education systems that fail to provide genuinely equal access to high-quality schooling — in terms of teacher quality, resources, and extracurricular enrichment — restrict social mobility by ensuring that a child's educational trajectory remains strongly predicted by parental income rather than individual ability.",
-                "The relationship between homeownership and social mobility has become increasingly fraught as property prices in major cities have risen beyond the reach of young people without parental financial support, concentrating the asset-building benefits of ownership among those who are already economically advantaged.",
-                "Social mobility data from Nordic countries — where inequality is lower, childcare is subsidised, and higher education is publicly funded — consistently shows higher intergenerational mobility than in anglophone nations that rely more heavily on market mechanisms and private expenditure to deliver these services.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "The persistent intergenerational transmission of advantage through elite educational networks, social capital, and inherited wealth suggests that social mobility in many societies is more myth than reality — a comforting narrative that serves to naturalise outcomes that are structurally determined." },
-                { label: "Writing Task 2 (thesis)", sentence: "If education is society's primary mechanism for promoting social mobility, then education systems that systematically deliver better outcomes to already-advantaged students are not engines of opportunity but instruments of inequality's reproduction." },
-                { label: "Speaking Part 3", sentence: "I think the evidence on social mobility should make us quite uncomfortable as a society — in most developed countries it's actually easier to predict where someone will end up economically based on where they started than it was a generation ago, which contradicts the meritocratic story we tell ourselves." },
-              ],
-            },
-          ],
-        },
-        {
-          id: "f-w3-t3", label: "Flashcards: Work & Economy", description: "Key words: 'economic disparity', 'unemployment rate', 'work-life balance', 'job satisfaction', 'entrepreneurship'. High frequency in Writing Task 2 opinion essays.", resourcePath: "/dashboard/flashcards", resourceLabel: "Open Flashcards", minutes: 25,
-          vocabList: [
-            {
-              term: "economic disparity",
-              why: "Economic disparity refers to unequal distribution of wealth, income, or economic resources between groups, regions, or nations. It collocates with 'widen', 'address', 'reduce', 'regional', 'growing', and 'consequences of'. It is a more precise alternative to 'people have different amounts of money' and signals command of economic vocabulary in both Writing and Speaking.",
-              pattern: "Growing / widening economic disparity between [rich and poor / urban and rural / developed and developing] [has created / threatens / requires]...\nAddressing economic disparity requires [policy intervention] that [redistributes / equalises access to / reduces barriers to]...",
-              mistake: "Economic disparity is not synonymous with poverty. It specifically describes the gap between economic positions, not the existence of poverty itself. A country can have economic disparity without extreme poverty (if the gap is between middle-income and high-income groups) or poverty without extreme disparity (if most people are poor together). These are related but distinct concepts.",
-              practice: "Write one sentence about economic disparity between urban and rural regions. Include a specific consequence of that disparity.",
-              workedExample: [
-                "The widening economic disparity between major metropolitan areas and rural regions has created a geographic dimension to inequality that is politically significant: communities left behind by the concentration of economic activity in cities are increasingly receptive to populist narratives that attribute their disadvantage to policy failure rather than structural change.",
-                "Economic disparity between nations has narrowed at the global level as China, India, and other large developing economies have grown rapidly — but within-country disparities have widened in many of those same nations, suggesting that growth is necessary but not sufficient for equitable development.",
-                "Reducing economic disparity through progressive taxation and public investment in education, healthcare, and infrastructure is not merely redistributive — it generates economic returns by enabling the full participation of lower-income groups in economic activity they would otherwise be excluded from.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Economic disparity between regions within the same country often reflects historical patterns of investment that have concentrated infrastructure, educational institutions, and employment opportunities in ways that become self-reinforcing over time." },
-                { label: "Writing Task 2 (introduction)", sentence: "Growing economic disparity — both between and within nations — represents one of the defining challenges of globalisation, raising fundamental questions about who captures the gains from international trade and investment." },
-                { label: "Speaking Part 3", sentence: "I think economic disparity is one of those issues where the aggregate statistics can be genuinely misleading — global income convergence at the macro level coexists with dramatically widening inequality within countries, and most people experience the latter rather than the former." },
-              ],
-            },
-            {
-              term: "work-life balance",
-              why: "Work-life balance refers to the degree to which an individual successfully integrates professional demands with personal, family, and leisure time. It collocates with 'improve', 'maintain', 'struggle with', 'achieve', 'priority', and 'consequences of poor'. It is a staple IELTS Speaking topic (Part 1 and 3) and appears in Writing Task 2 essays about employment, technology, and quality of life.",
-              pattern: "[Technology / remote work / long working hours] [threatens / improves / makes it harder to maintain] work-life balance.\nAchieving a healthy work-life balance [requires / depends on / is increasingly difficult due to]...",
-              mistake: "Work-life balance implies equilibrium between two dimensions that are sometimes in conflict — it does not mean either must be sacrificed for the other. Don't write 'work-life balance means working less' — it means structuring time effectively so that professional demands don't systematically crowd out personal wellbeing, family life, or leisure.",
-              practice: "Write one sentence about how technology has made work-life balance harder for many employees. Include a specific mechanism.",
-              workedExample: [
-                "The proliferation of smartphones and remote communication tools has eroded work-life balance for many professionals by making it technically possible to be contactable at all hours — an always-on availability that, once normalised, becomes an informal requirement that employees feel unable to refuse.",
-                "Work-life balance is not merely a personal wellbeing issue but an organisational productivity concern: employees who consistently work excessive hours experience measurable declines in cognitive performance, creativity, and decision-making quality that eventually cost organisations more than the additional hours nominally provide.",
-                "Achieving work-life balance is considerably more difficult for workers in precarious employment — those in zero-hours contracts, gig economy roles, or minimum-wage jobs — who lack the scheduling autonomy and income security that make boundaries between work and personal time practically maintainable.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "The normalisation of working beyond contracted hours, facilitated by digital communication tools and remote work infrastructure, has systematically undermined work-life balance for professional workers in ways that individual willpower cannot effectively counteract without organisational policy support." },
-                { label: "Writing Task 2 (balanced)", sentence: "While remote working has improved work-life balance for many employees by eliminating commuting time and enabling more flexible scheduling, it has simultaneously blurred the boundaries between professional and personal life in ways that create new pressures of their own." },
-                { label: "Speaking Part 1", sentence: "Honestly, work-life balance is something I find genuinely difficult to maintain — the expectation that you're always reachable via phone or email makes it hard to truly switch off, even during periods that are nominally personal time." },
-              ],
-            },
-            {
-              term: "job satisfaction",
-              why: "Job satisfaction refers to the degree to which an employee feels fulfilled, engaged, and content in their work. It collocates with 'improve', 'increase', 'decline', 'levels of', 'low', 'linked to', and 'factors affecting'. It appears in IELTS essays about work, employer-employee relationships, productivity, and quality of life. It is more precise than 'happy at work' and signals awareness of workplace discourse.",
-              pattern: "[Factor] has a significant impact on / directly influences job satisfaction among [workers / employees / specific occupation group].\nLow job satisfaction [leads to / results in / is associated with] [absenteeism / turnover / reduced productivity].",
-              mistake: "Job satisfaction is about subjective experience of work — it encompasses autonomy, meaning, relationships, compensation, and growth, not just pay. Don't treat it as synonymous with salary satisfaction. Research consistently shows that pay is a necessary but not sufficient condition for job satisfaction, and that autonomy and meaning often matter more beyond a basic income threshold.",
-              practice: "Write one sentence about a factor that affects job satisfaction more than salary. Include a specific reason why that factor matters.",
-              workedExample: [
-                "Research on job satisfaction consistently shows that autonomy — the degree to which employees can exercise judgment in how they structure their work — is a stronger predictor of workplace engagement than compensation level, above a basic income threshold that meets employees' financial needs.",
-                "Low job satisfaction is not merely an individual wellbeing problem but an organisational one: employees with high satisfaction levels demonstrate measurably higher productivity, lower absenteeism, and significantly lower rates of staff turnover than those who feel disengaged or undervalued.",
-                "The decline in job satisfaction documented across many professional sectors over the past decade correlates with reduced job security, increased monitoring and performance management, and the erosion of the autonomy and collegial trust that historically characterised knowledge work — factors that no amount of workplace wellness programming can offset.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Employers who treat job satisfaction purely as a function of compensation tend to invest in the wrong interventions: research consistently shows that autonomy, meaningful work, and collegial relationships predict employee engagement more reliably than salary above a comfortable subsistence level." },
-                { label: "Writing Task 2 (thesis)", sentence: "The pursuit of job satisfaction is not a luxury aspiration but a legitimate economic and social goal: workplaces with high employee satisfaction generate superior productivity outcomes while reducing the individual and social costs of chronic work-related stress." },
-                { label: "Speaking Part 3", sentence: "I think job satisfaction is one of those areas where there's a significant gap between what people say motivates them when asked hypothetically and what the evidence shows actually matters in practice — people consistently underestimate how much autonomy and meaning affect their daily experience of work." },
-              ],
-            },
-            {
-              term: "entrepreneurship",
-              why: "Entrepreneurship refers to the activity of creating and building new businesses, often by identifying and exploiting market opportunities. It collocates with 'promote', 'encourage', 'support', 'culture of', 'barriers to', 'social', and 'risk of'. In IELTS essays about business, economic development, and government policy, entrepreneurship is central vocabulary. It is also tested in Speaking Part 3 discussions about career, innovation, and economic growth.",
-              pattern: "Promoting / encouraging entrepreneurship [through / by means of] [tax incentives / startup funding / regulatory simplification].\nBarriers to entrepreneurship — including [risk of failure / access to capital / regulatory burden] — [disproportionately affect / prevent / discourage]...",
-              mistake: "Entrepreneurship does not mean only starting technology companies or becoming wealthy. Social entrepreneurship — creating businesses or organisations that address social problems — is equally valid and increasingly tested in IELTS. Also, don't confuse entrepreneurship (the process of creating and growing a new venture) with self-employment (simply working for oneself, which may not involve innovation or growth).",
-              practice: "Write one sentence about a government policy that could promote entrepreneurship. Include a specific mechanism and the type of entrepreneur it would help.",
-              workedExample: [
-                "Governments that provide accessible startup funding, mentorship networks, and streamlined business registration processes for first-generation entrepreneurs — those without inherited business networks or family capital — generate considerably more economic dynamism than those that limit support to established businesses.",
-                "Social entrepreneurship — the application of business principles to social problems — offers a complementary approach to traditional public service delivery in areas where government bureaucracy is slow to innovate and traditional charity models generate dependency rather than systemic change.",
-                "The culture of entrepreneurship that characterises certain regional economies — Silicon Valley, Tel Aviv, Singapore — is not primarily a product of individual risk tolerance but of institutional ecosystems: access to capital, tolerance of failure, density of expertise, and proximity to markets that make experimentation economically viable.",
-              ],
-              examples: [
-                { label: "Writing Task 2 (body)", sentence: "Promoting entrepreneurship among graduates from lower-income backgrounds requires not just business education but access to risk capital, mentorship networks, and the kind of financial safety net that allows people to bear the inevitable risk of early business failure without catastrophic personal consequences." },
-                { label: "Writing Task 2 (thesis)", sentence: "Entrepreneurship is the primary mechanism through which economies adapt to changing circumstances and generate new categories of employment — yet the conditions it requires — risk tolerance, access to capital, tolerance of failure — are unevenly distributed across social and economic backgrounds." },
-                { label: "Speaking Part 3", sentence: "I think entrepreneurship is genuinely admirable, but I'd push back on the narrative that celebrates it as a universal path to success — the vast majority of new businesses fail, and the ability to absorb that failure without personal catastrophe is itself a privilege distributed very unequally." },
-              ],
-            },
-            {
-              term: "unemployment rate",
-              why: "The unemployment rate is the percentage of the labour force that is actively seeking work but unable to find it. It collocates with 'rise', 'fall', 'remain', 'structural', 'youth', 'long-term', and 'address'. In IELTS, it appears in Task 1 graphs about economic trends and in Task 2 essays about government policy and economic management. Using 'unemployment rate' rather than 'how many people don't have jobs' is an immediate vocabulary range signal.",
-              pattern: "The unemployment rate [rose / fell / peaked at / levelled off at] [X%] [during / following / in the wake of] [economic event or period].\nReducing / tackling the unemployment rate among [youth / long-term unemployed / specific region] requires [policy].",
-              mistake: "The official unemployment rate measures only those actively seeking work — it excludes people who have given up looking (the 'discouraged worker' effect) and those in part-time work who want full-time employment (underemployment). In IELTS essays, acknowledging this distinction — that the official unemployment rate can understate true joblessness — demonstrates analytical sophistication.",
-              practice: "Write one sentence about youth unemployment rates. Include a specific cause and a consequence for society.",
-              workedExample: [
-                "Youth unemployment rates in several Southern European countries exceeded 40% in the years following the global financial crisis — a figure that, while startling, understated true labour market exclusion by omitting the large numbers of young adults who had left the workforce entirely or accepted unpaid internships as a substitute for paid employment.",
-                "The structural unemployment rate — the level below which further demand stimulus generates inflation rather than employment growth — has risen in many developed economies as skill mismatches between available workers and available jobs have widened faster than retraining provision can address.",
-                "Addressing long-term unemployment requires more than macroeconomic stimulus, since workers who have been out of the labour market for extended periods face compounding disadvantages: skills deterioration, employer discrimination, and erosion of professional networks that make re-entry considerably harder than initial entry.",
-              ],
-              examples: [
-                { label: "Writing Task 1 (line graph)", sentence: "The unemployment rate peaked at 11.3% in 2010 before declining gradually to 4.2% by 2017, a recovery that, while sustained, proceeded considerably more slowly than the pre-crisis expansion had suggested was typical for this economy." },
-                { label: "Writing Task 2 (body)", sentence: "Youth unemployment rates that consistently exceed 20% in a given country represent not merely an economic problem but a generational one, as prolonged early exclusion from the labour market compounds over time into reduced earnings, shorter careers, and higher welfare dependency." },
-                { label: "Speaking Part 3", sentence: "I think unemployment rate statistics are somewhat misleading as a measure of labour market health — they don't capture the extent of underemployment, zero-hours working, or the quality and security of the jobs that do exist, all of which matter enormously to workers' actual economic situation." },
-              ],
-            },
-          ],
-        },
-        { id: "f-w3-t4", label: "Revision Notes: Collocations & Word Families", description: "Study noun/verb/adjective forms: 'educate (v) → education (n) → educational (adj) → educationally (adv)'. Using the right word form is tested directly in Reading and Listening.", resourcePath: "/dashboard/revision-notes", resourceLabel: "Open Revision Notes", minutes: 20 },
-      ],
-    },
-    {
-      week: 4, theme: "Reading Foundations", focus: "Reading",
-      color: "green",
-      rationale: "True/False/Not Given is the most common error at Band 5. Candidates confuse 'False' (the text actively contradicts the statement) with 'Not Given' (the topic is simply not mentioned). Getting this one distinction right can lift your Reading score by 0.5 band. This week you'll fix it permanently.",
-      tasks: [
-        { id: "f-w4-t1", label: "Revision Notes: TFNG Strategy", description: "Read the complete TFNG guide. Key rule: 'False' = the text says the OPPOSITE. 'Not Given' = the text says NOTHING about this. If you're searching for the answer and can't find it, it's Not Given.", resourcePath: "/dashboard/revision-notes", resourceLabel: "Open Revision Notes", minutes: 25 },
-        { id: "f-w4-t2", label: "Reading Practice: First Full Test", description: "Attempt a complete reading test. Don't time yourself on this first attempt — focus on accuracy over speed.", resourcePath: "/dashboard/reading", resourceLabel: "Open Reading Module", minutes: 70 },
-        { id: "f-w4-t3", label: "Error Analysis: Categorise Your Mistakes", description: "For each error, label it: (A) I misread the text, (B) TFNG confusion, (C) didn't understand vocabulary, (D) ran out of time. Most Band 5 errors fall in category B or C.", minutes: 20 },
-        { id: "f-w4-t4", label: "Reading Practice: Second Test (Focus on TFNG)", description: "Attempt a second test. This time, for every TFNG question: (1) find the exact sentence in the text, (2) ask 'does this contradict, or just not mention the statement?'", resourcePath: "/dashboard/reading", resourceLabel: "Open Reading Module", minutes: 70 },
-      ],
-    },
-    {
-      week: 5, theme: "Listening Foundations", focus: "Listening",
+      week: 3, theme: "Exam Strategy", focus: "Exam Strategy",
       color: "amber",
-      rationale: "Sections 1 and 2 use everyday language — conversations about accommodation, services, local information. These are fully achievable at Band 6+. Most Band 5 listening errors are spelling mistakes and failure to read ahead, not actual mishearing. Fix these habits this week.",
+      weeklyTheme: "Careers",
+      rationale: "By Week 3 you have strong grammar foundations. Now you shift to understanding the exam format for all four modules and start practising them. Seeing the test format removes fear and lets you apply your grammar knowledge strategically.",
       tasks: [
-        { id: "f-w5-t1", label: "Strategy: Pre-read ALL Questions First", description: "Before the audio plays, read every question in the section. Underline keywords. Predict the answer type: will it be a number, a name, a date, or a word? This alone can add 3–5 marks.", minutes: 15 },
-        { id: "f-w5-t2", label: "Listening Practice: First Full Test", description: "Attempt a complete test using the pre-reading strategy. Write your answers during the audio.", resourcePath: "/dashboard/listening", resourceLabel: "Open Listening Module", minutes: 40 },
-        { id: "f-w5-t3", label: "Spelling Drill: Section 1 Common Dictations", description: "Practice spelling: days (Monday/Tuesday), months (February/August), street names (Avenue/Boulevard), and common names (Smith/Johnson). Section 1 almost always dictates these.", minutes: 20 },
-        { id: "f-w5-t4", label: "Listening Practice: Second Test — Sections 1-2 Focus", description: "Complete a second test. After finishing, review ONLY your Section 1-2 errors. Were errors from mishearing (strategy) or wrong spelling (practice)?", resourcePath: "/dashboard/listening", resourceLabel: "Open Listening Module", minutes: 40 },
+        {
+          id: "f-w3-t1", label: "Revision Notes: Verb Tenses — Part 6",
+          description: "Return to the Verb Tenses notes and complete Part 6, which covers the most advanced tense patterns. This builds directly on Week 1 and prepares you for complex sentences in Writing and Speaking.",
+          resourcePath: "/dashboard/revision-notes?topic=verb-tenses", resourceLabel: "Open Verb Tenses", minutes: 30,
+        },
+        {
+          id: "f-w3-t2", label: "Revision Notes: Test Formats",
+          description: "Study the test format for all four modules — Writing, Listening, Reading, and Speaking. Understand what each section asks, how it is marked, and the time limits. You cannot improve what you don't understand.",
+          resourcePath: "/dashboard/revision-notes?view=formats", resourceLabel: "Open Test Formats", minutes: 30,
+        },
+        {
+          id: "f-w3-t3", label: "Module Practice: Listening",
+          description: "Complete one full Listening test. Use the pre-reading strategy: read the questions before the audio plays. Write your answers during the audio, not after.",
+          resourcePath: "/dashboard/listening", resourceLabel: "Open Listening Module", minutes: 40,
+        },
+        {
+          id: "f-w3-t4", label: "Module Practice: Reading",
+          description: "Complete one full Reading test. Focus on identifying the question type first (True/False/Not Given, matching headings, etc.) before searching for the answer.",
+          resourcePath: "/dashboard/reading", resourceLabel: "Open Reading Module", minutes: 60,
+        },
+        {
+          id: "f-w3-t5", label: "Module Practice: Writing",
+          description: "Attempt one Writing task (Task 1 or Task 2). Don't aim for perfection — focus on applying correct grammar from Weeks 1–2 and using linking words from your notes.",
+          resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 40,
+        },
+        {
+          id: "f-w3-t6", label: "Module Practice: Speaking",
+          description: "Complete a full Speaking session covering Parts 1, 2, and 3. Focus on answer length — Part 1: 2–4 sentences, Part 2: at least 90 seconds, Part 3: 3–4 sentences with reasons.",
+          resourcePath: "/dashboard/speaking", resourceLabel: "Open Speaking Module", minutes: 30,
+        },
+      ],
+      externalResources: [
+        { label: "AI and Careers", url: "https://www.bbc.com/news/articles/ceqdrw2yy3vo", type: "article" },
+        { label: "Work from Home", url: "https://youtu.be/03V6p7EZ6G8?si=2dC35HT3bg0zhQus", type: "video" },
+        { label: "Work-Life Balance", url: "https://youtu.be/4c_xYLwOx-g?si=dT4LMsRoWE9GSzwe", type: "video" },
+        { label: "Job Satisfaction", url: "https://youtu.be/PYJ22-YYNW8?si=rUALJfjN0ULFIcX2", type: "video" },
+        { label: "Freelancers", url: "https://www.bbc.com/news/uk-england-bristol-63483597", type: "article" },
       ],
     },
     {
-      week: 6, theme: "Writing Task 1 Foundations", focus: "Writing",
-      color: "blue",
-      rationale: "Task 1 has a clear 4-part structure that Band 5 candidates don't use — they describe data randomly. The overview paragraph (which most Band 5 essays are missing entirely) can add 0.5 band to Task Achievement alone. Learn the structure this week, then apply it immediately.",
-      tasks: [
-        { id: "f-w6-t1", label: "MudahinAja: Writing Task 1 Tutorial (All 9 Slides)", description: "Complete the full interactive tutorial. Pay particular attention to slides 2 (Structure), 4 (Overview), and 5 (Data Grouping). Take notes on the 4-part structure.", resourcePath: "/dashboard/elite", resourceLabel: "Open MudahinAja", minutes: 50 },
-        { id: "f-w6-t2", label: "Writing Practice: First Task 1 Submission", description: "Attempt a Task 1 with AI feedback. Don't aim for perfection — just try to follow the 4-part structure (Introduction, Overview, Body 1, Body 2).", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 30 },
-        { id: "f-w6-t3", label: "Model Answer Analysis: Identify the 4 Parts", description: "Read the model answer carefully. Label each paragraph: 'Introduction', 'Overview', 'Body 1', 'Body 2'. Notice: the overview has no specific numbers. The body paragraphs do.", minutes: 20 },
-        { id: "f-w6-t4", label: "Writing Practice: Second Task 1 (4-Part Structure)", description: "Write a second Task 1. Before starting, write 'INTRO / OVERVIEW / BODY 1 / BODY 2' as headers. Fill in each section. Only delete the headers when submitting.", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 30 },
-      ],
-    },
-    {
-      week: 7, theme: "Writing Task 2 Foundations", focus: "Writing",
+      week: 4, theme: "Exam Integration", focus: "Exam Practice",
       color: "green",
-      rationale: "Task 2 is worth twice as many marks as Task 1. Yet many Band 5 candidates spend equal time on both. The PEEL paragraph structure (Point → Example → Elaborate → Link) addresses all 4 marking criteria simultaneously and guarantees a coherent, developed response.",
+      weeklyTheme: "Environment",
+      rationale: "Week 4 is full exam integration — all four modules under realistic conditions. You are not learning new grammar; you are applying everything from Weeks 1–3 at once. Use this week to identify which module still needs the most attention.",
       tasks: [
-        { id: "f-w7-t1", label: "Revision Notes: The 4 IELTS Essay Types", description: "Learn to identify: Opinion ('Do you agree?'), Discussion ('Discuss both views'), Problem-Solution ('What are the causes and solutions?'), and Two-part ('To what extent… and what should be done?'). Your introduction strategy changes for each type.", resourcePath: "/dashboard/revision-notes", resourceLabel: "Open Revision Notes", minutes: 25 },
-        { id: "f-w7-t2", label: "MudahinAja: Writing Task 2 Tutorial", description: "Work through the interactive tutorial, focusing on the thesis statement, PEEL paragraph structure, and the difference between a good and weak conclusion.", resourcePath: "/dashboard/elite", resourceLabel: "Open MudahinAja", minutes: 50 },
-        { id: "f-w7-t3", label: "Writing Practice: First Task 2 Submission", description: "Attempt a Task 2 with AI feedback. Focus on: clear thesis sentence, one clear idea per paragraph, relevant examples.", resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 40 },
-        { id: "f-w7-t4", label: "Model Answer Analysis: Introduction vs. Yours", description: "Compare your introduction with the Band 9 model. How does the model's thesis differ from yours? Does the model state a clear position immediately? Rewrite your introduction based on what you learned.", minutes: 25 },
+        {
+          id: "f-w4-t1", label: "Full Module Practice: Listening",
+          description: "Complete one full Listening test under timed conditions. After finishing, review every error and ask: was it a mishearing (strategy) or a spelling/grammar error (knowledge)?",
+          resourcePath: "/dashboard/listening", resourceLabel: "Open Listening Module", minutes: 40,
+        },
+        {
+          id: "f-w4-t2", label: "Full Module Practice: Reading",
+          description: "Complete one full Reading test under timed conditions. After finishing, review errors and note whether they came from misreading the question, rushing, or vocabulary gaps.",
+          resourcePath: "/dashboard/reading", resourceLabel: "Open Reading Module", minutes: 60,
+        },
+        {
+          id: "f-w4-t3", label: "Full Module Practice: Writing",
+          description: "Attempt both Task 1 and Task 2 in a single session. Use the grammar rules from Weeks 1–2. After the AI feedback, identify the one grammar category you still need to improve.",
+          resourcePath: "/dashboard/writing", resourceLabel: "Open Writing Module", minutes: 60,
+        },
+        {
+          id: "f-w4-t4", label: "Full Module Practice: Speaking",
+          description: "Complete a full Speaking session. Record yourself for Part 2. Listen back and count how many times you correctly used a linking word or complex sentence.",
+          resourcePath: "/dashboard/speaking", resourceLabel: "Open Speaking Module", minutes: 30,
+        },
+        {
+          id: "f-w4-t5", label: "Reflection: Plan Your Next Step",
+          description: "After all four modules, rank them from strongest to weakest. Return to the revision notes for your weakest grammar area and do one more mini practice. Set a clear goal for the next study cycle.",
+          minutes: 20,
+        },
       ],
-    },
-    {
-      week: 8, theme: "Speaking Foundations + First Mock", focus: "Speaking & Mock",
-      color: "red",
-      rationale: "Speaking is the fastest skill to improve because you can practise anywhere and anytime. By Week 8 you know the PEEL (Part 1) and PER (Part 3) formulas from MudahinAja — now apply them under realistic conditions. The mock exam shows you where you stand with real exam pressure.",
-      tasks: [
-        { id: "f-w8-t1", label: "MudahinAja: Speaking Tutorial (All 9 Slides)", description: "Complete the full Speaking tutorial covering Part 1 (PEEL formula), Part 2 (cue card planning), and Part 3 (PER formula + question types). The interactive exercises force you to actively build answers.", resourcePath: "/dashboard/elite", resourceLabel: "Open MudahinAja", minutes: 50 },
-        { id: "f-w8-t2", label: "Speaking Practice: Full Part 1, 2, and 3", description: "Complete a full speaking session in the Speaking Module. Focus on answer length — Part 1 should be 2–4 sentences, Part 2 at least 90 seconds, Part 3 at least 3–4 sentences.", resourcePath: "/dashboard/speaking", resourceLabel: "Open Speaking Module", minutes: 30 },
-        { id: "f-w8-t3", label: "Self-Practice: 3 Part 1 Questions with PEEL", description: "Answer these out loud using PEEL: (1) 'Do you like travelling?', (2) 'How do you usually spend weekends?', (3) 'Did you enjoy school as a child?' Record yourself on your phone and listen back.", minutes: 20 },
-        { id: "f-w8-t4", label: "Elite Hub: First Timed Mock Practice", description: "Attempt your first timed practice session. Treat it like the real exam — no pausing, no checking answers mid-way.", resourcePath: "/dashboard/elite", resourceLabel: "Open Elite Hub", minutes: 90 },
-        { id: "f-w8-t5", label: "Reflection: Identify Your Weakest Module", description: "After the mock, rank your 4 modules from strongest to weakest. Return to the weakest module's Week resources and do one more practice session before next week.", minutes: 20 },
+      externalResources: [
+        { label: "Recycling", url: "https://english-online.at/news-articles/environment/coca-cola-to-recycle-all-packaging-by-2030.htm", type: "article" },
+        { label: "Renewable Energy", url: "https://youtu.be/RnvCbquYeIM?si=6Ido2p5vqqjSd8iE", type: "video" },
+        { label: "Plastic Pollution", url: "https://youtu.be/qdxEG-3GRVs?si=IzQEBRfq3mh1qSLi", type: "video" },
+        { label: "Solutions to Pollution", url: "https://www.dcceew.gov.au/environment/protection/npi/reducing-pollution", type: "article" },
+        { label: "Endangered Species", url: "https://www.bbc.com/news/articles/cn4g41n9j4lo", type: "article" },
       ],
     },
   ],
@@ -2145,6 +1690,33 @@ export default function StudyPlanPage() {
                             );
                           })}
                         </div>
+
+                        {week.externalResources && week.externalResources.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                              <Newspaper className="w-3.5 h-3.5" />
+                              External Resources{week.weeklyTheme ? ` — ${week.weeklyTheme}` : ""}
+                            </p>
+                            <div className="space-y-1.5">
+                              {week.externalResources.map((res, ri) => (
+                                <a
+                                  key={ri}
+                                  href={res.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-accent transition-colors group"
+                                >
+                                  {res.type === "video"
+                                    ? <PlayCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                                    : <ExternalLink className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                                  }
+                                  <span className="group-hover:underline underline-offset-2">{res.label}</span>
+                                  <span className="text-muted-foreground/40 text-[10px]">{res.type === "video" ? "YouTube" : "Article"}</span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
