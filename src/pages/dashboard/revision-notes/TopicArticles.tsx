@@ -7,6 +7,8 @@ import {
   MiniPractice,
   ExaminerTip,
   MistakeRow,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicArticles() {
@@ -107,6 +109,64 @@ export function TopicArticles() {
           <>Sentence <strong className="text-white">B</strong> is correct. &quot;Education&quot; used as a general uncountable concept takes no article. &quot;The education&quot; would only be correct if referring to a specific education system already mentioned.</>,
         ]}
       />
+      <SectionTitle number={7} title="Worksheet — Articles Practice" />
+
+      <WorksheetBlock
+        title="Part A — Fill in the gap (a / an / the / Ø)"
+        instruction='Type a, an, the, or Ø (the symbol for no article) in each gap. For sentences with two gaps, separate your answers with a comma (e.g. "the, Ø").'
+      >
+        <WorksheetQuestion number={1}
+          question='"___ internet has changed ___ way people find information."'
+          modelAnswer='"the" internet (specific, unique thing everyone knows) / "the" way (referring to a specific manner)'
+          accepted={["the, the", "the,the"]}
+        />
+        <WorksheetQuestion number={2}
+          question='"___ education is one of ___ most important investments a country can make."'
+          modelAnswer='Ø education (general uncountable concept, no article) / "the" most important (superlative always takes "the")'
+          accepted={["ø, the", "Ø, the", "0, the", "ø,the", "Ø,the"]}
+        />
+        <WorksheetQuestion number={3}
+          question='"She applied for ___ job at ___ university in London."'
+          modelAnswer='"a" job (any job, first mention) / "a" university (starts with /juː/ consonant sound — use "a", not "an")'
+          accepted={["a, a", "a,a"]}
+        />
+        <WorksheetQuestion number={4}
+          question='"There has been ___ significant increase in ___ number of electric vehicles."'
+          modelAnswer='"a" significant increase (first mention, singular countable) / "the" number (specific — the number of electric vehicles in particular)'
+          accepted={["a, the", "a,the"]}
+        />
+        <WorksheetQuestion number={5}
+          question='"___ government should do more to support ___ renewable energy sector."'
+          modelAnswer='"The" government (specific governing body) / "the" renewable energy sector (specific industry)'
+          accepted={["the, the", "the,the"]}
+        />
+      </WorksheetBlock>
+
+      <WorksheetBlock
+        title="Part B — Spot and fix the article error"
+        instruction="Each sentence has one article error. Rewrite the corrected version of the sentence."
+      >
+        <WorksheetQuestion number={1}
+          question='"The pollution is becoming a serious problem in many cities."'
+          modelAnswer='"Pollution is becoming a serious problem in many cities." — Remove "the". "Pollution" as a general uncountable concept needs no article.'
+          multiline
+        />
+        <WorksheetQuestion number={2}
+          question='"She is an university student studying environmental science."'
+          modelAnswer='"She is a university student studying environmental science." — "university" starts with a /juː/ consonant sound, so use "a", not "an".'
+          multiline
+        />
+        <WorksheetQuestion number={3}
+          question='"I read a interesting article about climate change yesterday."'
+          modelAnswer='"I read an interesting article about climate change yesterday." — "interesting" starts with a vowel sound /ɪ/, so use "an".'
+          multiline
+        />
+        <WorksheetQuestion number={4}
+          question='"Access to the education should be equal for all children."'
+          modelAnswer='"Access to education should be equal for all children." — Remove "the". "Education" as a general concept takes no article.'
+          multiline
+        />
+      </WorksheetBlock>
     </div>
   );
 }

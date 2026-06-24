@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Lightbulb, PenLine, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { Lightbulb, PenLine, BookOpen, ChevronDown, ChevronUp, CheckCircle2, XCircle, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PRIMARY_GLOW = "#3b82f6";
@@ -297,6 +297,133 @@ export function MistakeRow({
       <span className="text-foreground/70">&quot;{wrong}&quot;</span>
       <span className="text-muted-foreground">→</span>
       <span className="text-emerald-500">✓ &quot;{correct}&quot;</span>
+    </div>
+  );
+}
+
+// WorksheetQuestion — single question with input + check
+export function WorksheetQuestion({
+  number,
+  question,
+  modelAnswer,
+  accepted,
+  multiline = false,
+}: {
+  number: number;
+  question: string;
+  modelAnswer: string;
+  accepted?: string[];   // if provided, auto-checks the student's answer
+  multiline?: boolean;
+}) {
+  const [value, setValue] = useState("");
+  const [checked, setChecked] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement & HTMLInputElement>(null);
+
+  const isAutoCheck = accepted && accepted.length > 0;
+  const normalise = (s: string) => s.trim().toLowerCase().replace(/[""]/g, '"').replace(/['']/g, "'");
+  const isCorrect = isAutoCheck
+    ? accepted!.some(a => normalise(a) === normalise(value))
+    : null;
+
+  const handleCheck = () => {
+    if (!value.trim()) return;
+    setChecked(true);
+  };
+
+  const handleReset = () => {
+    setValue("");
+    setChecked(false);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-foreground/90 leading-relaxed">
+        <span className="font-semibold text-muted-foreground mr-1.5">{number}.</span>
+        {question}
+      </p>
+      {!checked ? (
+        <div className="flex gap-2 items-start">
+          {multiline ? (
+            <textarea
+              ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+              value={value}
+              onChange={e => setValue(e.target.value)}
+              rows={2}
+              placeholder="Type your answer here…"
+              className="flex-1 rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-none"
+            />
+          ) : (
+            <input
+              ref={inputRef as React.RefObject<HTMLInputElement>}
+              type="text"
+              value={value}
+              onChange={e => setValue(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleCheck()}
+              placeholder="Type your answer…"
+              className="flex-1 rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+            />
+          )}
+          <button
+            onClick={handleCheck}
+            disabled={!value.trim()}
+            className="shrink-0 rounded-lg bg-blue-500/15 border border-blue-500/30 px-3 py-2 text-xs font-semibold text-blue-400 hover:bg-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Check
+          </button>
+        </div>
+      ) : (
+        <div className={cn(
+          "rounded-lg border px-3 py-2.5 space-y-1.5",
+          isAutoCheck
+            ? isCorrect
+              ? "border-emerald-500/30 bg-emerald-500/8"
+              : "border-red-500/30 bg-red-500/8"
+            : "border-blue-500/30 bg-blue-500/8"
+        )}>
+          {isAutoCheck && (
+            <div className="flex items-center gap-1.5">
+              {isCorrect
+                ? <><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-xs font-semibold text-emerald-400">Correct!</span></>
+                : <><XCircle className="w-4 h-4 text-red-400" /><span className="text-xs font-semibold text-red-400">Not quite — see the answer below.</span></>
+              }
+            </div>
+          )}
+          {(!isAutoCheck || !isCorrect) && (
+            <>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Model answer</p>
+              <p className="text-sm text-foreground/90 leading-relaxed">{modelAnswer}</p>
+            </>
+          )}
+          <button onClick={handleReset} className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+            Try again
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// WorksheetBlock — groups questions under a title + instruction
+export function WorksheetBlock({
+  title,
+  instruction,
+  children,
+}: {
+  title: string;
+  instruction: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-border overflow-hidden bg-secondary/60">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-blue-500/10">
+        <ClipboardList className="h-4 w-4 text-blue-500" />
+        <span className="text-sm font-semibold text-blue-600">{title}</span>
+      </div>
+      <div className="p-4 space-y-1">
+        <p className="text-xs text-muted-foreground mb-4">{instruction}</p>
+        <div className="space-y-5">{children}</div>
+      </div>
     </div>
   );
 }

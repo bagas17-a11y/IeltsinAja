@@ -7,6 +7,8 @@ import {
   WorkedExample,
   MistakeRow,
   MiniPractice,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicSubjectVerbAgreement() {
@@ -179,7 +181,61 @@ export function TopicSubjectVerbAgreement() {
         <WorkedExample><>&quot;Have you <strong>finished</strong> your homework?&quot;</></WorkedExample>
       </DefinitionCard>
 
-      <SectionTitle number={7} title="Mini practice – subject-verb agreement" />
+      <SectionTitle number={7} title="Worksheet — Subject-Verb Agreement Practice" />
+
+      <WorksheetBlock
+        title="Part A — Fix the SVA error"
+        instruction="Each sentence has one subject-verb agreement error. Rewrite the sentence with the correct verb form."
+      >
+        <WorksheetQuestion number={1}
+          question='The number of students who study abroad have increased significantly.'
+          modelAnswer='The number of students who study abroad has increased significantly. (Subject is "the number" — singular. "Of students" is a prepositional phrase that does not change the subject.)'
+          multiline
+        />
+        <WorksheetQuestion number={2}
+          question='Many people in the city believes that public transport should be free.'
+          modelAnswer='Many people in the city believe that public transport should be free. ("Many people" is plural — no "s" on the verb.)'
+          multiline
+        />
+        <WorksheetQuestion number={3}
+          question='The government have introduced stricter laws on pollution.'
+          modelAnswer='The government has introduced stricter laws on pollution. ("Government" is a singular collective noun in formal/academic writing.)'
+          multiline
+        />
+        <WorksheetQuestion number={4}
+          question='There is several reasons why renewable energy is gaining popularity.'
+          modelAnswer='There are several reasons why renewable energy is gaining popularity. ("Several reasons" is plural — use "are".)'
+          multiline
+        />
+      </WorksheetBlock>
+
+      <WorksheetBlock
+        title="Part B — Choose the correct verb form"
+        instruction='Type the correct verb form (a or b) and click Check.'
+      >
+        <WorksheetQuestion number={1}
+          question='The quality of the reports ___ improved this year. (a) has  (b) have'
+          modelAnswer='"has" — the subject is "the quality" (singular), not "reports".'
+          accepted={["a", "(a)", "has"]}
+        />
+        <WorksheetQuestion number={2}
+          question='Both the teacher and the students ___ agreed on the new schedule. (a) has  (b) have'
+          modelAnswer='"have" — subjects joined by "and" are plural.'
+          accepted={["b", "(b)", "have"]}
+        />
+        <WorksheetQuestion number={3}
+          question='Each of the countries ___ its own approach to healthcare. (a) has  (b) have'
+          modelAnswer='"has" — "each" is always singular, even when followed by "of + plural noun".'
+          accepted={["a", "(a)", "has"]}
+        />
+        <WorksheetQuestion number={4}
+          question='The data ___ that pollution levels are rising. (a) shows  (b) show'
+          modelAnswer='"shows" — "data" is treated as singular in formal/academic English when used as an uncountable mass noun.'
+          accepted={["a", "(a)", "shows"]}
+        />
+      </WorksheetBlock>
+
+      <SectionTitle number={8} title="Mini practice – subject-verb agreement" />
       <MiniPractice
         title="Mini practice"
         prompt={

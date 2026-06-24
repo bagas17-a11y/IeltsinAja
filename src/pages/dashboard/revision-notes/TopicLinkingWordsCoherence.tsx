@@ -7,6 +7,8 @@ import {
   WorkedExample,
   MiniPractice,
   ExaminerTip,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicLinkingWordsCoherence() {
@@ -128,6 +130,59 @@ export function TopicLinkingWordsCoherence() {
           <>Wrong — &quot;Firstly&quot; is repeated three times. Use &quot;Firstly&quot;, &quot;Secondly&quot;, &quot;Finally&quot; or other linkers like &quot;Furthermore&quot;, &quot;In addition&quot;.</>,
         ]}
       />
+      <SectionTitle number={6} title="Worksheet — Conjunctions Practice" />
+
+      <WorksheetBlock
+        title="Part A — Join the sentences using the conjunction shown"
+        instruction="Rewrite the two sentences as one, using the conjunction given. Pay attention to comma placement."
+      >
+        <WorksheetQuestion number={1}
+          question='Join with "and": "Public transport is cheap." + "It helps reduce traffic."'
+          modelAnswer='"Public transport is cheap, and it helps reduce traffic." — Comma before "and" when joining two independent clauses.'
+          multiline
+        />
+        <WorksheetQuestion number={2}
+          question='Join with "whereas": "Some students prefer online learning." + "Others focus better in a classroom."'
+          modelAnswer='"Some students prefer online learning, whereas others focus better in a classroom." — Comma before "whereas" mid-sentence.'
+          multiline
+        />
+        <WorksheetQuestion number={3}
+          question='Join with "although" (start the sentence with "Although"): "She studied hard." + "She did not pass the exam."'
+          modelAnswer='"Although she studied hard, she did not pass the exam." — Comma after the dependent clause when "although" starts the sentence.'
+          multiline
+        />
+        <WorksheetQuestion number={4}
+          question='Join with "so": "The city invested in clean energy." + "Air quality improved."'
+          modelAnswer='"The city invested in clean energy, so air quality improved." — Comma before "so" when joining two independent clauses.'
+          multiline
+        />
+      </WorksheetBlock>
+
+      <WorksheetBlock
+        title="Part B — Find and fix the conjunction error"
+        instruction="Each sentence has one error (wrong conjunction, duplicate words, or punctuation). Rewrite the corrected sentence."
+      >
+        <WorksheetQuestion number={1}
+          question='"She loves travelling, but however, she rarely has time."'
+          modelAnswer='"She loves travelling; however, she rarely has time." OR "She loves travelling, but she rarely has time." — "but" and "however" cannot be used together; they both show contrast.'
+          multiline
+        />
+        <WorksheetQuestion number={2}
+          question='"Although the report was long but it was very clear."'
+          modelAnswer='"Although the report was long, it was very clear." — Remove "but". "Although" already expresses contrast; adding "but" creates a double conjunction error.'
+          multiline
+        />
+        <WorksheetQuestion number={3}
+          question='"I forgot my keys so, I had to call home."'
+          modelAnswer='"I forgot my keys, so I had to call home." — The comma goes before "so", not after it.'
+          multiline
+        />
+        <WorksheetQuestion number={4}
+          question='"Because of she was tired, she went home early."'
+          modelAnswer='"Because she was tired, she went home early." — "Because" is followed by a clause (subject + verb), not "because of" which is followed by a noun/noun phrase.'
+          multiline
+        />
+      </WorksheetBlock>
     </div>
   );
 }
