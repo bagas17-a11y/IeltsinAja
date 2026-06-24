@@ -10,7 +10,7 @@ import {
   ChevronDown, CheckCircle2, Circle, Clock, ArrowRight,
   Crown, BookOpen, Headphones, PenTool, Mic, Brain,
   Home, ChevronRight, Target, Sparkles, Trophy, Lock,
-  X, Maximize2, PlayCircle, ExternalLink, Newspaper,
+  X, Maximize2, PlayCircle, ExternalLink, Newspaper, ClipboardList, FileDown,
 } from "lucide-react";
 
 import { buildWhatsAppLink } from "@/lib/contact";
@@ -39,6 +39,14 @@ interface VocabItem {
   examples: VocabExample[];
 }
 
+interface WorksheetPrompt {
+  id: string;
+  label: string;
+  instruction: string;
+  rows: number;
+  placeholder?: string;
+}
+
 interface StudyTask {
   id: string;
   label: string;
@@ -47,6 +55,9 @@ interface StudyTask {
   resourceLabel?: string;
   minutes: number;
   vocabList?: VocabItem[];
+  sourceUrl?: string;
+  sourceType?: "video" | "article";
+  worksheetPrompts?: WorksheetPrompt[];
 }
 
 interface ExternalResource {
@@ -75,6 +86,110 @@ interface TierPlan {
   color: string;
   weeks: StudyWeek[];
 }
+
+// ─────────────────────────────────────────────
+// External source worksheet prompt banks
+// ─────────────────────────────────────────────
+
+const WEEK1_NOTES_PROMPTS: WorksheetPrompt[] = [
+  {
+    id: "main-arg",
+    label: "Main Argument",
+    instruction: "In 1–2 sentences, what is the author's central argument or the main idea of this source?",
+    rows: 3,
+    placeholder: "The author argues that…",
+  },
+  {
+    id: "evidence",
+    label: "Evidence & Examples",
+    instruction: "What evidence, statistics, or examples does the author use to support the argument?",
+    rows: 3,
+    placeholder: "For example, the author mentions…",
+  },
+  {
+    id: "collocation",
+    label: "New Collocation or Phrase",
+    instruction: "Write down one new collocation or academic phrase you found in this source. Then use it in your own sentence about a different topic.",
+    rows: 3,
+    placeholder: "Collocation: '…'\nMy sentence: …",
+  },
+  {
+    id: "opinion",
+    label: "Your Opinion",
+    instruction: "Do you agree or disagree with the main argument? Write 2–3 sentences explaining your position and giving at least one reason.",
+    rows: 4,
+    placeholder: "I agree / disagree with the argument because…",
+  },
+];
+
+const WEEK2_ARGUMENT_PROMPTS: WorksheetPrompt[] = [
+  {
+    id: "q1-response",
+    label: "Q1 — Written Response (150–200 words)",
+    instruction: "Write a 150–200 word response covering all three parts: (a) a summary of the main argument, (b) what evidence the author used to support it, and (c) your personal opinion on the argument and your reason for holding it.",
+    rows: 9,
+    placeholder: "The author's main argument is…\nThe evidence used includes…\nIn my view…",
+  },
+  {
+    id: "q2-peel",
+    label: "Q2 — PEEL Counter-Argument (~100 words)",
+    instruction: "Pick one argument from the source. Write a ~100-word paragraph defending the OPPOSITE side, following the PEEL structure: Point (your counter-claim) → Evidence (one supporting example) → Explanation (2–3 sentences analysing why the evidence proves your counter-claim) → Link (connect back to the topic).",
+    rows: 7,
+    placeholder: "Point: …\nEvidence: …\nExplanation: …\nLink: …",
+  },
+  {
+    id: "q3a-stance",
+    label: "Q3a — Author's Exact Stance",
+    instruction: "Is the author entirely supporting the idea, or presenting it with reservations? Quote one specific phrase from the source that reveals their position.",
+    rows: 3,
+    placeholder: "The author's stance is… This is shown by the phrase '…'",
+  },
+  {
+    id: "q3b-transitions",
+    label: "Q3b — Transition Words & Cohesive Devices",
+    instruction: "List 3 transition words or cohesive devices the author used to move between ideas. For each, write the sentence it appeared in.",
+    rows: 5,
+    placeholder: "1. '…' — sentence: '…'\n2. '…' — sentence: '…'\n3. '…' — sentence: '…'",
+  },
+  {
+    id: "q3c-collocations",
+    label: "Q3c — Collocations in Context",
+    instruction: "Find 3 complex phrases or collocations from the source. For each one, write a new sentence using that exact phrase — but about this week's theme (Society).",
+    rows: 6,
+    placeholder: "1. Phrase: '…'\n   My sentence: …\n2. Phrase: '…'\n   My sentence: …\n3. Phrase: '…'\n   My sentence: …",
+  },
+];
+
+const WEEK3_COMPREHENSION_PROMPTS: WorksheetPrompt[] = [
+  {
+    id: "q1-recording-notes",
+    label: "Q1 — Voice Recording Prep Notes",
+    instruction: "Make a 2-minute voice recording (use your phone's voice memo app) covering: (a) summary of the main argument, (b) evidence used, (c) your personal opinion. Use this space to jot down bullet points before you record — do not script it word for word.",
+    rows: 5,
+    placeholder: "Main argument: …\nEvidence: …\nMy opinion: …",
+  },
+  {
+    id: "q2-paraphrase",
+    label: "Q2 — Concept Paraphrasing (3 concepts)",
+    instruction: "Select 3 central concepts from the source. For each: first write the exact original phrase as it appeared in the text or video, then restate the same idea in entirely your own words using synonyms or paraphrasing.",
+    rows: 8,
+    placeholder: "Concept 1:\n  Original: '…'\n  My paraphrase: …\n\nConcept 2:\n  Original: '…'\n  My paraphrase: …\n\nConcept 3:\n  Original: '…'\n  My paraphrase: …",
+  },
+  {
+    id: "q3a-vocab",
+    label: "Q3a — Unknown Words from Context",
+    instruction: "Find 3 words you did not know the meaning of immediately. Without using a dictionary, write your best guess of each word's definition based only on the surrounding context. Then check if you were right.",
+    rows: 5,
+    placeholder: "1. Word: '…' → My guess: … → Actual meaning: …\n2. Word: '…' → My guess: … → Actual meaning: …\n3. Word: '…' → My guess: … → Actual meaning: …",
+  },
+  {
+    id: "q3b-pronouns",
+    label: "Q3b — Relative Pronouns",
+    instruction: "Find 3 instances of relative pronouns ('that', 'which', 'whose', 'who', 'where', etc.) in the source. For each, copy the full sentence and state exactly which noun or idea the pronoun is referring to.",
+    rows: 6,
+    placeholder: "1. Sentence: '…'\n   '…' refers to: …\n2. Sentence: '…'\n   '…' refers to: …\n3. Sentence: '…'\n   '…' refers to: …",
+  },
+];
 
 // ─────────────────────────────────────────────
 // Curriculum Data
@@ -310,19 +425,11 @@ const DEVELOPING_PLAN: TierPlan = {
           resourceLabel: "Open Hedging Notes",
           minutes: 30,
         },
-        {
-          id: "d-w1-t6",
-          label: "Daily Reading: Travel Theme (Days 1–5)",
-          description: "Read or watch one external source per day from the Travel theme below (see External Resources). After each one, note down: (1) one new collocation or academic phrase, (2) one argument the author makes, and (3) whether you agree or disagree and why. This daily habit builds the vocabulary and critical reading skills that Weeks 2 and 3 rely on.",
-          minutes: 20,
-        },
-      ],
-      externalResources: [
-        { label: "Adventurous travelling (Day 1)", url: "https://www.bbc.com/travel/article/20260604-why-travellers-are-choosing-holidays-that-hurt", type: "article" },
-        { label: "Sustainable travelling (Day 2)", url: "https://youtu.be/we6VG3kdkOA?si=8hdIj7g3auqsOiRr", type: "video" },
-        { label: "Tourism and climate change (Day 3)", url: "https://youtu.be/cZ8fw2F_E8Y?si=mFGhPQSxgKnuwL7l", type: "video" },
-        { label: "Travel airlines (Day 4)", url: "https://edition.cnn.com/2026/05/01/travel/passengers-need-to-know-spirit-airlines", type: "article" },
-        { label: "Reasons to travel (Day 5)", url: "https://www.nationalgeographic.com/travel/article/why-travel-should-be-considered-an-essential-human-activity", type: "article" },
+        { id: "d-w1-src1", label: "Day 1: Adventurous Travelling", description: "Read the article, then open the worksheet below to complete your notes.", sourceUrl: "https://www.bbc.com/travel/article/20260604-why-travellers-are-choosing-holidays-that-hurt", sourceType: "article", minutes: 20, worksheetPrompts: WEEK1_NOTES_PROMPTS },
+        { id: "d-w1-src2", label: "Day 2: Sustainable Travelling", description: "Watch the video, then open the worksheet below to complete your notes.", sourceUrl: "https://youtu.be/we6VG3kdkOA?si=8hdIj7g3auqsOiRr", sourceType: "video", minutes: 20, worksheetPrompts: WEEK1_NOTES_PROMPTS },
+        { id: "d-w1-src3", label: "Day 3: Tourism and Climate Change", description: "Watch the video, then open the worksheet below to complete your notes.", sourceUrl: "https://youtu.be/cZ8fw2F_E8Y?si=mFGhPQSxgKnuwL7l", sourceType: "video", minutes: 20, worksheetPrompts: WEEK1_NOTES_PROMPTS },
+        { id: "d-w1-src4", label: "Day 4: Travel Airlines", description: "Read the article, then open the worksheet below to complete your notes.", sourceUrl: "https://edition.cnn.com/2026/05/01/travel/passengers-need-to-know-spirit-airlines", sourceType: "article", minutes: 20, worksheetPrompts: WEEK1_NOTES_PROMPTS },
+        { id: "d-w1-src5", label: "Day 5: Reasons to Travel", description: "Read the article, then open the worksheet below to complete your notes.", sourceUrl: "https://www.nationalgeographic.com/travel/article/why-travel-should-be-considered-an-essential-human-activity", sourceType: "article", minutes: 20, worksheetPrompts: WEEK1_NOTES_PROMPTS },
       ],
     },
     {
@@ -331,43 +438,35 @@ const DEVELOPING_PLAN: TierPlan = {
       focus: "Writing",
       color: "purple",
       weeklyTheme: "Society",
-      rationale: "Band 6 arguments are often underdeveloped: a point is made, one piece of evidence is dropped, and the paragraph ends. Band 7 requires a full chain — point → reason → evidence → explanation → link back. This week you practise that chain every single day using real-world sources. The worksheet questions force you to defend positions, use PEEL structure, and engage critically rather than summarise. End the week with a full writing and speaking submission.",
+      rationale: "Band 6 arguments are often underdeveloped: a point is made, one piece of evidence is dropped, and the paragraph ends. Band 7 requires a full chain — point → reason → evidence → explanation → link back. This week you practise that chain every single day using real-world sources. Complete each day's worksheet before moving to the next source. End the week with a full writing and speaking submission.",
       tasks: [
+        { id: "d-w2-src1", label: "Day 1: Chinese Urbanization", description: "Read the article, then open the worksheet to complete all 5 questions.", sourceUrl: "https://www.bbc.com/news/world-asia-pacific-13799997", sourceType: "article", minutes: 35, worksheetPrompts: WEEK2_ARGUMENT_PROMPTS },
+        { id: "d-w2-src2", label: "Day 2: Solutions to Housing Shortages", description: "Read the article, then open the worksheet to complete all 5 questions.", sourceUrl: "https://edition.cnn.com/2026/06/04/business/mamdani-housing-new-york-city", sourceType: "article", minutes: 35, worksheetPrompts: WEEK2_ARGUMENT_PROMPTS },
+        { id: "d-w2-src3", label: "Day 3: Gender Roles in Modern Society", description: "Read the article, then open the worksheet to complete all 5 questions.", sourceUrl: "https://www.oneworldeducation.org/our-students-writing/gender-roles-in-modern-society/", sourceType: "article", minutes: 35, worksheetPrompts: WEEK2_ARGUMENT_PROMPTS },
+        { id: "d-w2-src4", label: "Day 4: Food Addiction", description: "Watch the video, then open the worksheet to complete all 5 questions.", sourceUrl: "https://youtu.be/J_03EXyhYS8?si=LlVhd0mtPPIqpyy2", sourceType: "video", minutes: 35, worksheetPrompts: WEEK2_ARGUMENT_PROMPTS },
+        { id: "d-w2-src5", label: "Day 5: Inequality", description: "Watch the video, then open the worksheet to complete all 5 questions.", sourceUrl: "https://youtu.be/rEnf_CFoyv0?si=iy6kg2G94YgFzdGJ", sourceType: "video", minutes: 35, worksheetPrompts: WEEK2_ARGUMENT_PROMPTS },
         {
-          id: "d-w2-t1",
-          label: "Daily External Source Worksheet (5 worksheets — Society theme)",
-          description: "Read or watch one Society source per day (Days 1–5, see External Resources below). After each source, complete the following worksheet: Q1 — Write a 150–200 word response covering: (a) a summary of the main argument, (b) what evidence the author used, and (c) your personal opinion on the argument and your reason. Q2 — Pick one argument from the source and write a 100-word paragraph defending the OPPOSITE side, following the PEEL structure (Point → Evidence → Explanation → Link). Q3 — Rapid fire: (a) What is the author's exact stance — are they entirely supporting the idea or presenting it with reservations? (b) List 3 transition words or cohesive devices the author used to move between ideas. (c) Find 3 complex phrases or collocations from the source and use each one in a new sentence about this week's theme (Society).",
-          minutes: 35,
-        },
-        {
-          id: "d-w2-t2",
-          label: "End-of-Week Homework: 1 Writing Question",
-          description: "At the end of Week 2, attempt one full Writing question (Task 2 preferred). Choose a topic related to any of the Society sources you read this week. Apply PEEL structure to both body paragraphs. After submitting, review the feedback — check specifically whether your Explanation section was long enough (it should be 2–4 sentences, the longest part of the paragraph).",
+          id: "d-w2-hw1",
+          label: "End-of-Week: 1 Writing Question",
+          description: "Attempt one full Writing Task 2. Choose a topic related to any Society source you read this week. Apply PEEL structure to both body paragraphs. Check: is your Explanation the longest section of each paragraph (2–4 sentences)?",
           resourcePath: "/dashboard/writing",
           resourceLabel: "Open Writing Module",
           minutes: 45,
         },
         {
-          id: "d-w2-t3",
-          label: "End-of-Week Homework: 1 Speaking Question",
-          description: "Complete one full Speaking session. For Part 3, attempt to use at least one argument from this week's Society sources as supporting evidence in your answer. Screenshot your score when done.",
+          id: "d-w2-hw2",
+          label: "End-of-Week: 1 Speaking Question",
+          description: "Complete one full Speaking session. In Part 3, use at least one argument from this week's sources as supporting evidence. Screenshot your score.",
           resourcePath: "/dashboard/speaking",
           resourceLabel: "Open Speaking Module",
           minutes: 30,
         },
         {
-          id: "d-w2-t4",
+          id: "d-w2-hw3",
           label: "Submit Scores to Group Chat",
-          description: "Screenshot your Writing and Speaking scores from this week and share them in the group chat. Your tutor will review and note which aspects of your argument development need the most attention going into Week 3.",
+          description: "Screenshot your Writing and Speaking scores and share them in the group chat. Your tutor will review and flag which aspect of argument development needs the most attention in Week 3.",
           minutes: 5,
         },
-      ],
-      externalResources: [
-        { label: "Chinese Urbanization (Day 1)", url: "https://www.bbc.com/news/world-asia-pacific-13799997", type: "article" },
-        { label: "Solutions to housing shortages (Day 2)", url: "https://edition.cnn.com/2026/06/04/business/mamdani-housing-new-york-city", type: "article" },
-        { label: "Gender roles in modern society (Day 3)", url: "https://www.oneworldeducation.org/our-students-writing/gender-roles-in-modern-society/", type: "article" },
-        { label: "Food addiction (Day 4)", url: "https://youtu.be/J_03EXyhYS8?si=LlVhd0mtPPIqpyy2", type: "video" },
-        { label: "Inequality (Day 5)", url: "https://youtu.be/rEnf_CFoyv0?si=iy6kg2G94YgFzdGJ", type: "video" },
       ],
     },
     {
@@ -376,37 +475,29 @@ const DEVELOPING_PLAN: TierPlan = {
       focus: "Reading",
       color: "amber",
       weeklyTheme: "Education",
-      rationale: "Keyword hunting — scanning for words from the question without understanding the author's argument — is one of the main reasons Band 6 students consistently miss True/False/Not Given and Matching questions. This week you train comprehension rather than scanning: understanding the author's exact stance, recognising how relative clauses work to qualify claims, and paraphrasing to prove you genuinely understand meaning rather than just recognising words. End the week with a full reading and listening test.",
+      rationale: "Keyword hunting — scanning for words from the question without understanding the author's argument — is one of the main reasons Band 6 students consistently miss True/False/Not Given and Matching questions. This week you train comprehension rather than scanning: voice-recording your understanding, paraphrasing key concepts, and identifying how relative clauses qualify claims. End the week with a full reading and listening test.",
       tasks: [
+        { id: "d-w3-src1", label: "Day 1: Declining Class Sizes", description: "Read the article, then open the worksheet to complete all 4 questions.", sourceUrl: "https://www.bbc.com/news/articles/crrpg7rgelro", sourceType: "article", minutes: 35, worksheetPrompts: WEEK3_COMPREHENSION_PROMPTS },
+        { id: "d-w3-src2", label: "Day 2: AI for Education", description: "Read the article, then open the worksheet to complete all 4 questions.", sourceUrl: "https://edition.cnn.com/2025/09/22/tech/america-literacy-ai-schools", sourceType: "article", minutes: 35, worksheetPrompts: WEEK3_COMPREHENSION_PROMPTS },
+        { id: "d-w3-src3", label: "Day 3: Education Budget Cuts", description: "Read the article, then open the worksheet to complete all 4 questions.", sourceUrl: "https://edition.cnn.com/2022/03/21/perspectives/imf-children-education-pandemic", sourceType: "article", minutes: 35, worksheetPrompts: WEEK3_COMPREHENSION_PROMPTS },
+        { id: "d-w3-src4", label: "Day 4: A Different Way of Teaching", description: "Watch the video, then open the worksheet to complete all 4 questions.", sourceUrl: "https://youtu.be/-MTRxRO5SRA?si=EodlCYOP0N1DBgPc", sourceType: "video", minutes: 35, worksheetPrompts: WEEK3_COMPREHENSION_PROMPTS },
+        { id: "d-w3-src5", label: "Day 5: US Education Debate", description: "Watch the video, then open the worksheet to complete all 4 questions.", sourceUrl: "https://youtu.be/EnBqsLcVSfg?si=VOlC8kfVFreflwEm", sourceType: "video", minutes: 35, worksheetPrompts: WEEK3_COMPREHENSION_PROMPTS },
         {
-          id: "d-w3-t1",
-          label: "Daily External Source Worksheet (5 worksheets — Education theme)",
-          description: "Read or watch one Education source per day (Days 1–5, see External Resources below). After each source, complete the following worksheet: Q1 — Make a 2-minute voice recording (use your phone's voice memo app) that includes: (a) a summary of the main argument, (b) the evidence used to support it, and (c) your personal opinion. Q2 — Select 3 central concepts from the source. For each concept, write out the exact sentence or phrase used in the text/video. Then restate the same idea in your own words using synonyms or paraphrasing — proving you understand the meaning, not just the words. Q3 — Rapid fire: (a) Find 3 words you did not know immediately. Based only on the surrounding context clues, write your best guess of each word's definition — do not use a dictionary first. (b) Find 3 instances of relative pronouns ('that', 'which', 'whose', 'those', etc.) in the source and state exactly which noun or idea each pronoun is referring to.",
-          minutes: 35,
-        },
-        {
-          id: "d-w3-t2",
+          id: "d-w3-hw1",
           label: "End-of-Week Module Practice: Reading",
-          description: "Complete one full Reading test at the end of Week 3. After finishing, review every incorrect answer. For True/False/Not Given questions specifically, ask: did the text actually state this, or did I infer it? 'Not Given' means the text is silent on the matter — it does not confirm or deny. This is the most common source of error at Band 6.",
+          description: "Complete one full Reading test. After finishing, review every incorrect True/False/Not Given answer: did the text confirm it, contradict it, or stay silent? 'Not Given' means the text is completely silent — not that the answer is unclear.",
           resourcePath: "/dashboard/reading",
           resourceLabel: "Open Reading Module",
           minutes: 60,
         },
         {
-          id: "d-w3-t3",
+          id: "d-w3-hw2",
           label: "End-of-Week Module Practice: Listening",
-          description: "Complete one full Listening test. Use the pre-reading strategy: read each set of questions before the audio plays, underlining key nouns. During the audio, do not try to understand every word — listen specifically for the answer to the question in front of you.",
+          description: "Complete one full Listening test. Use the pre-reading strategy: read each set of questions before the audio plays, underlining key nouns. Listen for the answer to the specific question in front of you — not the whole passage.",
           resourcePath: "/dashboard/listening",
           resourceLabel: "Open Listening Module",
           minutes: 40,
         },
-      ],
-      externalResources: [
-        { label: "Declining class sizes (Day 1)", url: "https://www.bbc.com/news/articles/crrpg7rgelro", type: "article" },
-        { label: "AI for education (Day 2)", url: "https://edition.cnn.com/2025/09/22/tech/america-literacy-ai-schools", type: "article" },
-        { label: "Education budget cuts (Day 3)", url: "https://edition.cnn.com/2022/03/21/perspectives/imf-children-education-pandemic", type: "article" },
-        { label: "A different way of teaching (Day 4)", url: "https://youtu.be/-MTRxRO5SRA?si=EodlCYOP0N1DBgPc", type: "video" },
-        { label: "US Education debate (Day 5)", url: "https://youtu.be/EnBqsLcVSfg?si=VOlC8kfVFreflwEm", type: "video" },
       ],
     },
     {
@@ -971,6 +1062,144 @@ const POLISHING_PLAN: TierPlan = {
 };
 
 // ─────────────────────────────────────────────
+// ExternalSourceWorksheetCard — answer space for source-based worksheets
+function ExternalSourceWorksheetCard({ task }: { task: StudyTask }) {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [open, setOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+
+  const setAnswer = (id: string, val: string) =>
+    setAnswers(prev => ({ ...prev, [id]: val }));
+
+  const handleDownload = () => {
+    const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    const prompts = task.worksheetPrompts!;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>${task.label} — Worksheet</title>
+<style>
+  body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:28px;color:#1e293b}
+  h1{font-size:18px;color:#1e40af;border-bottom:2px solid #1e40af;padding-bottom:8px;margin-bottom:4px}
+  h2{font-size:13px;color:#1e40af;background:#eff6ff;padding:6px 12px;border-radius:6px;border-left:3px solid #3b82f6;margin:20px 0 10px}
+  .meta{color:#64748b;font-size:12px;margin-bottom:20px}
+  .source{font-size:12px;color:#2563eb;margin-bottom:20px}
+  .qblock{margin-bottom:18px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;page-break-inside:avoid}
+  .qlabel{font-size:12px;font-weight:700;color:#1e40af;margin-bottom:3px}
+  .qinstr{font-size:11px;color:#64748b;margin-bottom:8px;line-height:1.5}
+  .ans{padding:10px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;font-size:13px;min-height:60px;white-space:pre-wrap;line-height:1.6}
+  @media print{button{display:none!important}}
+</style></head><body>
+<h1>${task.label}</h1>
+<div class="meta">Completed: ${date} | For review by the EngInAja coaching team</div>
+${task.sourceUrl ? `<div class="source">Source: <a href="${task.sourceUrl}">${task.sourceUrl}</a></div>` : ""}
+${prompts.map(p => `
+<div class="qblock">
+  <div class="qlabel">${p.label}</div>
+  <div class="qinstr">${p.instruction}</div>
+  <div class="ans">${answers[p.id] || '<span style="color:#94a3b8;font-style:italic">No answer given</span>'}</div>
+</div>`).join("")}
+</body></html>`;
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(html); win.document.close(); setTimeout(() => win.print(), 400); }
+  };
+
+  const worksheetContent = (isFS: boolean) => (
+    <div className={cn("space-y-4", isFS ? "p-6 max-w-3xl mx-auto" : "pt-3")}>
+      {/* Source link */}
+      {task.sourceUrl && (
+        <a
+          href={task.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/8 px-3 py-2.5 text-sm font-medium text-blue-400 hover:bg-blue-500/15 transition-colors"
+        >
+          {task.sourceType === "video"
+            ? <PlayCircle className="w-4 h-4 text-red-400 shrink-0" />
+            : <ExternalLink className="w-4 h-4 text-blue-400 shrink-0" />}
+          <span>Open source: {task.label.replace(/^Day \d+: /, "")}</span>
+          <span className="ml-auto text-[10px] text-muted-foreground/60">{task.sourceType === "video" ? "YouTube" : "Article"}</span>
+        </a>
+      )}
+
+      {/* Questions */}
+      {task.worksheetPrompts!.map(prompt => (
+        <div key={prompt.id} className="space-y-1.5">
+          <div>
+            <p className="text-xs font-semibold text-foreground/90">{prompt.label}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{prompt.instruction}</p>
+          </div>
+          <textarea
+            value={answers[prompt.id] || ""}
+            onChange={e => setAnswer(prompt.id, e.target.value)}
+            rows={prompt.rows}
+            placeholder={prompt.placeholder || "Type your answer here…"}
+            className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-y leading-relaxed"
+          />
+        </div>
+      ))}
+
+      {/* Action bar */}
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        <button
+          onClick={handleDownload}
+          className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-400 hover:bg-blue-500/20 transition-colors"
+        >
+          <FileDown className="w-3.5 h-3.5" />
+          Download PDF
+        </button>
+        <button
+          onClick={() => { setFullscreen(!isFS); if (isFS) setOpen(true); }}
+          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border/60 transition-colors"
+        >
+          <Maximize2 className="w-3 h-3" />
+          {isFS ? "Exit fullscreen" : "Fullscreen"}
+        </button>
+      </div>
+    </div>
+  );
+
+  if (fullscreen) {
+    return createPortal(
+      <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-5 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-blue-400" />
+            <p className="text-sm font-semibold text-foreground">{task.label}</p>
+          </div>
+          <button
+            onClick={() => setFullscreen(false)}
+            className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        {worksheetContent(true)}
+      </div>,
+      document.body
+    );
+  }
+
+  return (
+    <div className="mt-3">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={cn(
+          "w-full flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-all",
+          open
+            ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
+            : "border-border bg-secondary/40 text-muted-foreground hover:border-blue-500/30 hover:text-blue-400"
+        )}
+      >
+        <span className="flex items-center gap-1.5">
+          <ClipboardList className="w-3.5 h-3.5" />
+          {open ? "Hide worksheet" : "Open worksheet"}
+        </span>
+        <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && worksheetContent(false)}
+    </div>
+  );
+}
+
 // VocabSlideshow — fullscreen lesson viewer
 // ─────────────────────────────────────────────
 function VocabSlideshow({ items }: { items: VocabItem[] }) {
@@ -1512,6 +1741,7 @@ export default function StudyPlanPage() {
                                   </p>
                                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{task.description}</p>
                                   {task.vocabList && <VocabSlideshow items={task.vocabList} />}
+                                  {task.worksheetPrompts && <ExternalSourceWorksheetCard task={task} />}
                                   <div className="flex items-center gap-3 mt-2">
                                     <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
                                       <Clock className="w-3 h-3" /> ~{task.minutes} min
