@@ -38,6 +38,17 @@ interface VocabItem {
   examples: VocabExample[];
 }
 
+interface WorksheetQuestion {
+  q: string;
+  a: string;
+}
+
+interface WorksheetSection {
+  title: string;
+  instruction: string;
+  questions: WorksheetQuestion[];
+}
+
 interface StudyTask {
   id: string;
   label: string;
@@ -45,7 +56,8 @@ interface StudyTask {
   resourcePath?: string;
   resourceLabel?: string;
   minutes: number;
-  vocabList?: VocabItem[];  // optional expandable word list with examples
+  vocabList?: VocabItem[];
+  worksheetSections?: WorksheetSection[];
 }
 
 interface ExternalResource {
@@ -108,9 +120,50 @@ const FOUNDATION_PLAN: TierPlan = {
           minutes: 30,
         },
         {
-          id: "f-w1-t4", label: "Worksheet Practice: Verb Tenses & SVA",
-          description: "Verb tenses: identify and correct incorrect tenses in a passage, then choose the best tense for different scenarios. SVA: identify and fix agreement errors in sentences and passages, then write a short descriptive paragraph with correct SVA throughout.",
+          id: "f-w1-t4", label: "Worksheet: Verb Tenses & Subject-Verb Agreement",
+          description: "Work through the exercises below. Complete each section before revealing the answers.",
           minutes: 40,
+          worksheetSections: [
+            {
+              title: "Part A — Identify and correct the tense errors",
+              instruction: "Each sentence below has one verb tense error. Find it and rewrite the sentence correctly.",
+              questions: [
+                { q: "Last year, the number of electric cars on the road increases by 40%.", a: "Last year, the number of electric cars on the road increased by 40%. (Past simple needed for a finished past event.)" },
+                { q: "Scientists are discovering the vaccine in 2020.", a: "Scientists discovered the vaccine in 2020. (Past simple — specific finished time, not an ongoing action.)" },
+                { q: "By the time she graduated, she already learns three languages.", a: "By the time she graduated, she had already learned three languages. (Past perfect needed — action completed before another past action.)" },
+                { q: "Right now, the government consider a new policy on renewable energy.", a: "Right now, the government is considering a new policy on renewable energy. (Present continuous needed for an action happening now.)" },
+              ],
+            },
+            {
+              title: "Part B — Choose the best tense",
+              instruction: "Choose the correct verb form (a or b) for each sentence.",
+              questions: [
+                { q: "Since 2010, the global temperature ___. (a) rises  (b) has risen", a: "(b) has risen — 'since 2010' triggers present perfect because the situation connects past to now." },
+                { q: "If governments invest in clean energy, air quality ___. (a) will improve  (b) improves", a: "(a) will improve — first conditional: real future possibility uses 'will'." },
+                { q: "She ___ her essay when the power went out. (a) was writing  (b) wrote", a: "(a) was writing — past continuous shows an ongoing action that was interrupted." },
+                { q: "Every day, millions of people ___ public transport. (a) are using  (b) use", a: "(b) use — present simple for regular habits and general facts." },
+              ],
+            },
+            {
+              title: "Part C — Fix the subject-verb agreement errors",
+              instruction: "Each sentence has one SVA error. Rewrite the sentence with the correct verb form.",
+              questions: [
+                { q: "The number of students who study abroad have increased significantly.", a: "The number of students who study abroad has increased significantly. (Subject is 'the number' — singular.)" },
+                { q: "Many people in the city believes that public transport should be free.", a: "Many people in the city believe that public transport should be free. ('Many people' is plural.)" },
+                { q: "The government have introduced stricter laws on pollution.", a: "The government has introduced stricter laws on pollution. ('Government' is a singular collective noun.)" },
+                { q: "There is several reasons why renewable energy is important.", a: "There are several reasons why renewable energy is important. ('Several reasons' is plural — use 'are'.)" },
+              ],
+            },
+            {
+              title: "Part D — Write your own",
+              instruction: "Write 3 sentences about technology. Each sentence must use a different tense (your choice). Underline the verb in each sentence.",
+              questions: [
+                { q: "Write sentence 1 (choose any tense):", a: "Example: 'Artificial intelligence has transformed the way companies recruit employees.' (Present perfect — ongoing relevance to now.)" },
+                { q: "Write sentence 2 (different tense from sentence 1):", a: "Example: 'In 2007, Apple launched the first iPhone, changing communication forever.' (Past simple — specific finished event.)" },
+                { q: "Write sentence 3 (different tense from sentences 1 and 2):", a: "Example: 'If technology continues to advance, many jobs will be automated within a decade.' (First conditional — real future possibility.)" },
+              ],
+            },
+          ],
         },
       ],
       externalResources: [
@@ -148,9 +201,51 @@ const FOUNDATION_PLAN: TierPlan = {
           minutes: 30,
         },
         {
-          id: "f-w2-t5", label: "Worksheet Practice: Articles & Sentence Structures",
-          description: "Articles: identify when to use/not use articles in complex passages; choose the correct article; spot incorrect article usage. Sentence structures: switch between active and passive voice; join sentences using conjunctions; identify the type of conjunction; spot punctuation mistakes with conjunctions.",
+          id: "f-w2-t5", label: "Worksheet: Articles & Sentence Structures",
+          description: "Work through the exercises below. Complete each section before revealing the answers.",
           minutes: 45,
+          worksheetSections: [
+            {
+              title: "Part A — Choose the correct article (a / an / the / Ø)",
+              instruction: "Fill in each gap with a, an, the, or Ø (no article).",
+              questions: [
+                { q: "___ internet has changed ___ way people find information.", a: "The internet / the way — both refer to specific, known things." },
+                { q: "___ education is one of ___ most important investments a country can make.", a: "Ø education (general uncountable concept) / the most important (superlative always uses 'the')." },
+                { q: "She applied for ___ job at ___ university in London.", a: "a job (any job, first mention) / a university (consonant sound /juː/ = use 'a', not 'an')." },
+                { q: "There has been ___ significant increase in ___ number of electric vehicles.", a: "a significant increase (first mention) / the number (specific — of electric vehicles)." },
+                { q: "___ government should do more to support ___ renewable energy sector.", a: "The government (specific body) / the renewable energy sector (specific industry)." },
+              ],
+            },
+            {
+              title: "Part B — Spot and fix the article error",
+              instruction: "Each sentence has one article error. Identify it and write the correction.",
+              questions: [
+                { q: "The pollution is becoming a serious problem in many cities.", a: "Remove 'the' → 'Pollution is becoming a serious problem…' — general uncountable noun, no article." },
+                { q: "She is an university student studying environmental science.", a: "'an' → 'a' — 'university' starts with a /juː/ consonant sound, so use 'a university'." },
+                { q: "I read a interesting article about climate change yesterday.", a: "'a' → 'an' — 'interesting' starts with a vowel sound /ɪ/, so use 'an interesting'." },
+                { q: "Access to the education should be equal for all children.", a: "Remove 'the' → 'Access to education should be equal…' — 'education' as a general concept takes no article." },
+              ],
+            },
+            {
+              title: "Part C — Join the sentences using a conjunction",
+              instruction: "Rewrite each pair as one sentence using the conjunction shown. Pay attention to punctuation.",
+              questions: [
+                { q: "Public transport is cheap. It helps reduce traffic. [and]", a: "Public transport is cheap, and it helps reduce traffic. (Comma before 'and' when joining two independent clauses.)" },
+                { q: "Some students prefer online learning. Others focus better in a classroom. [whereas]", a: "Some students prefer online learning, whereas others focus better in a classroom." },
+                { q: "She studied hard. She did not pass the exam. [although]", a: "Although she studied hard, she did not pass the exam. (Comma after the dependent clause when 'although' starts the sentence.)" },
+                { q: "The city invested in clean energy. Air quality improved. [as a result / so]", a: "The city invested in clean energy, so air quality improved. OR: The city invested in clean energy. As a result, air quality improved." },
+              ],
+            },
+            {
+              title: "Part D — Identify the error in these conjunction sentences",
+              instruction: "Each sentence has one punctuation or conjunction error. Find and fix it.",
+              questions: [
+                { q: "She loves travelling, but however, she rarely has time.", a: "Remove either 'but' or 'however' — they both show contrast and cannot be used together. Correct: 'She loves travelling; however, she rarely has time.' OR 'She loves travelling, but she rarely has time.'" },
+                { q: "Although the report was long but it was very clear.", a: "Remove 'but' — 'although' already shows contrast. Correct: 'Although the report was long, it was very clear.'" },
+                { q: "I forgot my keys so, I had to call home.", a: "Remove comma after 'so' — no comma needed after 'so' when used mid-sentence. Correct: 'I forgot my keys, so I had to call home.'" },
+              ],
+            },
+          ],
         },
       ],
       externalResources: [
@@ -173,9 +268,9 @@ const FOUNDATION_PLAN: TierPlan = {
           resourcePath: "/dashboard/revision-notes?topic=verb-tenses", resourceLabel: "Open Verb Tenses", minutes: 30,
         },
         {
-          id: "f-w3-t2", label: "Revision Notes: Test Formats",
-          description: "Study the test format for all four modules — Writing, Listening, Reading, and Speaking. Understand what each section asks, how it is marked, and the time limits. You cannot improve what you don't understand.",
-          resourcePath: "/dashboard/revision-notes?view=formats", resourceLabel: "Open Test Formats", minutes: 30,
+          id: "f-w3-t2", label: "MudahinAja: How to Answer Each Module",
+          description: "Open MudahinAja and go through the interactive tutorials for Writing, Listening, Reading, and Speaking. Learn the strategies for each module — structure, timing, and what the examiner expects.",
+          resourcePath: "/dashboard/elite", resourceLabel: "Open MudahinAja", minutes: 30,
         },
         {
           id: "f-w3-t3", label: "Module Practice: Listening",
@@ -1131,6 +1226,56 @@ const POLISHING_PLAN: TierPlan = {
 };
 
 // ─────────────────────────────────────────────
+// WorksheetPanel — interactive worksheet
+// ─────────────────────────────────────────────
+function WorksheetPanel({ sections }: { sections: WorksheetSection[] }) {
+  const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const toggle = (key: string) =>
+    setRevealed(prev => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
+
+  return (
+    <div className="mt-3 space-y-4">
+      {sections.map((section, si) => (
+        <div key={si} className="rounded-lg border border-border/60 overflow-hidden">
+          <div className="bg-blue-500/10 px-3 py-2 border-b border-border/60">
+            <p className="text-xs font-semibold text-blue-400">{section.title}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{section.instruction}</p>
+          </div>
+          <div className="p-3 space-y-3">
+            {section.questions.map((item, qi) => {
+              const key = `${si}-${qi}`;
+              const isRevealed = revealed.has(key);
+              return (
+                <div key={qi} className="space-y-1.5">
+                  <p className="text-xs text-foreground/90 leading-relaxed">
+                    <span className="font-medium text-muted-foreground mr-1">{qi + 1}.</span>
+                    {item.q}
+                  </p>
+                  {isRevealed ? (
+                    <div className="rounded-md bg-emerald-500/8 border border-emerald-500/25 px-3 py-2">
+                      <p className="text-xs text-emerald-400 font-semibold mb-0.5">Answer</p>
+                      <p className="text-xs text-foreground/80">{item.a}</p>
+                      <button onClick={() => toggle(key)} className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground mt-1">Hide</button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => toggle(key)}
+                      className="text-xs text-accent hover:underline underline-offset-2"
+                    >
+                      Reveal answer
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // VocabSlideshow — fullscreen lesson viewer
 // ─────────────────────────────────────────────
 function VocabSlideshow({ items }: { items: VocabItem[] }) {
@@ -1672,6 +1817,7 @@ export default function StudyPlanPage() {
                                   </p>
                                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{task.description}</p>
                                   {task.vocabList && <VocabSlideshow items={task.vocabList} />}
+                                  {task.worksheetSections && <WorksheetPanel sections={task.worksheetSections} />}
                                   <div className="flex items-center gap-3 mt-2">
                                     <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
                                       <Clock className="w-3 h-3" /> ~{task.minutes} min

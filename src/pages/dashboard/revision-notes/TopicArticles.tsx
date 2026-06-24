@@ -73,18 +73,38 @@ export function TopicArticles() {
         title="Mini practice"
         prompt={
           <>
-            <p className="mb-2">1. Fill the gap: &quot;___ government should address ___ problem of traffic congestion.&quot;</p>
-            <p className="mb-2">2. Is &quot;the&quot; needed? &quot;Technology has changed ___ way people communicate.&quot;</p>
-            <p className="mb-2">3. Correct: &quot;Students need a access to good resources.&quot;</p>
-            <p className="mb-2">4. Fill: &quot;There was ___ significant increase in ___ number of online learners.&quot;</p>
+            <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-300">
+              <li>
+                <span className="text-slate-200">Fill in the gaps (a / an / the / Ø):</span>
+                <p className="mt-1 italic">&quot;___ government should address ___ problem of traffic congestion.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Fill in the gap (the / Ø):</span>
+                <p className="mt-1 italic">&quot;Technology has changed ___ way people communicate.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">There is one article error — find and fix it:</span>
+                <p className="mt-1 italic">&quot;Students need an access to good resources.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Fill in the gaps (a / an / the / Ø):</span>
+                <p className="mt-1 italic">&quot;There was ___ significant increase in ___ number of online learners last year.&quot;</p>
+              </li>
+              <li>
+                <span className="text-slate-200">Choose the correct sentence:</span>
+                <p className="mt-1 italic">A. &quot;The education is important for economic growth.&quot;</p>
+                <p className="mt-1 italic">B. &quot;Education is important for economic growth.&quot;</p>
+              </li>
+            </ol>
           </>
         }
         modelLabel="Model answers"
         modelItems={[
-          <>&quot;The government&quot; and &quot;the problem&quot; — both specific. &quot;The problem of traffic congestion&quot; is a known issue.</>,
-          <>&quot;the&quot; — we mean the specific way (technology has changed it). Correct: &quot;Technology has changed the way people communicate.&quot;</>,
-          <>&quot;Students need access...&quot; — &quot;access&quot; is uncountable here; use no article, or &quot;access to&quot;.</>,
-          <>&quot;a significant increase&quot; (first mention), &quot;the number&quot; (we refer to a specific group — online learners).</>,
+          <><strong className="text-white">The</strong> government / <strong className="text-white">the</strong> problem — both are specific. &quot;The government&quot; refers to a known authority; &quot;the problem of traffic congestion&quot; is a specific identified problem.</>,
+          <><strong className="text-white">the</strong> way — &quot;the way people communicate&quot; refers to a specific manner, not ways in general. Always use &quot;the&quot; before &quot;way&quot; when followed by a clause.</>,
+          <>&quot;Students need <strong className="text-white">Ø</strong> access to good resources.&quot; — &quot;access&quot; is an uncountable noun here, so no article is used. &quot;An access&quot; is incorrect.</>,
+          <><strong className="text-white">a</strong> significant increase (first mention, one of possibly many) / <strong className="text-white">the</strong> number (specific — the number of online learners in particular).</>,
+          <>Sentence <strong className="text-white">B</strong> is correct. &quot;Education&quot; used as a general uncountable concept takes no article. &quot;The education&quot; would only be correct if referring to a specific education system already mentioned.</>,
         ]}
       />
     </div>
