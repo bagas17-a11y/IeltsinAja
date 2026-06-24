@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Lightbulb, PenLine, BookOpen, ChevronDown, ChevronUp, CheckCircle2, XCircle, ClipboardList } from "lucide-react";
+import { Lightbulb, PenLine, BookOpen, ChevronDown, ChevronUp, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PRIMARY_GLOW = "#3b82f6";
@@ -306,14 +306,13 @@ export function MistakeRow({
 interface WsAnswer {
   questionText: string;
   answer: string;
-  isCorrect?: boolean;
   modelAnswer: string;
   section: string;
 }
 
 const WsCtx = createContext<{
   register: (id: string, q: string, model: string, section: string) => void;
-  report: (id: string, answer: string, isCorrect?: boolean) => void;
+  report: (id: string, answer: string) => void;
 } | null>(null);
 
 const WsSectionCtx = createContext<string>("");
@@ -330,16 +329,15 @@ export function WorksheetContainer({ topicName, children }: { topicName: string;
     }
   }, []);
 
-  const report = useCallback((id: string, answer: string, isCorrect?: boolean) => {
+  const report = useCallback((id: string, answer: string) => {
     const prev = answersRef.current.get(id);
-    if (prev) answersRef.current.set(id, { ...prev, answer, isCorrect });
+    if (prev) answersRef.current.set(id, { ...prev, answer });
   }, []);
 
   const handleDownload = () => {
     const rows = orderRef.current.map(id => answersRef.current.get(id)!);
     const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-    // group by section
     const sections: { title: string; items: (WsAnswer & { idx: number })[] }[] = [];
     let globalIdx = 1;
     rows.forEach(r => {
@@ -348,26 +346,21 @@ export function WorksheetContainer({ topicName, children }: { topicName: string;
       sec.items.push({ ...r, idx: globalIdx++ });
     });
 
-    const verdictColor = (r: WsAnswer) => r.isCorrect === true ? "#16a34a" : r.isCorrect === false ? "#dc2626" : "#94a3b8";
-    const verdictText = (r: WsAnswer) => r.isCorrect === true ? "✓ Correct" : r.isCorrect === false ? "✗ Incorrect" : "Not checked";
-    const answerBg = (r: WsAnswer) => r.isCorrect === true ? "#f0fdf4" : r.isCorrect === false ? "#fef2f2" : r.answer ? "#f8fafc" : "#f1f5f9";
-    const answerBorder = (r: WsAnswer) => r.isCorrect === true ? "#22c55e" : r.isCorrect === false ? "#ef4444" : "#cbd5e1";
-
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <title>${topicName} Worksheet</title>
 <style>
   body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:28px;color:#1e293b}
   h1{font-size:20px;color:#1e40af;border-bottom:2px solid #1e40af;padding-bottom:8px;margin-bottom:4px}
+  h2{font-size:16px;color:#1e40af;border-bottom:1.5px solid #93c5fd;padding-bottom:6px;margin-bottom:16px;margin-top:0}
   .meta{color:#64748b;font-size:12px;margin-bottom:24px}
   .section{margin-bottom:28px}
   .sec-title{font-size:13px;font-weight:700;color:#1e40af;background:#eff6ff;padding:7px 12px;border-radius:6px;margin-bottom:12px;border-left:3px solid #3b82f6}
   .qblock{margin-bottom:14px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;page-break-inside:avoid}
   .qnum{font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:3px}
   .qtext{font-size:14px;margin-bottom:8px;line-height:1.5}
-  .ans{padding:8px 12px;border-radius:6px;border-width:1px;border-style:solid;font-size:14px}
-  .verdict{font-size:11px;font-weight:700;margin-top:5px}
-  .model{font-size:12px;color:#64748b;margin-top:6px;line-height:1.4}
-  .model b{color:#475569}
+  .ans{padding:8px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;font-size:14px;min-height:36px}
+  .key-ans{padding:8px 12px;border-radius:6px;border:1px solid #bbf7d0;background:#f0fdf4;font-size:13px;color:#166534;line-height:1.5}
+  .answer-key{page-break-before:always}
   @media print{button{display:none!important}}
 </style></head><body>
 <h1>${topicName} — Worksheet</h1>
@@ -379,13 +372,23 @@ ${sections.map(s => `
   <div class="qblock">
     <div class="qnum">Question ${r.idx}</div>
     <div class="qtext">${r.questionText}</div>
-    <div class="ans" style="background:${answerBg(r)};border-color:${answerBorder(r)}">
-      ${r.answer || '<span style="color:#94a3b8;font-style:italic">No answer given</span>'}
-    </div>
-    <div class="verdict" style="color:${verdictColor(r)}">${verdictText(r)}</div>
-    <div class="model"><b>Model answer:</b> ${r.modelAnswer}</div>
+    <div class="ans">${r.answer || '<span style="color:#94a3b8;font-style:italic">No answer given</span>'}</div>
   </div>`).join("")}
 </div>`).join("")}
+
+<div class="answer-key">
+  <h2>Answer Key</h2>
+  ${sections.map(s => `
+  <div class="section">
+    <div class="sec-title">${s.title}</div>
+    ${s.items.map(r => `
+    <div class="qblock">
+      <div class="qnum">Question ${r.idx}</div>
+      <div class="qtext">${r.questionText}</div>
+      <div class="key-ans">${r.modelAnswer}</div>
+    </div>`).join("")}
+  </div>`).join("")}
+</div>
 </body></html>`;
 
     const win = window.open("", "_blank");
@@ -426,13 +429,13 @@ export function WorksheetBlock({ title, instruction, children }: { title: string
   );
 }
 
-// WorksheetQuestion — text input OR choice buttons, with context reporting
+// WorksheetQuestion — text input or choice buttons; answers collected for PDF download
 export function WorksheetQuestion({
   id,
   number,
   question,
   modelAnswer,
-  accepted,
+  accepted: _accepted,
   choices,
   multiline = false,
 }: {
@@ -441,36 +444,17 @@ export function WorksheetQuestion({
   question: string;
   modelAnswer: string;
   accepted?: string[];
-  choices?: string[];   // renders clickable option boxes instead of text input
+  choices?: string[];
   multiline?: boolean;
 }) {
   const ctx = useContext(WsCtx);
   const section = useContext(WsSectionCtx);
   const [value, setValue] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-  const [checked, setChecked] = useState(false);
-  const inputRef = useRef<HTMLTextAreaElement & HTMLInputElement>(null);
 
   useEffect(() => {
     ctx?.register(id, question, modelAnswer, section);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const isChoiceMode = !!choices;
-  const answer = isChoiceMode ? (selected ?? "") : value;
-  const isAutoCheck = (accepted && accepted.length > 0);
-  const normalise = (s: string) => s.trim().toLowerCase().replace(/[""]/g, '"').replace(/['']/g, "'");
-  const isCorrect = isAutoCheck ? accepted!.some(a => normalise(a) === normalise(answer)) : undefined;
-
-  const handleCheck = () => {
-    if (!answer.trim()) return;
-    ctx?.report(id, answer, isAutoCheck ? isCorrect : undefined);
-    setChecked(true);
-  };
-
-  const handleReset = () => {
-    setValue(""); setSelected(null); setChecked(false);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
 
   return (
     <div className="space-y-2">
@@ -479,81 +463,39 @@ export function WorksheetQuestion({
         {question}
       </p>
 
-      {!checked ? (
-        <div className="space-y-2">
-          {isChoiceMode ? (
-            <div className="flex flex-wrap gap-2">
-              {choices!.map((opt, ci) => (
-                <button
-                  key={ci}
-                  onClick={() => setSelected(opt)}
-                  className={cn(
-                    "flex-1 min-w-[120px] rounded-lg border px-4 py-2.5 text-sm font-medium transition-all text-left",
-                    selected === opt
-                      ? "border-blue-500 bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/40"
-                      : "border-border bg-background/60 text-foreground/70 hover:border-blue-500/50 hover:bg-blue-500/8"
-                  )}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          ) : multiline ? (
-            <textarea
-              ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              rows={2}
-              placeholder="Type your answer here…"
-              className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-none"
-            />
-          ) : (
-            <input
-              ref={inputRef as React.RefObject<HTMLInputElement>}
-              type="text"
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleCheck()}
-              placeholder="Type your answer…"
-              className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50"
-            />
-          )}
-          <button
-            onClick={handleCheck}
-            disabled={!answer.trim()}
-            className="rounded-lg bg-blue-500/15 border border-blue-500/30 px-4 py-1.5 text-xs font-semibold text-blue-400 hover:bg-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Check answer
-          </button>
+      {choices ? (
+        <div className="flex flex-wrap gap-2">
+          {choices.map((opt, ci) => (
+            <button
+              key={ci}
+              onClick={() => { setSelected(opt); ctx?.report(id, opt); }}
+              className={cn(
+                "flex-1 min-w-[120px] rounded-lg border px-4 py-2.5 text-sm font-medium transition-all text-left",
+                selected === opt
+                  ? "border-blue-500 bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/40"
+                  : "border-border bg-background/60 text-foreground/70 hover:border-blue-500/50 hover:bg-blue-500/8"
+              )}
+            >
+              {opt}
+            </button>
+          ))}
         </div>
+      ) : multiline ? (
+        <textarea
+          value={value}
+          onChange={e => { setValue(e.target.value); ctx?.report(id, e.target.value); }}
+          rows={2}
+          placeholder="Type your answer here…"
+          className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-none"
+        />
       ) : (
-        <div className={cn(
-          "rounded-lg border px-3 py-2.5 space-y-1.5",
-          isAutoCheck
-            ? isCorrect ? "border-emerald-500/30 bg-emerald-500/8" : "border-red-500/30 bg-red-500/8"
-            : "border-blue-500/30 bg-blue-500/8"
-        )}>
-          {isAutoCheck && (
-            <div className="flex items-center gap-1.5">
-              {isCorrect
-                ? <><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-xs font-semibold text-emerald-400">Correct!</span></>
-                : <><XCircle className="w-4 h-4 text-red-400" /><span className="text-xs font-semibold text-red-400">Not quite — see the answer below.</span></>
-              }
-            </div>
-          )}
-          {isChoiceMode && selected && (
-            <p className="text-xs text-muted-foreground">Your answer: <span className="font-medium text-foreground/80">{selected}</span></p>
-          )}
-          {(!isAutoCheck || !isCorrect) && (
-            <>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Model answer</p>
-              <p className="text-sm text-foreground/90 leading-relaxed">{modelAnswer}</p>
-            </>
-          )}
-          <button onClick={handleReset} className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-            Try again
-          </button>
-        </div>
+        <input
+          type="text"
+          value={value}
+          onChange={e => { setValue(e.target.value); ctx?.report(id, e.target.value); }}
+          placeholder="Type your answer…"
+          className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+        />
       )}
     </div>
   );
