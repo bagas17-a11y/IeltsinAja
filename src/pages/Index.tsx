@@ -9,6 +9,7 @@ import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { CredibilitySection } from "@/components/CredibilitySection";
 
 const Index = () => {
   // Landing page is always dark regardless of the user's saved theme preference.
@@ -35,6 +36,7 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
+        <CredibilitySection />
         <SocialProofBar />
         <FeatureGrid />
         <MissionBridge />
