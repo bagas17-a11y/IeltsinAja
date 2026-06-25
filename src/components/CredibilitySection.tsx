@@ -1,6 +1,6 @@
 const founderUniversities = [
-  { name: "UC Berkeley", logo: "/assets/berkeley-logo.png", bg: "bg-[#003262]" },
-  { name: "UCLA", logo: "/assets/ucla-logo.png", bg: "bg-[#2774AE]" },
+  { name: "UC Berkeley", logo: "/assets/berkeley-logo.png", bg: "bg-[#003262]", pad: "p-1" },
+  { name: "UCLA", logo: "/assets/ucla-logo.png", bg: "bg-white", pad: "p-2" },
 ];
 
 const destinations = [
@@ -52,11 +52,11 @@ export const CredibilitySection = () => {
           </p>
           <div className="flex items-center justify-center gap-8 flex-wrap">
             {founderUniversities.map((u) => (
-              <div key={u.name} className="flex items-center gap-3">
-                <div className={`w-14 h-14 rounded-full ${u.bg} flex items-center justify-center overflow-hidden p-1.5 border border-white/10`}>
+              <div key={u.name} className="flex items-center gap-4">
+                <div className={`w-24 h-24 rounded-2xl ${u.bg} flex items-center justify-center overflow-hidden ${u.pad} border border-white/10 shadow-lg`}>
                   <img src={u.logo} alt={u.name} className="w-full h-full object-contain" />
                 </div>
-                <span className="text-sm font-medium text-foreground/80">{u.name}</span>
+                <span className="text-base font-medium text-foreground/80">{u.name}</span>
               </div>
             ))}
           </div>
