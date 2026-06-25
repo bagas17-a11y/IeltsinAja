@@ -45,6 +45,7 @@ interface WorksheetPrompt {
   instruction: string;
   rows: number;
   placeholder?: string;
+  sectionHeader?: string; // renders a divider label above this prompt
 }
 
 interface StudyTask {
@@ -126,66 +127,68 @@ const WEEK2_ARGUMENT_PROMPTS: WorksheetPrompt[] = [
   {
     id: "q1-response",
     label: "Q1 — Written Response (150–200 words)",
-    instruction: "Write a 150–200 word response covering all three parts: (a) a summary of the main argument, (b) what evidence the author used to support it, and (c) your personal opinion on the argument and your reason for holding it.",
+    instruction: "Write a 150–200 word response that includes: (a) Summary of the main argument, (b) Evidence used, (c) Your personal opinion on the argument (and reason).",
     rows: 9,
-    placeholder: "The author's main argument is…\nThe evidence used includes…\nIn my view…",
+    placeholder: "Summary of main argument:\n\nEvidence used:\n\nMy personal opinion (and reason):",
   },
   {
     id: "q2-peel",
-    label: "Q2 — PEEL Counter-Argument (~100 words)",
-    instruction: "Pick one argument from the source. Write a ~100-word paragraph defending the OPPOSITE side, following the PEEL structure: Point (your counter-claim) → Evidence (one supporting example) → Explanation (2–3 sentences analysing why the evidence proves your counter-claim) → Link (connect back to the topic).",
+    label: "Q2 — PEEL Counter-Argument (100 words)",
+    instruction: "Pick one argument from the source and write a 100 word paragraph defending the opposite side, following the PEEL structure.",
     rows: 7,
-    placeholder: "Point: …\nEvidence: …\nExplanation: …\nLink: …",
+    placeholder: "Point:\nEvidence:\nExplanation:\nLink:",
   },
   {
     id: "q3a-stance",
-    label: "Q3a — Author's Exact Stance",
-    instruction: "Is the author entirely supporting the idea, or presenting it with reservations? Quote one specific phrase from the source that reveals their position.",
+    label: "What is the author's exact stance?",
+    sectionHeader: "Rapid Fire Questions",
+    instruction: "Are they entirely supporting the idea or are they presenting it with reservations?",
     rows: 3,
-    placeholder: "The author's stance is… This is shown by the phrase '…'",
+    placeholder: "The author is… because…",
   },
   {
     id: "q3b-transitions",
-    label: "Q3b — Transition Words & Cohesive Devices",
-    instruction: "List 3 transition words or cohesive devices the author used to move between ideas. For each, write the sentence it appeared in.",
-    rows: 5,
-    placeholder: "1. '…' — sentence: '…'\n2. '…' — sentence: '…'\n3. '…' — sentence: '…'",
+    label: "3 Transition Words / Cohesive Devices",
+    instruction: "List 3 transition words or cohesive devices the author used to move between ideas.",
+    rows: 4,
+    placeholder: "1.\n2.\n3.",
   },
   {
     id: "q3c-collocations",
-    label: "Q3c — Collocations in Context",
-    instruction: "Find 3 complex phrases or collocations from the source. For each one, write a new sentence using that exact phrase — but about this week's theme (Society).",
+    label: "3 Complex Phrases / Collocations",
+    instruction: "Find 3 complex phrases or collocations and use each of them to write a different sentence about the weekly theme (3 total).",
     rows: 6,
-    placeholder: "1. Phrase: '…'\n   My sentence: …\n2. Phrase: '…'\n   My sentence: …\n3. Phrase: '…'\n   My sentence: …",
+    placeholder: "1. Phrase: '…'\n   Sentence: …\n2. Phrase: '…'\n   Sentence: …\n3. Phrase: '…'\n   Sentence: …",
   },
 ];
 
 const WEEK3_COMPREHENSION_PROMPTS: WorksheetPrompt[] = [
   {
     id: "q1-recording-notes",
-    label: "Q1 — Voice Recording Prep Notes",
-    instruction: "Make a 2-minute voice recording (use your phone's voice memo app) covering: (a) summary of the main argument, (b) evidence used, (c) your personal opinion. Use this space to jot down bullet points before you record — do not script it word for word.",
+    label: "Q1 — 2-Minute Voice Recording",
+    instruction: "Make a 2 minute voice recording that includes: Summary of the main argument, Evidence used, Your personal opinion. Use this space to note key points before recording.",
     rows: 5,
-    placeholder: "Main argument: …\nEvidence: …\nMy opinion: …",
+    placeholder: "Main argument:\nEvidence:\nMy opinion:",
   },
   {
     id: "q2-paraphrase",
-    label: "Q2 — Concept Paraphrasing (3 concepts)",
-    instruction: "Select 3 central concepts from the source. For each: first write the exact original phrase as it appeared in the text or video, then restate the same idea in entirely your own words using synonyms or paraphrasing.",
+    label: "Q2 — 3 Central Concepts (Original + Restated)",
+    instruction: "Select 3 central concepts from the material and write down exactly how it was presented in the text/video. Restate the exact same thing in a different way, using synonyms or paraphrasing.",
     rows: 8,
-    placeholder: "Concept 1:\n  Original: '…'\n  My paraphrase: …\n\nConcept 2:\n  Original: '…'\n  My paraphrase: …\n\nConcept 3:\n  Original: '…'\n  My paraphrase: …",
+    placeholder: "Concept 1:\n  Original: '…'\n  Restated: …\n\nConcept 2:\n  Original: '…'\n  Restated: …\n\nConcept 3:\n  Original: '…'\n  Restated: …",
   },
   {
     id: "q3a-vocab",
-    label: "Q3a — Unknown Words from Context",
-    instruction: "Find 3 words you did not know the meaning of immediately. Without using a dictionary, write your best guess of each word's definition based only on the surrounding context. Then check if you were right.",
+    label: "3 Unknown Words — Guess from Context",
+    sectionHeader: "Rapid Fire Questions",
+    instruction: "Find 3 words which you did not know the definition of immediately. Based only on the surrounding context clues, write down your best guess of its definition.",
     rows: 5,
-    placeholder: "1. Word: '…' → My guess: … → Actual meaning: …\n2. Word: '…' → My guess: … → Actual meaning: …\n3. Word: '…' → My guess: … → Actual meaning: …",
+    placeholder: "1. Word: '…' → My guess: …\n2. Word: '…' → My guess: …\n3. Word: '…' → My guess: …",
   },
   {
     id: "q3b-pronouns",
-    label: "Q3b — Relative Pronouns",
-    instruction: "Find 3 instances of relative pronouns ('that', 'which', 'whose', 'who', 'where', etc.) in the source. For each, copy the full sentence and state exactly which noun or idea the pronoun is referring to.",
+    label: "3 Relative Pronouns — Identify the Noun",
+    instruction: "Find 3 instances of the use of relative pronouns ('that', 'which', 'those', etc.) and state the noun or idea that these words are referring to.",
     rows: 6,
     placeholder: "1. Sentence: '…'\n   '…' refers to: …\n2. Sentence: '…'\n   '…' refers to: …\n3. Sentence: '…'\n   '…' refers to: …",
   },
@@ -1079,19 +1082,22 @@ function ExternalSourceWorksheetCard({ task }: { task: StudyTask }) {
 <style>
   body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:28px;color:#1e293b}
   h1{font-size:18px;color:#1e40af;border-bottom:2px solid #1e40af;padding-bottom:8px;margin-bottom:4px}
-  h2{font-size:13px;color:#1e40af;background:#eff6ff;padding:6px 12px;border-radius:6px;border-left:3px solid #3b82f6;margin:20px 0 10px}
+  .sec-header{font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;margin:22px 0 10px;padding-bottom:4px;border-bottom:1px solid #e9d5ff}
   .meta{color:#64748b;font-size:12px;margin-bottom:20px}
   .source{font-size:12px;color:#2563eb;margin-bottom:20px}
-  .qblock{margin-bottom:18px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;page-break-inside:avoid}
+  .qblock{margin-bottom:14px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;page-break-inside:avoid}
   .qlabel{font-size:12px;font-weight:700;color:#1e40af;margin-bottom:3px}
   .qinstr{font-size:11px;color:#64748b;margin-bottom:8px;line-height:1.5}
   .ans{padding:10px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;font-size:13px;min-height:60px;white-space:pre-wrap;line-height:1.6}
-  @media print{button{display:none!important}}
+  .print-btn{display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;padding:8px 16px;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer}
+  @media print{.print-btn{display:none!important}}
 </style></head><body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
 <h1>${task.label}</h1>
 <div class="meta">Completed: ${date} | For review by the EngInAja coaching team</div>
 ${task.sourceUrl ? `<div class="source">Source: <a href="${task.sourceUrl}">${task.sourceUrl}</a></div>` : ""}
 ${prompts.map(p => `
+${p.sectionHeader ? `<div class="sec-header">${p.sectionHeader}</div>` : ""}
 <div class="qblock">
   <div class="qlabel">${p.label}</div>
   <div class="qinstr">${p.instruction}</div>
@@ -1099,7 +1105,7 @@ ${prompts.map(p => `
 </div>`).join("")}
 </body></html>`;
     const win = window.open("", "_blank");
-    if (win) { win.document.write(html); win.document.close(); setTimeout(() => win.print(), 400); }
+    if (win) { win.document.write(html); win.document.close(); }
   };
 
   const worksheetContent = (isFS: boolean) => (
@@ -1123,6 +1129,11 @@ ${prompts.map(p => `
       {/* Questions */}
       {task.worksheetPrompts!.map(prompt => (
         <div key={prompt.id} className="space-y-1.5">
+          {prompt.sectionHeader && (
+            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest pt-1 pb-0.5 border-b border-purple-500/20">
+              {prompt.sectionHeader}
+            </p>
+          )}
           <div>
             <p className="text-xs font-semibold text-foreground/90">{prompt.label}</p>
             <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{prompt.instruction}</p>
