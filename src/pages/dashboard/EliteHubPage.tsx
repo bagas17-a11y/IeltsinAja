@@ -34,7 +34,7 @@ import { ListeningTutorial } from "@/components/listening/ListeningTutorial";
 import { HeroBackground } from "@/components/HeroBackground";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { getRecentActivity, getLastRoute, type ActivityEntry } from "@/lib/activity";
+import { getRecentActivity, getSavedNotes, type ActivityEntry } from "@/lib/activity";
 import { REVISION_NOTE_TOPICS } from "@/content/revisionNotes";
 
 const TOTAL_REVISION_TOPICS = REVISION_NOTE_TOPICS.length;
@@ -59,7 +59,7 @@ export default function EliteHubPage() {
 
   // Overview state
   const [recentActivity, setRecentActivity] = useState<ActivityEntry[]>([]);
-  const [lastRoute, setLastRouteState] = useState<string | null>(null);
+  const [savedNotes, setSavedNotes] = useState<{ id: string; title: string; savedAt: string }[]>([]);
   const [progressStats, setProgressStats] = useState({
     revisionNotes: 0,
     studyPlan: 0,
@@ -72,7 +72,7 @@ export default function EliteHubPage() {
   // Load overview data
   useEffect(() => {
     setRecentActivity(getRecentActivity(3));
-    setLastRouteState(getLastRoute());
+    setSavedNotes(getSavedNotes());
     if (!user?.id) return;
     const uid = user.id;
 
@@ -173,55 +173,37 @@ export default function EliteHubPage() {
           </TabsList>
 
           {/* Overview */}
-          <TabsContent value="overview" className="mt-7 focus-visible:outline-none">
-            <div className="grid gap-5 md:grid-cols-2">
+          <TabsContent value="overview" className="mt-7 focus-visible:outline-none space-y-5">
 
-              {/* Resume Study */}
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Play className="w-4 h-4 text-elite-gold" />
-                  <p className="text-sm font-semibold text-foreground">Resume Study</p>
-                </div>
-                {lastRoute ? (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                      Pick up exactly where you left off.
-                    </p>
-                    <Button
-                      className="w-full bg-elite-gold/15 text-elite-gold border border-elite-gold/25 hover:bg-elite-gold/25 text-sm"
-                      onClick={() => navigate(lastRoute)}
-                    >
-                      Continue learning
-                    </Button>
+            {/* Daily Tasks — full-width prominent button */}
+            <div className="relative rounded-xl border border-elite-gold/20 bg-gradient-to-br from-elite-gold/8 via-card to-card p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <ClipboardList className="w-4 h-4 text-elite-gold" />
+                    <p className="text-sm font-semibold text-foreground">Daily Tasks</p>
                   </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">Start exploring a resource and your last position will be saved here.</p>
-                )}
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {progressStats.studyPlan} tasks completed from your study plan.
+                  </p>
+                  <div className="w-full h-1.5 rounded-full bg-muted/40 overflow-hidden mb-4">
+                    <div
+                      className="h-full rounded-full bg-elite-gold transition-all duration-700"
+                      style={{ width: `${Math.min((progressStats.studyPlan / 40) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
               </div>
+              <Button
+                className="w-full bg-elite-gold/20 text-elite-gold border border-elite-gold/30 hover:bg-elite-gold/30 font-medium"
+                onClick={() => navigate("/dashboard/study-plan")}
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Open Study Plan
+              </Button>
+            </div>
 
-              {/* Daily Tasks */}
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <ClipboardList className="w-4 h-4 text-elite-gold" />
-                  <p className="text-sm font-semibold text-foreground">Daily Tasks</p>
-                </div>
-                <p className="text-xs text-muted-foreground mb-2 leading-relaxed">
-                  {progressStats.studyPlan} tasks completed from your study plan.
-                </p>
-                <div className="w-full h-1.5 rounded-full bg-muted/40 overflow-hidden mb-4">
-                  <div
-                    className="h-full rounded-full bg-elite-gold/60 transition-all duration-700"
-                    style={{ width: `${Math.min((progressStats.studyPlan / 40) * 100, 100)}%` }}
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  className="w-full border border-border text-sm text-foreground/70 hover:text-foreground"
-                  onClick={() => navigate("/dashboard/study-plan")}
-                >
-                  Open Study Plan <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
+            <div className="grid gap-5 md:grid-cols-2">
 
               {/* Recent Activity */}
               <div className="rounded-xl border border-border bg-card p-5">
@@ -230,9 +212,9 @@ export default function EliteHubPage() {
                   <p className="text-sm font-semibold text-foreground">Recent Activity</p>
                 </div>
                 {recentActivity.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No activity yet — start a practice, revision note, or study plan task.</p>
+                  <p className="text-xs text-muted-foreground">No activity yet — open a revision note, practice module, or study plan task.</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {recentActivity.map((a, i) => (
                       <button
                         key={i}
@@ -265,30 +247,10 @@ export default function EliteHubPage() {
                 </div>
                 <div className="space-y-4">
                   {[
-                    {
-                      label: "Revision Notes",
-                      done: progressStats.revisionNotes,
-                      total: TOTAL_REVISION_TOPICS,
-                      color: "#a78bfa",
-                    },
-                    {
-                      label: "MudahinAja",
-                      done: progressStats.mudahinaja,
-                      total: 4,
-                      color: "#60a5fa",
-                    },
-                    {
-                      label: "Practice Sessions",
-                      done: progressStats.practiceTotal,
-                      total: Math.max(progressStats.practiceTotal, 10),
-                      color: "#34d399",
-                    },
-                    {
-                      label: "Study Plan Tasks",
-                      done: progressStats.studyPlan,
-                      total: Math.max(progressStats.studyPlan, 40),
-                      color: "#fbbf24",
-                    },
+                    { label: "Revision Notes",   done: progressStats.revisionNotes, total: TOTAL_REVISION_TOPICS,                        color: "#a78bfa" },
+                    { label: "MudahinAja",        done: progressStats.mudahinaja,    total: 4,                                            color: "#60a5fa" },
+                    { label: "Practice Sessions", done: progressStats.practiceTotal, total: Math.max(progressStats.practiceTotal, 10),    color: "#34d399" },
+                    { label: "Study Plan Tasks",  done: progressStats.studyPlan,     total: Math.max(progressStats.studyPlan, 40),        color: "#fbbf24" },
                   ].map(({ label, done, total, color }) => {
                     const pct = total > 0 ? Math.min((done / total) * 100, 100) : 0;
                     return (
@@ -298,10 +260,7 @@ export default function EliteHubPage() {
                           <span className="text-xs font-medium text-foreground">{done}/{total}</span>
                         </div>
                         <div className="w-full h-2 rounded-full bg-muted/40 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{ width: `${pct}%`, backgroundColor: color }}
-                          />
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
                         </div>
                       </div>
                     );
@@ -310,6 +269,31 @@ export default function EliteHubPage() {
               </div>
 
             </div>
+
+            {/* Saved Revision Notes */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <BookMarked className="w-4 h-4 text-elite-gold" />
+                <p className="text-sm font-semibold text-foreground">Saved Revision Notes</p>
+              </div>
+              {savedNotes.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No saved notes yet — click the bookmark icon on any revision note topic to save it here.</p>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+                  {savedNotes.map((note) => (
+                    <Link
+                      key={note.id}
+                      to={`/dashboard/revision-notes?topic=${note.id}`}
+                      className="flex items-center gap-2.5 p-3 rounded-lg border border-border hover:border-elite-gold/30 hover:bg-elite-gold/5 transition-all group"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-elite-gold shrink-0" />
+                      <span className="text-xs text-foreground/80 truncate group-hover:text-foreground">{note.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </TabsContent>
 
           {/* Revision Notes */}

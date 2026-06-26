@@ -55,11 +55,41 @@ export function getRecentActivity(n = 3): ActivityEntry[] {
   }
 }
 
-/** Track the last route visited so "Resume Study" works. */
-export function setLastRoute(route: string) {
-  try { localStorage.setItem("ielts-last-route", route); } catch { /* ignore */ }
+const BOOKMARKS_KEY = "ielts-saved-notes";
+
+export interface SavedNote {
+  id: string;
+  title: string;
+  savedAt: string;
 }
 
-export function getLastRoute(): string | null {
-  try { return localStorage.getItem("ielts-last-route"); } catch { return null; }
+export function toggleBookmark(topicId: string, title: string): boolean {
+  try {
+    const list = getSavedNotes();
+    const exists = list.some((n) => n.id === topicId);
+    const next = exists
+      ? list.filter((n) => n.id !== topicId)
+      : [{ id: topicId, title, savedAt: new Date().toISOString() }, ...list];
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(next));
+    return !exists; // returns new bookmark state
+  } catch {
+    return false;
+  }
+}
+
+export function isBookmarked(topicId: string): boolean {
+  try {
+    return getSavedNotes().some((n) => n.id === topicId);
+  } catch {
+    return false;
+  }
+}
+
+export function getSavedNotes(): SavedNote[] {
+  try {
+    const raw = localStorage.getItem(BOOKMARKS_KEY);
+    return raw ? (JSON.parse(raw) as SavedNote[]) : [];
+  } catch {
+    return [];
+  }
 }

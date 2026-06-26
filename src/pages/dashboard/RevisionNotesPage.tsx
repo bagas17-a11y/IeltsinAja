@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { logActivity, setLastRoute } from "@/lib/activity";
+import { logActivity, setLastRoute, toggleBookmark, isBookmarked } from "@/lib/activity";
 import { HumanPlusAILockScreen } from "@/components/HumanPlusAILockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -33,6 +33,7 @@ import {
   Download,
   Circle,
   CheckCircle2,
+  Bookmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -245,6 +246,18 @@ export default function RevisionNotesPage() {
     return () => observer.disconnect();
   }, [currentTopic, showTopicList, persistTopicComplete]);
 
+  const [bookmarked, setBookmarked] = useState(() => isBookmarked(currentTopic));
+
+  // Keep bookmark icon in sync when topic changes
+  useEffect(() => {
+    setBookmarked(isBookmarked(currentTopic));
+  }, [currentTopic]);
+
+  const handleBookmark = () => {
+    const next = toggleBookmark(currentTopic, getTopicTitle(currentTopic));
+    setBookmarked(next);
+  };
+
   const nextId = getNextTopicId(currentTopic);
   const prevId = getPrevTopicId(currentTopic);
 
@@ -447,11 +460,22 @@ export default function RevisionNotesPage() {
                 <Menu className="h-5 w-5" />
               </Button>
               {!showTopicList && (
-                <h1 className="text-lg font-semibold text-foreground truncate">
+                <h1 className="text-lg font-semibold text-foreground truncate flex-1">
                   {showFormatsView
                     ? `IELTS Test Formats – ${currentFormat.charAt(0).toUpperCase() + currentFormat.slice(1)}`
                     : `${getTopicTitle(currentTopic)} (EngInAja Grammar): Revision Note`}
                 </h1>
+              )}
+              {!showTopicList && !showFormatsView && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleBookmark}
+                  aria-label={bookmarked ? "Remove bookmark" : "Save note"}
+                  className={cn("shrink-0", bookmarked ? "text-elite-gold" : "text-muted-foreground hover:text-foreground")}
+                >
+                  <Bookmark className={cn("h-4 w-4", bookmarked && "fill-current")} />
+                </Button>
               )}
             </div>
             {/* Progress bar: completed topics / total */}
