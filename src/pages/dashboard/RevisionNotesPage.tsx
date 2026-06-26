@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { logActivity, setLastRoute, toggleBookmark, isBookmarked } from "@/lib/activity";
+import { logActivity, toggleBookmark, isBookmarked } from "@/lib/activity";
 import { HumanPlusAILockScreen } from "@/components/HumanPlusAILockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -173,7 +173,6 @@ export default function RevisionNotesPage() {
   const setTopic = (id: RevisionNoteTopicId) => {
     markCurrentTopicComplete();
     const route = `/dashboard/revision-notes?topic=${id}`;
-    setLastRoute(route);
     logActivity(user?.id, "revision_note", getTopicTitle(id), route);
     setSearchParams({ topic: id });
     setMobileMenuOpen(false);
