@@ -36,6 +36,7 @@ function getTopicTitle(id: string, topics: ReturnType<typeof getAllFlashcardTopi
 export default function FlashcardsPage() {
   const { profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
+  const hasAccess = isElite || profile?.subscription_tier === "pro";
 
   const [searchParams, setSearchParams] = useSearchParams();
   const topicParam = searchParams.get("topic");
@@ -163,11 +164,11 @@ export default function FlashcardsPage() {
     0
   );
 
-  if (!isElite) {
+  if (!hasAccess) {
     return (
       <HumanPlusAILockScreen
         title="Flashcards"
-        description="Access interactive flip cards for grammar and vocabulary. Upgrade to the Elite package to use this feature."
+        description="Access interactive flip cards for grammar and vocabulary. Available on Pro and Elite plans."
         features={[
           "Grammar topics 1–13",
           "Interactive flip cards",

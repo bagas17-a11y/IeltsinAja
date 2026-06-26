@@ -66,6 +66,7 @@ function saveCompletedTopicsLocal(set: Set<string>) {
 export default function RevisionNotesPage() {
   const { user, profile } = useAuth();
   const isElite = profile?.subscription_tier === "elite";
+  const hasAccess = isElite || profile?.subscription_tier === "pro";
 
   const [searchParams, setSearchParams] = useSearchParams();
   const topicParam = searchParams.get("topic") as RevisionNoteTopicId | null;
@@ -260,11 +261,11 @@ export default function RevisionNotesPage() {
   const nextId = getNextTopicId(currentTopic);
   const prevId = getPrevTopicId(currentTopic);
 
-  if (!isElite) {
+  if (!hasAccess) {
     return (
       <HumanPlusAILockScreen
         title="Revision Notes"
-        description="Access grammar and vocabulary revision notes across topics. Upgrade to the Elite package to use this feature."
+        description="Access grammar and vocabulary revision notes across topics. Available on Pro and Elite plans."
         features={[
           "Grammar topics (parts of speech, tenses, etc.)",
           "Vocabulary and collocations",

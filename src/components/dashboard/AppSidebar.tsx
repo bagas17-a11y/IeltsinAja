@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, BookOpen, Headphones, PenTool, Mic, BarChart3, User, Settings, LogOut, GraduationCap, MessageCircle, Shield, Library, Crown, FileText, CreditCard, Target, Map } from "lucide-react";
+import { LayoutDashboard, BookOpen, Headphones, PenTool, Mic, BarChart3, User, Settings, LogOut, GraduationCap, MessageCircle, Shield, Library, Crown, FileText, CreditCard, Target, Map, Layers, FlipHorizontal } from "lucide-react";
 const mainNavItems = [{
   title: "Dashboard",
   path: "/dashboard",
@@ -42,6 +42,15 @@ const practiceItems = [{
   title: "Speaking",
   path: "/dashboard/speaking",
   icon: Mic
+}];
+const proItems = [{
+  title: "Revision Notes",
+  path: "/dashboard/revision-notes",
+  icon: Layers
+}, {
+  title: "Flashcards",
+  path: "/dashboard/flashcards",
+  icon: FlipHorizontal
 }];
 const supportItems = [{
   title: "Elite Hub",
@@ -106,6 +115,21 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {practiceItems.map(item => <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton onClick={() => navigate(item.path)} isActive={isActive(item.path)} tooltip={item.title}>
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>)}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Pro */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Pro</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {proItems.map(item => <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton onClick={() => navigate(item.path)} isActive={isActive(item.path)} tooltip={item.title}>
                     <item.icon className="w-4 h-4" />
                     <span>{item.title}</span>
