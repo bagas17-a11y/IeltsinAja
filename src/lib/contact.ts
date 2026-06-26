@@ -12,10 +12,10 @@
 
 export const OPERATOR = {
   /** Public-facing operator name used on the pricing/payment surface. */
-  name: "EngInAja (operated by Bagas Haryo Wicaksono)",
+  name: "Eng-InAja (operated by Bagas Haryo Wicaksono)",
   /** Country dial code + WhatsApp number for support (no leading +). */
   whatsappNumber: "6281934349453",
-  instagramHandle: "enginaja",
+  instagramHandle: "eng-inaja",
   /** Bank details for manual transfers — keep aligned with PricingSelection bank info. */
   bank: {
     bankName: "BCA",
@@ -36,13 +36,13 @@ export function buildWhatsAppLink(message: string, phone = OPERATOR.whatsappNumb
 /** Default contact messages — reuse for consistency. */
 export const CONTACT_MESSAGES = {
   generalHelp:
-    "Hi EngInAja team, I have a question about the platform.",
+    "Hi Eng-InAja team, I have a question about the platform.",
   pricingHelp:
-    "Hi EngInAja team, I have a question about your pricing or payment.",
+    "Hi Eng-InAja team, I have a question about your pricing or payment.",
   bookConsultation:
-    "Hi EngInAja team, I'd like to book a 1-on-1 IELTS coaching session.",
+    "Hi Eng-InAja team, I'd like to book a 1-on-1 IELTS coaching session.",
   paymentTransferred:
-    "Hi EngInAja team, I have just made a transfer and uploaded my receipt. Please confirm.",
+    "Hi Eng-InAja team, I have just made a transfer and uploaded my receipt. Please confirm.",
 };
 
 /** Prefilled message when a user picks a paid plan after signup. */

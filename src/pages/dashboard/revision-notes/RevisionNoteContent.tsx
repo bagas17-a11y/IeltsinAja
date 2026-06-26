@@ -364,7 +364,7 @@ export function WorksheetContainer({ topicName, children }: { topicName: string;
   @media print{button{display:none!important}}
 </style></head><body>
 <h1>${topicName} — Worksheet</h1>
-<div class="meta">Completed: ${date} &nbsp;|&nbsp; For manual grading by the EngInAja team</div>
+<div class="meta">Completed: ${date} &nbsp;|&nbsp; For manual grading by the Eng-InAja team</div>
 ${sections.map(s => `
 <div class="section">
   <div class="sec-title">${s.title}</div>

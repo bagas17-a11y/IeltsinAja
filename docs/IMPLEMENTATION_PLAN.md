@@ -1,4 +1,4 @@
-# IELTSinAja — Pilot Fix Implementation Plan
+# Eng-InAja — Pilot Fix Implementation Plan
 
 Companion to `docs/PILOT_AUDIT.md`. This file lists the exact changes I am making in this session, grouped by area. Every change ties to a numbered finding in the audit's "Must fix BEFORE pilot" list.
 

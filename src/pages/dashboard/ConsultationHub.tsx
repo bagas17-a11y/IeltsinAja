@@ -22,7 +22,7 @@ const COACHES = [
     name: "Bagas H. Wicaksono",
     title: "Founder & lead coach",
     score: "IELTS 8.5",
-    bio: "Built EngInAja to give Indonesian learners the kind of feedback he wished he'd had. Focus: Writing & Speaking strategy.",
+    bio: "Built Eng-InAja to give Indonesian learners the kind of feedback he wished he'd had. Focus: Writing & Speaking strategy.",
     focus: ["Writing", "Speaking"],
   },
 ];
@@ -42,8 +42,8 @@ export default function ConsultationHub() {
   const isElite = profile?.subscription_tier === "elite";
 
   const waMessage = useMemo(() => {
-    const name = profile?.full_name?.trim() || "an EngInAja Elite member";
-    return `Hi EngInAja team, this is ${name}. I'd like to book a 1-on-1 coaching session with ${selectedCoach.name}.`;
+    const name = profile?.full_name?.trim() || "an Eng-InAja Elite member";
+    return `Hi Eng-InAja team, this is ${name}. I'd like to book a 1-on-1 coaching session with ${selectedCoach.name}.`;
   }, [profile?.full_name, selectedCoach.name]);
 
   if (!isElite) {
@@ -101,7 +101,7 @@ export default function ConsultationHub() {
           <div>
             <h1 className="text-2xl font-light">Consultation Hub</h1>
             <p className="text-sm text-muted-foreground">
-              Book a 1-on-1 session with your EngInAja coach.
+              Book a 1-on-1 session with your Eng-InAja coach.
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-# IELTSinAja — Pilot Readiness Audit
+# Eng-InAja — Pilot Readiness Audit
 
 > Date: May 22, 2026
 > Scope: full learner + admin product walkthrough from the perspective of a senior product designer, UX auditor, QA engineer, and full-stack product engineer.
@@ -98,7 +98,7 @@
 | 3.7 | Email notifications | Approval triggers `send-verification-email` (good), but payment submission / rejection do not. | Users wait blind on `/waiting-room` if not approved. |
 | 3.8 | Demo / preview content | No visible demo of what AI feedback looks like — the cold visitor cannot judge product quality. | Conversion blocker. Even a static screenshot in the marketing page would help. |
 | 3.9 | Mobile bottom-nav for dashboard | The sidebar collapses to a hamburger icon only; mobile usability is poor for module switching. | Indonesian users are >70% mobile. |
-| 3.10 | "What is IELTS / What is this product" microcopy on landing | The hero says "The Intelligence to Simplify. The Guidance to IELTSinAja." It is a brand line — not an explanation. | First-time visitor from IG has no idea what product is. |
+| 3.10 | "What is IELTS / What is this product" microcopy on landing | The hero says "The Intelligence to Simplify. The Guidance to Eng-InAja." It is a brand line — not an explanation. | First-time visitor from IG has no idea what product is. |
 
 ---
 
@@ -106,7 +106,7 @@
 
 Walked through the journey as a first-time user from Instagram (not signed in):
 
-1. **Land on `/`.** Hero says "The Intelligence to Simplify. The Guidance to IELTSinAja." → No clear value prop. No clear action. "Get Started" smooth-scrolls to pricing — but pricing has no buy buttons.
+1. **Land on `/`.** Hero says "The Intelligence to Simplify. The Guidance to Eng-InAja." → No clear value prop. No clear action. "Get Started" smooth-scrolls to pricing — but pricing has no buy buttons.
 2. **Scroll down.** Sees "Trusted by British Council, IDP, Cambridge…" → Either too good to be true or impressive; either way the savvy 7-band aspirant will know it's fake.
 3. **Reach pricing.** Cannot do anything. Has to scroll back up to the header and find "Login" — but they have no account. They have to *infer* that clicking Login → "Don't have an account? Sign up" is the path.
 4. **Sign up.** Asked for full name, Indonesian phone, email, password — good. Submits.
@@ -263,7 +263,7 @@ Numbered for the implementation plan in `IMPLEMENTATION_PLAN.md`:
 8. **Gate `/diagnostic-test`** — admin-only or delete.
 9. **Bank transfer trust** — clear operator name, clear amount confirmation, IDR formatted, copy explaining 24-hour SLA, link to WA for help.
 10. **Email notifications** — submission acknowledgement + rejection email.
-11. **Hero copy** — explain what IELTSinAja is in plain English+Indonesian in two lines.
+11. **Hero copy** — explain what Eng-InAja is in plain English+Indonesian in two lines.
 12. **Add sign-up route** — `/auth?mode=signup` directly from landing.
 13. **Mobile nav for dashboard** — at minimum a quick-access strip for the four modules.
 14. **Header sign-up CTA** + mobile sign-up entry.

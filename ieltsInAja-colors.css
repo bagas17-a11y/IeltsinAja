@@ -1,0 +1,30 @@
+/* ============================================
+   Eng-InAja — Brand Color Palette
+   Source: src/index.css (CSS custom properties)
+   ============================================ */
+
+:root {
+
+  /* --- Background & Surface --- */
+  --color-deep-navy:     #0B0F1C;  /* hsl(220, 60%,  6%) — main page background */
+  --color-navy:          #131928;  /* hsl(220, 50%, 12%) — sidebar / dark surface */
+  --color-card-surface:  #192030;  /* hsl(220, 50%, 15%) — muted / card bg */
+  --color-secondary:     #1E2840;  /* hsl(215, 25%, 18%) — secondary surface */
+
+  /* --- Accent & Glow --- */
+  --color-cyan-accent:   #6ECEF5;  /* hsl(200, 80%, 70%) — primary accent, CTAs, links, logo */
+  --color-warm-glow:     #F5803A;  /* hsl( 25, 90%, 60%) — hero ambient glow / warm highlight */
+  --color-elite-gold:    #F0B92A;  /* hsl( 42, 90%, 55%) — Elite / premium tier */
+
+  /* --- Text --- */
+  --color-pearl:         #F8FAFC;  /* hsl(210, 20%, 98%) — primary foreground / headings */
+  --color-pearl-muted:   #D1D8E0;  /* hsl(210, 15%, 85%) — secondary text */
+  --color-muted-text:    #7A9BBF;  /* hsl(215, 20%, 60%) — hint / placeholder text */
+
+  /* --- Borders --- */
+  --color-border:        #253147;  /* hsl(215, 30%, 20%) — default border */
+
+  /* --- Semantic --- */
+  --color-destructive:   #E5534B;  /* hsl(  0, 84%, 60%) — error / destructive */
+
+}

@@ -1,6 +1,6 @@
 ---
 name: Backend Production Readiness Execution Roadmap
-overview: Complete execution roadmap for making the IELTSinAja backend production-ready, with concrete file-level tasks, security fixes, data integrity improvements, and scaling preparations.
+overview: Complete execution roadmap for making the Eng-InAja backend production-ready, with concrete file-level tasks, security fixes, data integrity improvements, and scaling preparations.
 todos:
   - id: phase0-create-project
     content: Create new Supabase project and note credentials (URL, Project ID, Anon Key)
@@ -782,7 +782,7 @@ Readiness Execution Roadmap
 **Pattern 3: Hardcoded URLs**
 
 - **File**: `supabase/functions/send-verification-email/index.ts` line 58
-- **Issue**: `dashboardUrl = "https://ieltsinaja.id/dashboard"` hardcoded
+- **Issue**: `dashboardUrl = "https://eng-inaja.id/dashboard"` hardcoded
 - **Fix**: Use environment variable
 - **Action**: Add `DASHBOARD_URL` env var
 

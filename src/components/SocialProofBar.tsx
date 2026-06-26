@@ -15,7 +15,7 @@ export const SocialProofBar = () => {
   return (
     <section className="py-8 border-y border-border/50 bg-secondary/20 overflow-hidden">
       <p className="text-center text-[10px] text-muted-foreground/60 mb-5 tracking-widest uppercase">
-        Why IELTS candidates trust EngInAja
+        Why IELTS candidates trust Eng-InAja
       </p>
 
       {/* Double-track so translateX(-50%) loops seamlessly */}

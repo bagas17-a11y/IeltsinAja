@@ -87,7 +87,7 @@ export function AppSidebar() {
             <GraduationCap className="w-5 h-5 text-accent" />
           </div>
           {!collapsed && <div className="overflow-hidden">
-              <h1 className="text-sm font-semibold truncate">EngInAja</h1>
+              <h1 className="text-sm font-semibold truncate">Eng-InAja</h1>
               <p className="text-xs text-muted-foreground truncate">Study Dashboard</p>
             </div>}
         </div>

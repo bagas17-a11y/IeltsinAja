@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-light mb-4 text-foreground">1. Introduction</h2>
             <p className="text-foreground/80 leading-relaxed">
-              Welcome to EngInAja. We respect your privacy and are committed to protecting your personal data. 
+              Welcome to Eng-InAja. We respect your privacy and are committed to protecting your personal data. 
               This privacy policy explains how we collect, use, and safeguard your information when you use our 
               IELTS preparation platform.
             </p>

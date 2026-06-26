@@ -87,7 +87,7 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-border/30">
           <p className="text-xs text-muted-foreground text-center md:text-left">
-            © {new Date().getFullYear()} EngInAja. Independent IELTS prep — not affiliated with British Council, IDP, or Cambridge.
+            © {new Date().getFullYear()} Eng-InAja. Independent IELTS prep — not affiliated with British Council, IDP, or Cambridge.
           </p>
           <div className="flex items-center gap-3">
             <a
@@ -109,7 +109,7 @@ export const Footer = () => {
               <MessageCircle className="w-4 h-4" />
             </a>
             <a
-              href="mailto:hello@enginaja.com"
+              href="mailto:hello@eng-inaja.com"
               aria-label="Email"
               className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all"
             >

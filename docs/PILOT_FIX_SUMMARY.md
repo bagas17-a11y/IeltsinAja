@@ -1,4 +1,4 @@
-# IELTSinAja — Pilot Fix Session Summary
+# Eng-InAja — Pilot Fix Session Summary
 
 Companion to `docs/PILOT_AUDIT.md` and `docs/IMPLEMENTATION_PLAN.md`. This document lists every change shipped in this session, grouped by the user problem it solves, plus the open product decisions still owed by the founder.
 
@@ -93,7 +93,7 @@ Companion to `docs/PILOT_AUDIT.md` and `docs/IMPLEMENTATION_PLAN.md`. This docum
 **Changed**:
 - Now pulls plan definitions from `lib/plans.ts` (single source of truth).
 - Reads `?plan=<key>` query param and skips the picker, going straight into the transfer flow.
-- Operator info banner ("Operated by IELTSinAja, run by Bagas Haryo Wicaksono") above the bank-details block.
+- Operator info banner ("Operated by Eng-InAja, run by Bagas Haryo Wicaksono") above the bank-details block.
 - Added a "How payment works" info pill explaining the BCA pilot flow.
 - Added a copy-amount button (in addition to the existing copy-account button) — Indonesian buyers can paste the exact rupiah amount into BCA mobile.
 - Added a "Chat on WhatsApp" button in the transfer flow for buyers who need help.
