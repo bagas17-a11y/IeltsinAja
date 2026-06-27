@@ -7,9 +7,12 @@ import {
   successResponse,
   validationError,
   unauthorizedError,
+  rateLimitError,
   aiServiceError,
   internalError
 } from "../shared/errors.ts";
+import { verifyUser } from "../shared/auth.ts";
+import { checkRateLimit } from "../shared/rate-limit.ts";
 
 const SYSTEM_PROMPT_EN = `You are a helpful AI assistant for IELTSinAja, an IELTS preparation platform. You help users understand the platform's features and answer their questions in English.
 
@@ -100,6 +103,17 @@ serve(async (req) => {
       );
     }
 
+    // Require an authenticated user before calling the paid AI backend.
+    const auth = await verifyUser(req);
+    if (!auth.success) {
+      return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
+    }
+
+    const rateLimit = await checkRateLimit(auth.userId!, "ai-chatbot");
+    if (!rateLimit.allowed) {
+      return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
+    }
+
     const { messages, language, systemContext } = validation.data;
     const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
 
@@ -143,8 +157,8 @@ serve(async (req) => {
 
     return successResponse({ reply }, 200, corsHeaders);
   } catch (error) {
+    // Log the real error server-side, but never leak internals to the client.
     console.error('Error in ai-chatbot function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return internalError(errorMessage, { error: String(error) }, corsHeaders);
+    return internalError("Internal server error", undefined, corsHeaders);
   }
 });

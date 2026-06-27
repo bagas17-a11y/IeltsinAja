@@ -11,6 +11,7 @@ export const RATE_LIMITS = {
   'generate-reading': { maxRequests: 10, windowMinutes: 60 },
   'generate-listening': { maxRequests: 10, windowMinutes: 60 },
   'generate-writing': { maxRequests: 10, windowMinutes: 60 },
+  'generate-speaking': { maxRequests: 10, windowMinutes: 60 },
   'ai-chatbot': { maxRequests: 50, windowMinutes: 60 },
   'send-verification-email': { maxRequests: 5, windowMinutes: 60 },
 } as const;

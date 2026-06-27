@@ -10,6 +10,8 @@ import {
   aiServiceError,
   internalError,
 } from "../shared/errors.ts";
+import { verifyUser } from "../shared/auth.ts";
+import { checkRateLimit } from "../shared/rate-limit.ts";
 
 // ============================================================
 // IELTS Speaking Generator — System Prompt
@@ -209,6 +211,17 @@ serve(async (req) => {
       return validationError(validation.error.message, validation.error.details, corsHeaders);
     }
 
+    // Verify user authentication before making any API call.
+    const auth = await verifyUser(req);
+    if (!auth.success) {
+      return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
+    }
+
+    const rateLimit = await checkRateLimit(auth.userId!, "generate-speaking");
+    if (!rateLimit.allowed) {
+      return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
+    }
+
     const { difficulty, theme: requestedTheme } = validation.data;
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
@@ -306,11 +319,8 @@ Return ONLY valid JSON matching the schema. No markdown.`;
 
     return successResponse(parsed, 200, corsHeaders);
   } catch (error: unknown) {
+    // Log internally; do not leak error contents to the client.
     console.error("generate-speaking error:", error);
-    return internalError(
-      error instanceof Error ? error.message : "Unknown error",
-      { error: String(error) },
-      corsHeaders
-    );
+    return internalError("Internal server error", undefined, corsHeaders);
   }
 });

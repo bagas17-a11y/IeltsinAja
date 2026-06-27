@@ -1,6 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY as string;
+// SECURITY: In production the OpenAI key must NOT be shipped to the browser.
+// We call a server-side proxy (/api/transcribe) that holds the key in
+// process.env.OPENAI_API_KEY. The direct OpenAI call is only used in local dev,
+// where VITE_OPENAI_API_KEY is available and never deployed.
+const WHISPER_URL = import.meta.env.DEV
+  ? 'https://api.openai.com/v1/audio/transcriptions'
+  : '/api/transcribe';
 
 export interface WhisperTranscriptionHook {
   isListening: boolean;
@@ -109,9 +115,16 @@ export function useWhisperTranscription(): WhisperTranscriptionHook {
           form.append('model', 'whisper-1');
           form.append('language', 'en');
 
-          const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          // In dev, call OpenAI directly with the local key; in prod, go through
+          // the server-side proxy so the key never reaches the browser bundle.
+          const headers: Record<string, string> = {};
+          if (import.meta.env.DEV) {
+            headers.Authorization = `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`;
+          }
+
+          const res = await fetch(WHISPER_URL, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+            headers,
             body: form,
           });
 

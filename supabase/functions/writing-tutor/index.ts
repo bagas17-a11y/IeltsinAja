@@ -3,8 +3,13 @@ import {
   corsHeaders,
   handleCorsPreflightRequest,
   successResponse,
+  validationError,
+  unauthorizedError,
+  rateLimitError,
   internalError,
 } from "../shared/errors.ts";
+import { verifyUser } from "../shared/auth.ts";
+import { checkRateLimit } from "../shared/rate-limit.ts";
 
 interface Message {
   role: "user" | "assistant";
@@ -64,11 +69,23 @@ serve(async (req) => {
     try {
       body = await req.json();
     } catch {
-      return internalError("Invalid JSON", undefined, corsHeaders);
+      return validationError("Invalid JSON", undefined, corsHeaders);
     }
 
     if (!body.messages || !Array.isArray(body.messages) || !body.questionPrompt || !body.taskType) {
-      return internalError("Missing required fields: messages, questionPrompt, taskType", undefined, corsHeaders);
+      return validationError("Missing required fields: messages, questionPrompt, taskType", undefined, corsHeaders);
+    }
+
+    // Require an authenticated user and apply a per-user rate limit before
+    // calling the paid AI backend. Reuses the ai-chatbot quota bucket.
+    const auth = await verifyUser(req);
+    if (!auth.success) {
+      return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
+    }
+
+    const rateLimit = await checkRateLimit(auth.userId!, "ai-chatbot");
+    if (!rateLimit.allowed) {
+      return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
     }
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -104,7 +121,8 @@ serve(async (req) => {
 
     return successResponse({ reply }, 200, corsHeaders);
   } catch (error) {
+    // Log internally; do not leak error contents to the client.
     console.error("writing-tutor error:", error);
-    return internalError(String(error), undefined, corsHeaders);
+    return internalError("Internal server error", undefined, corsHeaders);
   }
 });

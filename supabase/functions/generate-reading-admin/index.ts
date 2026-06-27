@@ -159,7 +159,7 @@ serve(async (req) => {
     if (!aiRes.ok) {
       const err = await aiRes.text();
       console.error("Anthropic error:", err);
-      return new Response(JSON.stringify({ error: "AI generation failed", details: err }), {
+      return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -223,7 +223,7 @@ serve(async (req) => {
 
   } catch (err) {
     console.error("Unhandled error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

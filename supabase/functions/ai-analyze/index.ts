@@ -11,6 +11,8 @@ import {
   internalError
 } from "../shared/errors.ts";
 import { extractJsonObject } from "../shared/json-utils.ts";
+import { verifyUser } from "../shared/auth.ts";
+import { checkRateLimit } from "../shared/rate-limit.ts";
 
 // Band Examples for Calibration — based on official IELTS Cambridge sample responses
 const BAND_EXAMPLES = {
@@ -627,6 +629,18 @@ serve(async (req) => {
         validation.error.details,
         corsHeaders
       );
+    }
+
+    // Verify the caller is an authenticated user before doing any AI work.
+    const auth = await verifyUser(req);
+    if (!auth.success) {
+      return unauthorizedError(auth.error ?? "Authentication required", corsHeaders);
+    }
+
+    // Per-user rate limit to prevent abuse of the (paid) AI backend.
+    const rateLimit = await checkRateLimit(auth.userId!, "ai-analyze");
+    if (!rateLimit.allowed) {
+      return rateLimitError(undefined, rateLimit.retryAfter, corsHeaders);
     }
 
     const { type, content, taskType, isRevision, questionId, secretContext, modelAnswer, targetKeywords, prompt, speakingPart, question } = validation.data;
