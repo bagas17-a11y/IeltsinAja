@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
-  Mic, Loader2, Play, Square, Volume2, RefreshCw,
+  Mic, Loader2, Play, Square, Volume2, VolumeX, RefreshCw,
   ChevronRight, Download, CheckCircle, ArrowRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,6 +110,7 @@ export default function SpeakingModule() {
   const [feedback, setFeedback]   = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const recordingStartRef = useRef<number | null>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
 
@@ -283,6 +284,11 @@ export default function SpeakingModule() {
     );
   };
 
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
   const speakText = (text: string, gender: 'male' | 'female') => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -292,6 +298,9 @@ export default function SpeakingModule() {
     u.voice = gender === 'male'
       ? voices.find(v => /david|guy|aaron|james/i.test(v.name)) ?? voices[0] ?? null
       : voices.find(v => /samantha|aria|zira|female/i.test(v.name)) ?? voices[1] ?? null;
+    u.onstart = () => setIsSpeaking(true);
+    u.onend = () => setIsSpeaking(false);
+    u.onerror = () => setIsSpeaking(false);
     window.speechSynthesis.speak(u);
   };
 
@@ -709,8 +718,16 @@ export default function SpeakingModule() {
               <div className="glass-card p-6">
                 <div className="flex items-center gap-3 mb-3 flex-wrap">
                   <span className="text-sm font-semibold">Polished transcript (Part 3):</span>
-                  <button onClick={() => speakText(feedback.polishedTranscript, 'male')} className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/40 text-xs text-muted-foreground hover:text-foreground"><Volume2 className="w-3 h-3" /> Male</button>
-                  <button onClick={() => speakText(feedback.polishedTranscript, 'female')} className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/40 text-xs text-muted-foreground hover:text-foreground"><Volume2 className="w-3 h-3" /> Female</button>
+                  {isSpeaking ? (
+                    <button onClick={stopSpeaking} className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-destructive/20 text-xs text-destructive hover:bg-destructive/30">
+                      <VolumeX className="w-3 h-3" /> Stop
+                    </button>
+                  ) : (
+                    <>
+                      <button onClick={() => speakText(feedback.polishedTranscript, 'male')} className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/40 text-xs text-muted-foreground hover:text-foreground"><Volume2 className="w-3 h-3" /> Male</button>
+                      <button onClick={() => speakText(feedback.polishedTranscript, 'female')} className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/40 text-xs text-muted-foreground hover:text-foreground"><Volume2 className="w-3 h-3" /> Female</button>
+                    </>
+                  )}
                 </div>
                 <p className="text-sm text-foreground/80 leading-relaxed">{feedback.polishedTranscript}</p>
               </div>
@@ -768,17 +785,93 @@ export default function SpeakingModule() {
               </div>
             )}
 
-            {/* How you could say it */}
-            {(feedback.enhancedSpeechNextBand || feedback.enhancedSpeech) && (
-              <div className="glass-card p-6 border border-blue-500/20">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">How you could say it</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">+1 Band ({((feedback.overallBand ?? 6) + 1).toFixed(1)})</span>
+            {/* Model answers — parsed by part */}
+            {(feedback.enhancedSpeechNextBand || feedback.enhancedSpeech) && (() => {
+              const raw: string = feedback.enhancedSpeechNextBand ?? feedback.enhancedSpeech ?? '';
+
+              // Split into PART 1 / PART 2 / PART 3 sections
+              const partBlocks = raw
+                .split(/(?=\bPART\s+[123]\b)/i)
+                .map(s => s.trim())
+                .filter(Boolean);
+
+              const parsed = partBlocks.map(block => {
+                const partMatch = block.match(/\bPART\s+([123])\b/i);
+                if (!partMatch) return null;
+                const num = partMatch[1];
+                const body = block.replace(/^\bPART\s+[123]\b\s*[—–:\s]*/i, '').trim();
+
+                if (num === '1') {
+                  // Split by Q1 / Q2 / Q3 / Q4
+                  const qs = body
+                    .split(/(?=\bQ[1-4]\b\s*[—–:.]?\s*)/i)
+                    .map(s => s.trim()).filter(Boolean);
+                  const questions = qs.map(q => {
+                    const qm = q.match(/^\bQ([1-4])\b\s*[—–:.]?\s*/i);
+                    return {
+                      label: qm ? `Q${qm[1]}` : 'Q',
+                      text: q.replace(/^\bQ[1-4]\b\s*[—–:.]?\s*/i, '').trim(),
+                    };
+                  });
+                  return { num, label: 'Part 1 — Introduction', questions };
+                }
+                return {
+                  num,
+                  label: num === '2' ? 'Part 2 — Long Turn' : 'Part 3 — Discussion',
+                  text: body,
+                };
+              }).filter(Boolean) as Array<any>;
+
+              const partColors: Record<string, string> = {
+                '1': 'border-blue-500/30 bg-blue-500/5',
+                '2': 'border-purple-500/30 bg-purple-500/5',
+                '3': 'border-cyan-500/30 bg-cyan-500/5',
+              };
+              const labelColors: Record<string, string> = {
+                '1': 'text-blue-400',
+                '2': 'text-purple-400',
+                '3': 'text-cyan-400',
+              };
+
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">Model answers at +1 band</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                      Band {((feedback.overallBand ?? 6) + 1).toFixed(1)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground px-1">Same ideas — elevated vocabulary and smoother structure</p>
+
+                  {parsed.length > 0 ? parsed.map((section: any) => (
+                    <div key={section.num} className={`glass-card p-5 border ${partColors[section.num] ?? 'border-border/40'}`}>
+                      <p className={`text-xs font-semibold uppercase tracking-widest mb-3 ${labelColors[section.num] ?? 'text-muted-foreground'}`}>
+                        {section.label}
+                      </p>
+                      {section.questions ? (
+                        <div className="space-y-4">
+                          {section.questions.map((q: any, i: number) => (
+                            <div key={i} className="flex gap-3">
+                              <span className="shrink-0 w-7 h-7 rounded-full bg-blue-500/15 text-blue-400 text-xs font-semibold flex items-center justify-center mt-0.5">
+                                {q.label}
+                              </span>
+                              <p className="text-sm text-foreground/80 leading-relaxed">{q.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-foreground/80 leading-relaxed">{section.text}</p>
+                      )}
+                    </div>
+                  )) : (
+                    // Fallback: raw text if parsing found no PART markers
+                    <div className="glass-card p-5 border border-blue-500/20">
+                      <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{raw}</p>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">Same ideas — smoother flow and better word choices</p>
-                <p className="text-sm text-foreground/80 leading-relaxed">{feedback.enhancedSpeechNextBand ?? feedback.enhancedSpeech}</p>
-              </div>
-            )}
+              );
+            })()}
 
             {audioUrl && (
               <div className="glass-card p-6">
