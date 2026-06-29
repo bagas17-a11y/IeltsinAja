@@ -220,14 +220,10 @@ const quizQuestions: Question[] = [
   },
   {
     id: 12,
-    text: "Which paragraph most effectively develops an argument for an IELTS Task 2 essay?",
-    options: [
-      "There are many advantages of social media. People use it to communicate. It is also used for business. Social media can be addictive though.",
-      "One significant advantage of social media is its capacity to connect people across geographical boundaries. Platforms such as Instagram allow families separated by distance to maintain close relationships, reducing social isolation.",
-      "Social media is very popular today and many people around the world use it for many different purposes including talking to friends and family.",
-      "Social media has advantages and disadvantages. It helps people communicate but it also has problems like addiction and misinformation."
-    ],
-    correctAnswer: 1,
+    text: "In a Band 7 IELTS body paragraph, the ______ section comes after the evidence and must analyse what the evidence proves — this is where most Band 6 essays fall short.\n\nType the name of this section.",
+    type: 'fill',
+    correctAnswer: "explanation",
+    acceptedAnswers: ["Explanation"],
     band: 7,
     skill: "Writing — PEEL paragraph structure"
   },
@@ -241,16 +237,11 @@ const quizQuestions: Question[] = [
   },
   {
     id: 14,
-    text: "Which sentence uses the most appropriate style for a formal academic essay?",
-    options: [
-      "A lot of people think that governments should do more to help people living in poverty.",
-      "Many individuals believe that governments should take further steps to support those in poverty.",
-      "It is widely argued that governments bear a responsibility to implement more robust policies addressing systemic poverty.",
-      "Governments really need to do much more for poor people, and most people agree with this."
-    ],
-    correctAnswer: 2,
+    text: "Fill in the blank with the correct academic word. The missing word means 'strong, forceful, and effective' — it is commonly used in formal policy and academic writing.\n\n'It is widely argued that governments bear a responsibility to implement more ______ policies addressing systemic poverty.'\n\nType the single word.",
+    type: 'fill',
+    correctAnswer: "robust",
     band: 7,
-    skill: "Writing — academic register and nominalization"
+    skill: "Writing — academic register and vocabulary"
   },
   {
     id: 15,
@@ -278,14 +269,9 @@ const quizQuestions: Question[] = [
   },
   {
     id: 17,
-    text: "Which sentence demonstrates the most sophisticated academic writing?",
-    options: [
-      "Climate change is a really big problem and governments are not doing enough about it.",
-      "Many people think that governments are not handling climate change as well as they should be.",
-      "Governments around the world are clearly failing to deal with climate change.",
-      "The inadequacy of governmental responses to climate change has drawn increasing criticism from both the scientific community and civil society."
-    ],
-    correctAnswer: 3,
+    text: "Complete the sentence using the correct noun form of the word 'inadequate'.\n\n'The ______ of governmental responses to climate change has drawn increasing criticism from both the scientific community and civil society.'\n\nType the single word.",
+    type: 'fill',
+    correctAnswer: "inadequacy",
     band: 8,
     skill: "Writing — advanced nominalization and register"
   },
@@ -300,16 +286,12 @@ const quizQuestions: Question[] = [
   },
   {
     id: 19,
-    text: "Which sentence makes the most effective conclusion for a Task 2 essay on renewable energy investment?",
-    options: [
-      "In conclusion, I have discussed both sides of the argument and there are many things to consider.",
-      "In conclusion, while there are merits to both perspectives, the evidence suggests that the long-term economic and social benefits of investing in renewable energy considerably outweigh the short-term costs.",
-      "To summarise, this essay has looked at the advantages and disadvantages of the topic in detail.",
-      "Overall, this is a very complex issue and different people have different opinions on what should happen."
-    ],
-    correctAnswer: 1,
+    text: "Fill in the blank with the correct academic verb. The missing word means 'strongly indicates' and is commonly used to introduce evidence-based conclusions in formal writing.\n\n'While there are merits to both perspectives, the evidence ______ that the long-term economic and social benefits of investing in renewable energy considerably outweigh the short-term costs.'\n\nType the single word.",
+    type: 'fill',
+    correctAnswer: "suggests",
+    acceptedAnswers: ["indicates", "demonstrates", "implies"],
     band: 8,
-    skill: "Writing — Task 2 conclusion"
+    skill: "Writing — Task 2 conclusion language"
   },
   {
     id: 20,

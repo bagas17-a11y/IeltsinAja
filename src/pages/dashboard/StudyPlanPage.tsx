@@ -43,6 +43,9 @@ interface WorksheetPrompt {
   id: string;
   label: string;
   instruction: string;
+  type?: "mcq" | "fill" | "open";
+  options?: string[];   // MCQ: option texts; labeled A B C D automatically
+  sentence?: string;   // fill/mcq: the sentence with ______ shown in a styled block
   rows: number;
   placeholder?: string;
   sectionHeader?: string;
@@ -59,6 +62,7 @@ interface StudyTask {
   sourceUrl?: string;
   sourceType?: "video" | "article";
   worksheetPrompts?: WorksheetPrompt[];
+  relatedSources?: ExternalResource[];  // inline sources shown at top of worksheet
 }
 
 interface ExternalResource {
@@ -236,75 +240,111 @@ const WEEK_POLISHING_IDIOM_WORKSHEET: WorksheetPrompt[] = [
   {
     id: "idiom-mcq-1",
     sectionHeader: "Section 1 — Multiple Choice",
-    label: "Q1 — Choose the correct idiom",
-    instruction: 'The sentence below has a blank. Choose the idiom (A–D) that fits best, write your answer, then explain your choice in one sentence.\n"The widespread adoption of smartphones has been ______ for education — it connects students to information instantly but also fuels distraction."\nA) a turning point  B) a double-edged sword  C) paving the way for  D) at the forefront of',
-    rows: 3,
-    placeholder: "Answer: ___\nReason: …",
+    label: "Q1",
+    instruction: "Which idiom best completes the sentence?",
+    sentence: '"The widespread adoption of smartphones has been ______ for education — it connects students to information instantly but also fuels distraction."',
+    type: "mcq",
+    options: [
+      "A double-edged sword",
+      "A turning point",
+      "Paving the way for change",
+      "At the forefront of innovation",
+    ],
+    rows: 1,
   },
   {
     id: "idiom-mcq-2",
-    label: 'Q2 — Identify the correct usage of "at the forefront of"',
-    instruction: 'Which sentence uses "at the forefront of" correctly? Write the letter, then explain in one sentence why the other three are wrong.\nA) "Scientists are at the forefront of despite the challenges."\nB) "Renewable energy is at the forefront of climate policy debates."\nC) "The government is at the forefront of, raising questions."\nD) "Education at the forefront of students."',
-    rows: 4,
-    placeholder: "Correct answer: ___\nWhy the others are wrong: …",
+    label: "Q2",
+    instruction: 'Which sentence uses "at the forefront of" correctly?',
+    type: "mcq",
+    options: [
+      "Scientists are at the forefront of despite the challenges.",
+      "Renewable energy is at the forefront of climate policy debates.",
+      "The government is at the forefront of, raising questions.",
+      "Education at the forefront of students.",
+    ],
+    rows: 1,
   },
   {
     id: "idiom-mcq-3",
-    label: "Q3 — Paired idiom gap fill (MCQ)",
-    instruction: 'Which pair of idioms best completes the sentence? Write the letter, then copy the completed sentence.\n"Although social media provides instant news, it may ______ misinformation at ______ accuracy."\nA) pave the way for / the expense of\nB) gain ground / a turning point\nC) shed light on / the forefront of\nD) keep pace with / the expense of',
-    rows: 3,
-    placeholder: "Answer: ___\nCompleted sentence: …",
+    label: "Q3",
+    instruction: "Which pair of idioms correctly completes the sentence?",
+    sentence: '"Although social media provides instant news, it may ______ misinformation at ______ accuracy."',
+    type: "mcq",
+    options: [
+      "pave the way for / the expense of",
+      "gain ground / a turning point",
+      "shed light on / the forefront of",
+      "keep pace with / the expense of",
+    ],
+    rows: 1,
   },
   {
     id: "idiom-mcq-4",
-    label: "Q4 — Select the best fit",
-    instruction: 'Choose the idiom that best completes the sentence. Write your answer and explain the meaning of the idiom you chose.\n"Governments are struggling to ______ rapid technological change, as new platforms emerge faster than regulations can address them."\nA) shed light on  B) keep pace with  C) take precedence over  D) at the expense of',
-    rows: 3,
-    placeholder: "Answer: ___\nMeaning of chosen idiom: …",
+    label: "Q4",
+    instruction: "Which idiom best fills the blank?",
+    sentence: '"Governments are struggling to ______ rapid technological change, as new platforms emerge faster than regulations can address them."',
+    type: "mcq",
+    options: [
+      "shed light on",
+      "keep pace with",
+      "take precedence over",
+      "gain ground against",
+    ],
+    rows: 1,
   },
   {
     id: "idiom-fill-5",
     sectionHeader: "Section 2 — Fill in the Blanks",
-    label: "Q5 — Complete the sentence",
-    instruction: 'Fill in the blank with the correct idiom. The meaning is given as a clue.\n"Research into drought-resistant crops has ______ new possibilities for sustainable agriculture in water-scarce regions." (Meaning: opened a new path toward / made possible)',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q5",
+    instruction: 'Fill in the blank. Clue: the idiom means "opened a new path toward" or "made possible".',
+    sentence: '"Research into drought-resistant crops has ______ new possibilities for sustainable agriculture in water-scarce regions."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "idiom-fill-6",
-    label: "Q6 — Identify and write the idiom",
-    instruction: 'Fill in the blank with an idiom that means "has two contrasting effects — one positive, one negative".\n"The rise of AI in education is ______ — it personalises learning but risks undermining critical thinking skills."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q6",
+    instruction: 'Fill in the blank. The idiom means "has two contrasting effects — one positive, one negative".',
+    sentence: '"The rise of AI in education is ______ — it personalises learning but risks undermining critical thinking skills."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "idiom-fill-7",
-    label: "Q7 — Complete with the correct idiom",
-    instruction: 'Fill in the blank using an idiom that means "should be considered more important than".\n"Environmental concerns must ______ short-term economic interests if lasting ecological damage is to be avoided."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q7",
+    instruction: 'Fill in the blank. The idiom means "should be considered more important than".',
+    sentence: '"Environmental concerns must ______ short-term economic interests if lasting ecological damage is to be avoided."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "idiom-open-8",
     sectionHeader: "Section 3 — Open Ended",
-    label: "Q8 — Sentence writing with evidence",
-    instruction: 'Using the idiom "a turning point", write 2–3 sentences describing how a specific technology (from the sources you read this week) changed society. Reference a specific detail from what you read or watched.',
-    rows: 5,
+    label: "Q8",
+    instruction: 'Using the idiom "a turning point", write 2–3 sentences about how a specific technology from this week\'s sources changed society. Reference a specific detail from what you read or watched.',
+    type: "open",
+    rows: 4,
     placeholder: "The development of … was a turning point because…",
   },
   {
     id: "idiom-open-9",
-    label: "Q9 — PEEL paragraph with idiom",
-    instruction: "Choose one idiom from the Vocabulary Bank and write a PEEL paragraph (4–5 sentences) on the topic of AI in education. The idiom must appear naturally in your Explanation or Link sentence — not forced into the Point.",
-    rows: 8,
-    placeholder: "Point:\nEvidence:\nExplanation (include idiom here or in Link): …\nLink:",
+    label: "Q9",
+    instruction: "Choose one idiom from the Vocabulary Bank. Write a PEEL paragraph (4–5 sentences) on AI in education. The idiom must appear naturally in your Explanation or Link — not forced into the Point.",
+    type: "open",
+    rows: 7,
+    placeholder: "Point:\nEvidence:\nExplanation: …\nLink:",
   },
   {
     id: "idiom-open-10",
-    label: "Q10 — Cross-topic reflection",
-    instruction: "Across all six sources from this week (environment, technology, education), choose the topic you think would make the strongest IELTS Task 2 essay. In 3–4 sentences, outline your central argument and use at least two idioms from the Vocabulary Bank naturally within your response.",
-    rows: 7,
-    placeholder: "The strongest topic is … because…\n\nKey argument:\n\nIdiom 1 used: '…'\nIdiom 2 used: '…'",
+    label: "Q10",
+    instruction: "Across all six sources this week (environment, technology, education), choose the topic you think makes the strongest IELTS Task 2 essay. In 3–4 sentences, outline your argument and use at least two idioms naturally.",
+    type: "open",
+    rows: 6,
+    placeholder: "The strongest topic is … because…\n\nKey argument:\n\nIdioms used: …",
   },
 ];
 
@@ -312,109 +352,137 @@ const WEEK_POLISHING_TRANSITORY_WORKSHEET: WorksheetPrompt[] = [
   {
     id: "trans-mcq-1",
     sectionHeader: "Section 1 — Multiple Choice",
-    label: "Q1 — Transitory phrase category",
-    instruction: 'Which transitory phrase is used to introduce a contrasting idea? Write the letter, then write one example sentence of your own using that phrase.\nA) Furthermore  B) For instance  C) Nevertheless  D) As a result',
-    rows: 4,
-    placeholder: "Answer: ___\nMy example sentence: …",
+    label: "Q1",
+    instruction: "Which transitory phrase introduces a contrasting idea?",
+    type: "mcq",
+    options: ["Furthermore", "For instance", "Nevertheless", "As a result"],
+    rows: 1,
   },
   {
     id: "trans-mcq-2",
-    label: "Q2 — Data descriptor selection",
-    instruction: 'Choose the correct data descriptor. "The crime rate ______ in 2019, reaching its highest level in two decades."\nA) levelled off  B) peaked at a record high  C) plummeted  D) narrowed significantly',
-    rows: 3,
-    placeholder: "Answer: ___\nCompleted sentence: …",
+    label: "Q2",
+    instruction: "Which data descriptor best describes a trend reaching its highest point?",
+    sentence: '"The crime rate ______ in 2019, reaching its highest level in two decades."',
+    type: "mcq",
+    options: ["levelled off", "peaked at a record high", "plummeted", "narrowed significantly"],
+    rows: 1,
   },
   {
     id: "trans-mcq-3",
-    label: "Q3 — Describe a trend accurately",
-    instruction: 'Select the best data descriptor. "Inflation ______ following supply chain disruptions, causing widespread economic concern."\nA) declined steadily  B) remained relatively stable  C) surged  D) levelled off at a moderate rate',
-    rows: 2,
-    placeholder: "Answer: ___",
+    label: "Q3",
+    instruction: "Which data descriptor describes a sharp increase?",
+    sentence: '"Inflation ______ following supply chain disruptions, causing widespread economic concern."',
+    type: "mcq",
+    options: ["declined steadily", "remained relatively stable", "surged", "levelled off at a moderate rate"],
+    rows: 1,
   },
   {
     id: "trans-mcq-4",
-    label: "Q4 — Identify incorrect usage",
-    instruction: 'Which sentence uses a transitory phrase incorrectly? Write the letter and explain what is wrong.\nA) "Furthermore, the government introduced new regulations to combat organised crime."\nB) "However, crime rates fell significantly after the programme launched."\nC) "As a result, inflation rose. Nevertheless, this caused prices to climb further."\nD) "Consequently, stricter sentencing led to fewer repeat offences."',
-    rows: 4,
-    placeholder: "Incorrect answer: ___\nWhat is wrong: …",
+    label: "Q4",
+    instruction: "Which sentence uses a transitory phrase incorrectly?",
+    type: "mcq",
+    options: [
+      "Furthermore, the government introduced new regulations to combat organised crime.",
+      "However, crime rates fell significantly after the programme launched.",
+      "As a result, inflation rose. Nevertheless, this caused prices to climb further.",
+      "Consequently, stricter sentencing led to fewer repeat offences.",
+    ],
+    rows: 1,
   },
   {
     id: "trans-mcq-5",
-    label: "Q5 — Trend direction",
-    instruction: '"The gap between high and low income earners ______ during periods of sustained economic growth." Which descriptor correctly describes inequality decreasing?\nA) surged  B) narrowed  C) escalated sharply  D) peaked at',
-    rows: 2,
-    placeholder: "Answer: ___",
+    label: "Q5",
+    instruction: "Which descriptor correctly shows inequality decreasing over time?",
+    sentence: '"The gap between high and low income earners ______ during periods of sustained economic growth."',
+    type: "mcq",
+    options: ["surged", "narrowed", "escalated sharply", "peaked at"],
+    rows: 1,
   },
   {
     id: "trans-fill-6",
     sectionHeader: "Section 2 — Fill in the Blanks",
-    label: "Q6 — Hedging transitory phrase",
-    instruction: 'Fill in the blank with a hedging transitory phrase. "______, organised crime thrives in environments where economic inequality is high, though this relationship is complex."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q6",
+    instruction: 'Fill in the blank with a hedging transitory phrase (e.g. "Arguably" or "It could be argued that").',
+    sentence: '"______, organised crime thrives in environments where economic inequality is high, though this relationship is complex."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "trans-fill-7",
-    label: "Q7 — Data descriptor for a rising trend",
-    instruction: 'Fill in the blank with a data descriptor showing a sharp rise. "Obesity rates have ______ over the past three decades, climbing from 15% to over 40% in some regions."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q7",
+    instruction: "Fill in the blank with a data descriptor for a sharp, sustained rise.",
+    sentence: '"Obesity rates have ______ over the past three decades, climbing from 15% to over 40% in some regions."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "trans-fill-8",
-    label: "Q8 — Pair of phrases",
-    instruction: 'Fill in both blanks — use one data descriptor and one cause-effect transitory phrase. "Unemployment ______; ______ the government introduced emergency welfare measures to support affected households."',
-    rows: 3,
-    placeholder: "Blank 1 (data descriptor): …\nBlank 2 (transitory phrase): …\nFull sentence: …",
+    label: "Q8",
+    instruction: "Fill in both blanks — one data descriptor for the trend, one cause-effect transitory phrase.",
+    sentence: '"Unemployment ______; ______ the government introduced emergency welfare measures to support affected households."',
+    type: "fill",
+    rows: 2,
+    placeholder: "Blank 1: …     Blank 2: …",
   },
   {
     id: "trans-fill-9",
-    label: "Q9 — Describe a decline",
-    instruction: 'Fill in the blank with a data descriptor for a sudden, sharp decline. "Public trust in media ______ following a series of high-profile misinformation cases — it has yet to recover to pre-2016 levels."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q9",
+    instruction: "Fill in the blank with a data descriptor for a sudden, sharp decline.",
+    sentence: '"Public trust in media ______ following a series of high-profile misinformation cases — it has yet to recover to pre-2016 levels."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "trans-fill-10",
-    label: "Q10 — Two-stage trend",
-    instruction: 'Fill in both blanks with appropriate data descriptors to show a two-stage trend (first rising, then stabilising). "Exercise habits ______ during the pandemic home-workout boom, then ______ once gyms fully reopened."',
-    rows: 3,
-    placeholder: "Blank 1 (rose sharply): …\nBlank 2 (stabilised): …\nFull sentence: …",
+    label: "Q10",
+    instruction: "Fill in both blanks to show a two-stage trend: first rising sharply, then stabilising.",
+    sentence: '"Exercise habits ______ during the pandemic home-workout boom, then ______ once gyms fully reopened."',
+    type: "fill",
+    rows: 2,
+    placeholder: "Blank 1: …     Blank 2: …",
   },
   {
     id: "trans-open-11",
     sectionHeader: "Section 3 — Open Ended",
-    label: "Q11 — Three-sentence transitory challenge",
-    instruction: "Write 3 sentences about any topic from this week's sources (crime, economy, or lifestyle). Each sentence must use a different transitory phrase, one from each of these categories: Adding an idea, Contrasting, Cause & effect.",
-    rows: 7,
-    placeholder: "Sentence 1 — Adding an idea: …\nSentence 2 — Contrasting: …\nSentence 3 — Cause & effect: …",
+    label: "Q11",
+    instruction: "Write 3 sentences on any topic from this week's sources (crime, economy, or lifestyle). Each must use a different transitory phrase: one Adding an idea, one Contrasting, one Cause & effect.",
+    type: "open",
+    rows: 6,
+    placeholder: "Adding an idea: …\nContrasting: …\nCause & effect: …",
   },
   {
     id: "trans-open-12",
-    label: "Q12 — Band 6 vs Band 8 upgrade",
-    instruction: "Select a statistic or trend from any source this week. Write it first in Band 6 language (basic phrasing), then rewrite it as a Band 8 sentence using a precise data descriptor from the Vocabulary Bank.",
-    rows: 6,
-    placeholder: "Original stat or trend: '…'\nBand 6 version: …\nBand 8 version (with data descriptor): …",
+    label: "Q12",
+    instruction: "Select a statistic or trend from any source this week. Write it first in Band 6 language, then rewrite it as Band 8 using a precise data descriptor from the Vocabulary Bank.",
+    type: "open",
+    rows: 5,
+    placeholder: "Original: '…'\nBand 6: …\nBand 8 (with data descriptor): …",
   },
   {
     id: "trans-open-13",
-    label: "Q13 — PEEL paragraph on crime",
-    instruction: "Write a 4–5 sentence PEEL paragraph on the topic of crime and punishment. Include at least 2 transitory phrases (from different categories) and 1 data descriptor from the Vocabulary Bank.",
-    rows: 9,
-    placeholder: "Point:\nEvidence (include data descriptor): …\nExplanation (include transitory phrase): …\nLink (include contrasting phrase): …",
+    label: "Q13",
+    instruction: "Write a 4–5 sentence PEEL paragraph on crime and punishment. Include at least 2 transitory phrases from different categories and 1 data descriptor.",
+    type: "open",
+    rows: 8,
+    placeholder: "Point:\nEvidence (with data descriptor): …\nExplanation (transitory phrase): …\nLink (contrasting phrase): …",
   },
   {
     id: "trans-open-14",
-    label: "Q14 — Task 1-style summary + analysis",
-    instruction: "From this week's sources on lifestyle and health, identify one trend that changed over time. Write (a) a Task 1-style summary sentence using a data descriptor, then (b) an analysis sentence using a hedging transitory phrase.",
-    rows: 6,
-    placeholder: "(a) Summary sentence: …\n(b) Analysis sentence (hedging): …",
+    label: "Q14",
+    instruction: "From this week's lifestyle/health sources, identify one trend that changed over time. Write (a) a Task 1-style summary sentence using a data descriptor, then (b) an analysis sentence using a hedging transitory phrase.",
+    type: "open",
+    rows: 5,
+    placeholder: "(a) Summary: …\n(b) Analysis (hedging): …",
   },
   {
     id: "trans-open-15",
-    label: "Q15 — Reflect on hedging",
-    instruction: 'Why is it important to hedge academic claims? Write 3–4 sentences that include "it could be argued that" and "arguably" in context. Use evidence from any source you read this week to support your point.',
-    rows: 7,
+    label: "Q15",
+    instruction: 'Why is it important to hedge academic claims? Write 3–4 sentences using "it could be argued that" and "arguably" in context. Support your point with evidence from any source you read this week.',
+    type: "open",
+    rows: 6,
     placeholder: "Arguably, … It could be argued that … because…",
   },
 ];
@@ -423,75 +491,105 @@ const WEEK_POLISHING_COLLOCATION_WORKSHEET: WorksheetPrompt[] = [
   {
     id: "colloc-mcq-1",
     sectionHeader: "Section 1 — Multiple Choice",
-    label: "Q1 — Identify the correct collocation",
-    instruction: 'Which sentence uses an academic collocation correctly? Write the letter and explain what makes the chosen sentence more precise than the others.\nA) "The government did inequality by launching new programmes."\nB) "Social media companies work to erode public trust by removing fact-checkers."\nC) "Chronic disease imposes a significant burden on national healthcare systems."\nD) "Exercise makes your brain do better in terms of thinking."',
-    rows: 4,
-    placeholder: "Answer: ___\nWhy it is more precise: …",
+    label: "Q1",
+    instruction: "Which sentence uses an academic collocation correctly?",
+    type: "mcq",
+    options: [
+      "The government did inequality by launching new programmes.",
+      "Social media companies work to erode public trust by removing fact-checkers.",
+      "Chronic disease imposes a significant burden on national healthcare systems.",
+      "Exercise makes your brain do better in terms of thinking.",
+    ],
+    rows: 1,
   },
   {
     id: "colloc-mcq-2",
-    label: "Q2 — Best collocation for health",
-    instruction: '"Recent studies suggest that physical inactivity ______." Which option uses a Health & Medicine collocation most precisely?\nA) "does bad things to overall health"\nB) "imposes a significant burden on cardiovascular health"\nC) "makes health worse over a long time"\nD) "gives people more health-related problems"',
-    rows: 2,
-    placeholder: "Answer: ___",
+    label: "Q2",
+    instruction: "Which option uses a Health & Medicine collocation most precisely?",
+    sentence: '"Recent studies suggest that physical inactivity ______."',
+    type: "mcq",
+    options: [
+      "does bad things to overall health",
+      "imposes a significant burden on cardiovascular health",
+      "makes health worse over a long time",
+      "gives people more health-related problems",
+    ],
+    rows: 1,
   },
   {
     id: "colloc-mcq-3",
-    label: "Q3 — Media collocation accuracy",
-    instruction: 'Which sentence correctly uses a Media & Public Opinion collocation?\nA) "Social media has the ability to change what people think about politics."\nB) "Misinformation on social media platforms can shape public perception of political events."\nC) "News on the internet is now making people think differently."\nD) "The media tells people what to think through its stories."',
-    rows: 2,
-    placeholder: "Answer: ___",
+    label: "Q3",
+    instruction: "Which sentence correctly uses a Media & Public Opinion collocation?",
+    type: "mcq",
+    options: [
+      "Social media has the ability to change what people think about politics.",
+      "Misinformation on social media platforms can shape public perception of political events.",
+      "News on the internet is now making people think differently.",
+      "The media tells people what to think through its stories.",
+    ],
+    rows: 1,
   },
   {
     id: "colloc-fill-4",
     sectionHeader: "Section 2 — Fill in the Blanks",
-    label: "Q4 — Two health collocations",
-    instruction: 'Fill in both blanks using Health & Medicine collocations from the Collocations & Paraphrasing revision note. "Governments must ______ healthcare inequalities if they hope to ______ chronic disease effectively in underserved communities."',
-    rows: 3,
-    placeholder: "Blank 1: …\nBlank 2: …\nFull sentence: …",
+    label: "Q4",
+    instruction: "Fill in both blanks using Health & Medicine collocations from the revision note.",
+    sentence: '"Governments must ______ healthcare inequalities if they hope to ______ chronic disease effectively in underserved communities."',
+    type: "fill",
+    rows: 2,
+    placeholder: "Blank 1: …     Blank 2: …",
   },
   {
     id: "colloc-fill-5",
-    label: "Q5 — Media collocation",
-    instruction: 'Fill in the blank with a Media & Public Opinion collocation describing the negative effect of misinformation on democratic society. "The spread of unverified claims on social media has begun to ______ in democratic societies."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q5",
+    instruction: "Fill in the blank with a Media & Public Opinion collocation about the effect of misinformation.",
+    sentence: '"The spread of unverified claims on social media has begun to ______ in democratic societies."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "colloc-fill-6",
-    label: "Q6 — Government collocation",
-    instruction: 'Fill in the blank with a Government & Politics collocation meaning to assign or direct funding. "The housing crisis has prompted calls for governments to ______ more resources to affordable housing schemes."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q6",
+    instruction: "Fill in the blank with a Government & Politics collocation meaning to assign or direct funding.",
+    sentence: '"The housing crisis has prompted calls for governments to ______ more resources to affordable housing schemes."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "colloc-fill-7",
-    label: "Q7 — Media collocation for amplification",
-    instruction: 'Fill in the blank with a Media & Public Opinion collocation meaning to give greater reach to underheard perspectives. "A free press can ______ by reporting on issues that powerful institutions would prefer to suppress."',
-    rows: 2,
-    placeholder: "Answer: …",
+    label: "Q7",
+    instruction: "Fill in the blank with a Media & Public Opinion collocation meaning to give greater reach to underheard perspectives.",
+    sentence: '"A free press can ______ by reporting on issues that powerful institutions would prefer to suppress."',
+    type: "fill",
+    rows: 1,
+    placeholder: "Your answer…",
   },
   {
     id: "colloc-open-8",
     sectionHeader: "Section 3 — Open Ended",
-    label: "Q8 — Collocation rewrite with explanation",
-    instruction: "From this week's health sources, choose one specific fact. Rewrite it using at least two Health & Medicine collocations from the Collocations & Paraphrasing revision note. Briefly explain why your rewrite is more precise than the original phrasing.",
-    rows: 7,
-    placeholder: "Original fact: '…'\nRewritten with collocations: '…'\nWhy it is more precise: …",
+    label: "Q8",
+    instruction: "From this week's health sources, choose one specific fact. Rewrite it using at least two Health & Medicine collocations. Briefly explain why your rewrite is more precise.",
+    type: "open",
+    rows: 6,
+    placeholder: "Original fact: '…'\nRewritten: '…'\nWhy more precise: …",
   },
   {
     id: "colloc-open-9",
-    label: "Q9 — Media mini-paragraph",
-    instruction: "Write a mini-paragraph (3–4 sentences) on the topic of media and misinformation. Include at least two Media & Public Opinion collocations from the Collocations & Paraphrasing revision note. Note the collocations you used at the end.",
-    rows: 8,
-    placeholder: "Mini-paragraph:\n\nCollocations used:\n1. …\n2. …",
+    label: "Q9",
+    instruction: "Write a mini-paragraph (3–4 sentences) on media and misinformation. Include at least two Media & Public Opinion collocations. Note the collocations you used at the end.",
+    type: "open",
+    rows: 7,
+    placeholder: "Paragraph:\n\nCollocations used:\n1. …\n2. …",
   },
   {
     id: "colloc-open-10",
-    label: "Q10 — PEEL paragraph on housing",
+    label: "Q10",
     instruction: '"Affordable housing is one of the most pressing issues facing governments today." Write a 5-sentence PEEL paragraph agreeing or disagreeing. Include at least one Government & Politics collocation and one Media & Public Opinion collocation.',
-    rows: 10,
-    placeholder: "Point:\nEvidence:\nExplanation (Government collocation here): …\nExplanation continued (Media collocation here): …\nLink:",
+    type: "open",
+    rows: 9,
+    placeholder: "Point:\nEvidence:\nExplanation (Government collocation): …\nExplanation continued (Media collocation): …\nLink:",
   },
 ];
 
@@ -904,9 +1002,17 @@ const POLISHING_PLAN: TierPlan = {
         {
           id: "p-w1-idiom-ws",
           label: "Day 3: Idiom Worksheet (10 Questions — MCQ, Fill in the Blanks, Open Ended)",
-          description: "Complete the 10-question worksheet on idiomatic expressions. Section 1 (Q1–4) is multiple choice — choose the idiom that fits the context. Section 2 (Q5–7) is fill in the blanks — write the correct idiom without options. Section 3 (Q8–10) is open-ended — write your own sentences and paragraphs using idioms naturally. You do not need to have read all the external sources to complete this worksheet.",
+          description: "Complete the 10-question worksheet on idiomatic expressions. Section 1 (Q1–4) is multiple choice — tap the correct option. Section 2 (Q5–7) is fill in the blanks — type the correct idiom. Section 3 (Q8–10) is open-ended — write your own sentences using idioms naturally. Source links are shown inside the worksheet so you can refer to them as you answer.",
           minutes: 35,
           worksheetPrompts: WEEK_POLISHING_IDIOM_WORKSHEET,
+          relatedSources: [
+            { label: "Environment: Turkish Droughts (Article)", url: "https://www.bbc.com/future/article/20260624-droughts-are-transforming-the-turkish-landscape-with-massive-sinkholes", type: "article" },
+            { label: "Environment: Restoring Biodiversity (Video)", url: "https://youtu.be/yJX1Te0jey0?si=5xwqm0RGxHUA85sE", type: "video" },
+            { label: "Technology: Future of Screens (Article)", url: "https://www.bbc.com/future/article/20260624-why-tech-companies-want-to-take-away-your-screen", type: "article" },
+            { label: "Technology: Controversies of Technology (Video)", url: "https://youtu.be/QO3nY_u6hos?si=pDU2-sfJbWDJ_jAK", type: "video" },
+            { label: "Education: Consequences of AI in Schools (Article)", url: "https://edition.cnn.com/2026/06/01/health/screens-in-school-education-tech-wellness", type: "article" },
+            { label: "Education: Benefits of AI in Education (Video)", url: "https://youtu.be/hJP5GqnTrNo?si=82tHzMplmcz_c4G6", type: "video" },
+          ],
         },
         {
           id: "p-w1-trans-rv",
@@ -927,9 +1033,17 @@ const POLISHING_PLAN: TierPlan = {
         {
           id: "p-w1-trans-ws",
           label: "Day 5: Transitory Phrases & Data Descriptors Worksheet (15 Questions — MCQ, Fill in the Blanks, Open Ended)",
-          description: "Complete the 15-question worksheet. Section 1 (Q1–5) is multiple choice — choose the correct phrase or descriptor. Section 2 (Q6–10) is fill in the blanks. Section 3 (Q11–15) is open-ended — write your own sentences, paragraphs, and reflections using transitory phrases and data descriptors in context.",
+          description: "Complete the 15-question worksheet. Section 1 (Q1–5) is multiple choice — tap the correct option. Section 2 (Q6–10) is fill in the blanks — type the missing phrase or descriptor. Section 3 (Q11–15) is open-ended. Source links are shown inside the worksheet.",
           minutes: 50,
           worksheetPrompts: WEEK_POLISHING_TRANSITORY_WORKSHEET,
+          relatedSources: [
+            { label: "Crime: Organized Crime and Punishment (Article)", url: "https://www.bbc.com/news/articles/c0jyq3990jeo", type: "article" },
+            { label: "Crime: Crime Investigation (Video)", url: "https://youtu.be/hQuB4784JPc?si=uXldKsyJe1fs-FK2", type: "video" },
+            { label: "Economy: Inflation in the US Economy (Article)", url: "https://edition.cnn.com/2026/06/25/economy/us-pce-inflation-may", type: "article" },
+            { label: "Economy: Utilizing Behavioral Economics (Video)", url: "https://youtu.be/bTDBeI-mtDg?si=OFVJxte_t5Jr8Am9", type: "video" },
+            { label: "Lifestyle: Lifestyle and Disease Prevention (Article)", url: "https://edition.cnn.com/2025/07/16/health/heart-health-whole-body-wellness", type: "article" },
+            { label: "Lifestyle: What Makes a Happy Life? (Video)", url: "https://youtu.be/8KkKuTCFvzI?si=npj8LeZOkKMAwXUs", type: "video" },
+          ],
         },
         {
           id: "p-w1-colloc-rv",
@@ -942,18 +1056,18 @@ const POLISHING_PLAN: TierPlan = {
         {
           id: "p-w1-colloc-ws",
           label: "Day 7: Collocations Worksheet (10 Questions — MCQ, Fill in the Blanks, Open Ended)",
-          description: "Complete the 10-question collocation worksheet. Section 1 (Q1–3) is multiple choice — identify the correct collocation. Section 2 (Q4–7) is fill in the blanks. Section 3 (Q8–10) is open-ended — rewrite facts using collocations, write a mini-paragraph, and write a full PEEL paragraph.",
+          description: "Complete the 10-question collocation worksheet. Section 1 (Q1–3) is multiple choice — tap the correct option. Section 2 (Q4–7) is fill in the blanks. Section 3 (Q8–10) is open-ended. Source links are shown inside the worksheet.",
           minutes: 35,
           worksheetPrompts: WEEK_POLISHING_COLLOCATION_WORKSHEET,
+          relatedSources: [
+            { label: "Health: Neurological Benefits of Exercise (Video)", url: "https://youtu.be/BHY0FxzoKZE?si=eK5x6FWjLMNu7csm", type: "video" },
+            { label: "Health: Maternity and Neonatal Care (Article)", url: "https://www.bbc.com/news/articles/c2kyn81epdvo", type: "article" },
+            { label: "Media: Media and Misinformation (Article)", url: "https://edition.cnn.com/2023/02/15/media/gallup-knight-foundation-report-reliable-sources", type: "article" },
+            { label: "Media: Social Media and Political Perception (Video)", url: "https://youtu.be/GWaKaOGW55w?si=2jdDzUVwHiRTmDd7", type: "video" },
+            { label: "Government: Affordable Housing (Article)", url: "https://edition.cnn.com/2026/03/12/business/housing-affordability-bill-senate", type: "article" },
+            { label: "Government: US Politics (Video)", url: "https://youtu.be/1Ws3w_ZOmhI?si=dMbOdA9JguGwA9LD", type: "video" },
+          ],
         },
-      ],
-      externalResources: [
-        { label: "Environment: Turkish Droughts (Article)", url: "https://www.bbc.com/future/article/20260624-droughts-are-transforming-the-turkish-landscape-with-massive-sinkholes", type: "article" },
-        { label: "Environment: Restoring Biodiversity (Video)", url: "https://youtu.be/yJX1Te0jey0?si=5xwqm0RGxHUA85sE", type: "video" },
-        { label: "Technology: Future of Screens (Article)", url: "https://www.bbc.com/future/article/20260624-why-tech-companies-want-to-take-away-your-screen", type: "article" },
-        { label: "Technology: Controversies of Technology (Video)", url: "https://youtu.be/QO3nY_u6hos?si=pDU2-sfJbWDJ_jAK", type: "video" },
-        { label: "Education: Consequences of AI in Schools (Article)", url: "https://edition.cnn.com/2026/06/01/health/screens-in-school-education-tech-wellness", type: "article" },
-        { label: "Education: Benefits of AI in Education (Video)", url: "https://youtu.be/hJP5GqnTrNo?si=82tHzMplmcz_c4G6", type: "video" },
       ],
     },
     {
@@ -1090,6 +1204,8 @@ const POLISHING_PLAN: TierPlan = {
 
 // ─────────────────────────────────────────────
 // ExternalSourceWorksheetCard — answer space for source-based worksheets
+const OPTION_LETTERS = ["A", "B", "C", "D"];
+
 function ExternalSourceWorksheetCard({ task }: { task: StudyTask }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [open, setOpen] = useState(false);
@@ -1097,6 +1213,17 @@ function ExternalSourceWorksheetCard({ task }: { task: StudyTask }) {
 
   const setAnswer = (id: string, val: string) =>
     setAnswers(prev => ({ ...prev, [id]: val }));
+
+  const getAnswerText = (p: WorksheetPrompt) => {
+    const ans = answers[p.id];
+    if (!ans) return "";
+    if (p.type === "mcq" && p.options) {
+      const idx = parseInt(ans);
+      if (isNaN(idx)) return ans;
+      return `${OPTION_LETTERS[idx]}) ${p.options[idx]}`;
+    }
+    return ans;
+  };
 
   const handleDownload = () => {
     const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -1108,24 +1235,24 @@ function ExternalSourceWorksheetCard({ task }: { task: StudyTask }) {
   h1{font-size:18px;color:#1e40af;border-bottom:2px solid #1e40af;padding-bottom:8px;margin-bottom:4px}
   .sec-header{font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;margin:22px 0 10px;padding-bottom:4px;border-bottom:1px solid #e9d5ff}
   .meta{color:#64748b;font-size:12px;margin-bottom:20px}
-  .source{font-size:12px;color:#2563eb;margin-bottom:20px}
   .qblock{margin-bottom:14px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;page-break-inside:avoid}
   .qlabel{font-size:12px;font-weight:700;color:#1e40af;margin-bottom:3px}
-  .qinstr{font-size:11px;color:#64748b;margin-bottom:8px;line-height:1.5}
-  .ans{padding:10px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;font-size:13px;min-height:60px;white-space:pre-wrap;line-height:1.6}
+  .qinstr{font-size:11px;color:#64748b;margin-bottom:6px;line-height:1.5}
+  .qsentence{font-size:12px;font-style:italic;color:#1e293b;background:#f1f5f9;padding:7px 10px;border-radius:4px;margin-bottom:8px}
+  .ans{padding:10px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;font-size:13px;min-height:36px;white-space:pre-wrap;line-height:1.6}
   .print-btn{display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;padding:8px 16px;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer}
   @media print{.print-btn{display:none!important}}
 </style></head><body>
 <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
 <h1>${task.label}</h1>
 <div class="meta">Completed: ${date} | For review by the Eng-InAja coaching team</div>
-${task.sourceUrl ? `<div class="source">Source: <a href="${task.sourceUrl}">${task.sourceUrl}</a></div>` : ""}
 ${prompts.map(p => `
 ${p.sectionHeader ? `<div class="sec-header">${p.sectionHeader}</div>` : ""}
 <div class="qblock">
   <div class="qlabel">${p.label}</div>
   <div class="qinstr">${p.instruction}</div>
-  <div class="ans">${answers[p.id] || '<span style="color:#94a3b8;font-style:italic">No answer given</span>'}</div>
+  ${p.sentence ? `<div class="qsentence">${p.sentence}</div>` : ""}
+  <div class="ans">${getAnswerText(p) || '<span style="color:#94a3b8;font-style:italic">No answer given</span>'}</div>
 </div>`).join("")}
 </body></html>`;
     const win = window.open("", "_blank");
@@ -1133,8 +1260,8 @@ ${p.sectionHeader ? `<div class="sec-header">${p.sectionHeader}</div>` : ""}
   };
 
   const worksheetContent = (isFS: boolean) => (
-    <div className={cn("space-y-4", isFS ? "p-6 max-w-3xl mx-auto" : "pt-3")}>
-      {/* Source link */}
+    <div className={cn("space-y-5", isFS ? "p-6 max-w-3xl mx-auto" : "pt-3")}>
+      {/* Single-source link */}
       {task.sourceUrl && (
         <a
           href={task.sourceUrl}
@@ -1150,25 +1277,96 @@ ${p.sectionHeader ? `<div class="sec-header">${p.sectionHeader}</div>` : ""}
         </a>
       )}
 
+      {/* Related sources (worksheet tasks with multiple sources) */}
+      {task.relatedSources && task.relatedSources.length > 0 && (
+        <div className="rounded-lg border border-border/30 bg-card/50 px-3 py-2.5 space-y-1.5">
+          <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider pb-0.5">Source materials — open before answering</p>
+          {task.relatedSources.map((src, i) => (
+            <a
+              key={i}
+              href={src.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors group"
+            >
+              {src.type === "video"
+                ? <PlayCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                : <ExternalLink className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
+              <span className="group-hover:underline underline-offset-2">{src.label}</span>
+              <span className="text-muted-foreground/40 text-[10px] ml-auto">{src.type === "video" ? "YouTube" : "Article"}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
       {/* Questions */}
       {task.worksheetPrompts!.map(prompt => (
-        <div key={prompt.id} className="space-y-1.5">
+        <div key={prompt.id} className="space-y-2">
           {prompt.sectionHeader && (
-            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest pt-1 pb-0.5 border-b border-purple-500/20">
+            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest pt-2 pb-0.5 border-b border-purple-500/20">
               {prompt.sectionHeader}
             </p>
           )}
-          <div>
-            <p className="text-xs font-semibold text-foreground/90">{prompt.label}</p>
-            <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{prompt.instruction}</p>
+
+          {/* Question label + instruction */}
+          <div className="space-y-0.5">
+            <p className="text-xs font-bold text-foreground">{prompt.label}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{prompt.instruction}</p>
           </div>
-          <textarea
-            value={answers[prompt.id] || ""}
-            onChange={e => setAnswer(prompt.id, e.target.value)}
-            rows={prompt.rows}
-            placeholder={prompt.placeholder || "Type your answer here…"}
-            className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-y leading-relaxed"
-          />
+
+          {/* Sentence with blank shown in styled block */}
+          {prompt.sentence && (
+            <div className="rounded-lg bg-muted/40 border border-border/30 px-3 py-2 text-xs text-foreground/80 italic leading-relaxed">
+              {prompt.sentence}
+            </div>
+          )}
+
+          {/* MCQ: clickable option buttons */}
+          {prompt.type === "mcq" && prompt.options ? (
+            <div className="space-y-1.5">
+              {prompt.options.map((opt, i) => {
+                const isSelected = answers[prompt.id] === String(i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setAnswer(prompt.id, isSelected ? "" : String(i))}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left text-xs transition-all",
+                      isSelected
+                        ? "border-accent/60 bg-accent/10 text-foreground"
+                        : "border-border/30 bg-background/60 text-foreground/70 hover:border-accent/30 hover:bg-accent/5"
+                    )}
+                  >
+                    <span className={cn(
+                      "w-5 h-5 rounded-full border text-[10px] font-bold flex items-center justify-center shrink-0 transition-all",
+                      isSelected ? "border-accent bg-accent text-background" : "border-border/50 text-muted-foreground"
+                    )}>
+                      {OPTION_LETTERS[i]}
+                    </span>
+                    <span className={cn("leading-snug", isSelected && "font-medium")}>{opt}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : prompt.type === "fill" ? (
+            /* Fill in blank: single-line text input */
+            <input
+              type="text"
+              value={answers[prompt.id] || ""}
+              onChange={e => setAnswer(prompt.id, e.target.value)}
+              placeholder={prompt.placeholder || "Type your answer here…"}
+              className="w-full rounded-lg border border-border bg-background/80 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-accent/50"
+            />
+          ) : (
+            /* Open ended: textarea */
+            <textarea
+              value={answers[prompt.id] || ""}
+              onChange={e => setAnswer(prompt.id, e.target.value)}
+              rows={prompt.rows}
+              placeholder={prompt.placeholder || "Type your answer here…"}
+              className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-accent/50 resize-y leading-relaxed"
+            />
+          )}
         </div>
       ))}
 
