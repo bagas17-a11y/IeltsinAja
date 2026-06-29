@@ -32,6 +32,7 @@ import { WritingAIChat } from "@/components/writing/WritingAIChat";
 import { generationStore } from "@/stores/generationStore";
 import { useGenerationEntry } from "@/hooks/useGenerationEntry";
 import { useCompletedQuestions } from "@/hooks/useCompletedQuestions";
+import { WritingWeaknessBreakdown } from "@/components/dashboard/WeaknessBreakdown";
 
 interface IeltsQuestion {
   id: string;
@@ -936,6 +937,7 @@ export default function WritingModule() {
           <ScoreCell label="Coherence & Cohesion" score={feedbackData.scoringGrid.coherenceCohesion?.score || 0} justification={feedbackData.scoringGrid.coherenceCohesion?.justification} />
           <ScoreCell label="Lexical Resource" score={feedbackData.scoringGrid.lexicalResource?.score || 0} justification={feedbackData.scoringGrid.lexicalResource?.justification} />
           <ScoreCell label="Grammatical Range & Accuracy" score={feedbackData.scoringGrid.grammaticalRange?.score || 0} justification={feedbackData.scoringGrid.grammaticalRange?.justification} />
+          <WritingWeaknessBreakdown scoringGrid={feedbackData.scoringGrid} />
         </div>
       )}
 

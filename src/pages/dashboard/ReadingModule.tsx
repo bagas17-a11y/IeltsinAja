@@ -17,6 +17,7 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { useGenerationContext } from "@/hooks/useGenerationContext";
 import { useCompletedQuestions } from "@/hooks/useCompletedQuestions";
 import { cn } from "@/lib/utils";
+import { WeaknessBreakdown } from "@/components/dashboard/WeaknessBreakdown";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -172,6 +173,7 @@ export default function ReadingModule() {
   const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
   const [highlightedEvidence, setHighlightedEvidence] = useState<string | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null);
+  const [errorCounts, setErrorCounts] = useState<Array<{ type: string; count: number }>>([]);
   const [testStartTime, setTestStartTime] = useState<Date | null>(null);
   const [testCache, setTestCache] = useState<Partial<Record<"easy" | "medium" | "hard", DifficultyCache>>>({});
 
@@ -429,6 +431,9 @@ export default function ReadingModule() {
       ? Math.floor((Date.now() - testStartTime.getTime()) / 1000)
       : TEST_DURATION_SECONDS - timeRemaining;
 
+    const errorCountsArray = Object.entries(errorCounts).map(([type, count]) => ({ type, count }));
+    setErrorCounts(errorCountsArray);
+
     markReadingCompleted(currentTest.id);
 
     try {
@@ -437,7 +442,7 @@ export default function ReadingModule() {
         total_questions: total, correct_answers: correct,
         feedback: `Test: ${currentTest.title}. Difficulty: ${currentTest.difficulty}`,
         completed_at: new Date().toISOString(), time_taken: timeTaken,
-        errors_log: Object.entries(errorCounts).map(([type, count]) => ({ type, count })),
+        errors_log: errorCountsArray,
         metadata: { testId: currentTest.id, difficulty: currentTest.difficulty },
       });
     } catch { /* ignore */ }
@@ -775,25 +780,32 @@ export default function ReadingModule() {
 
         {/* Score banner */}
         {isSubmitted && (
-          <div className="glass-card px-5 py-3 flex-shrink-0 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-accent" />
-                <span className="text-base font-light">
-                  Score: <span className="text-accent font-semibold">{calculateScore().correct}/{calculateScore().total}</span>
-                </span>
+          <>
+            <div className="glass-card px-5 py-3 flex-shrink-0 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-accent" />
+                  <span className="text-base font-light">
+                    Score: <span className="text-accent font-semibold">{calculateScore().correct}/{calculateScore().total}</span>
+                  </span>
+                </div>
+                <Badge variant="outline" className="text-accent border-accent">
+                  Band {(() => {
+                    const { correct, total } = calculateScore();
+                    return rawScoreToBand(correct, total);
+                  })()}
+                </Badge>
               </div>
-              <Badge variant="outline" className="text-accent border-accent">
-                Band {(() => {
-                  const { correct, total } = calculateScore();
-                  return rawScoreToBand(correct, total);
-                })()}
-              </Badge>
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                Click any question in the navigator to highlight the evidence
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              Click any question in the navigator to highlight the evidence
-            </p>
-          </div>
+            {errorCounts.length > 0 && (
+              <div className="px-2">
+                <WeaknessBreakdown items={errorCounts} noteMap="reading" />
+              </div>
+            )}
+          </>
         )}
 
         {/* Section tabs */}

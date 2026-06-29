@@ -896,6 +896,8 @@ ${content}`;
 4. Identify idiomatic expressions and complex grammar structures used
 5. Generate a polishedTranscript: fix grammar errors and remove fillers. Keep the student's EXACT topic, ideas, and content.
 6. Generate an enhancedSpeechNextBand: rewrite the response targeting exactly one full band above the student's overallBand (e.g., if Band 5 → write at Band 6 level). Keep every one of the student's ideas and personal story. Make incremental, realistic improvements: smoother connectors, slightly better vocabulary, fewer fillers. Sound like a real person improving, not a textbook.
+${isFullTest ? `7. For Part 2: extract the bullet points from the cue card and evaluate whether the student addressed each one. Return bulletCoverage as an array.
+8. Generate 3 examiner-style Part 3 follow-up questions thematically linked to the Part 2 cue card topic. These should be abstract, analytical, or comparative — typical Part 3 style.` : ''}
 
 Provide your response in this EXACT JSON format:
 {
@@ -942,7 +944,17 @@ Provide your response in this EXACT JSON format:
     "Most impactful actionable improvement",
     "Second improvement",
     "Third improvement"
-  ]
+  ]${isFullTest ? `,
+  "bulletCoverage": [
+    { "point": "where you got it from", "status": "covered" },
+    { "point": "how long you have had it", "status": "covered" },
+    { "point": "what you use it for", "status": "missed" }
+  ],
+  "followUpQuestions": [
+    "How has the role of personal possessions changed in your country over the past generation?",
+    "Do you think material things can ever truly reflect a person's values?",
+    "In what ways might a society be healthier if people placed less value on ownership?"
+  ]` : ''}
 }`;
     } else if (type === "reading") {
       systemPrompt = READING_TUTOR_PROMPT;

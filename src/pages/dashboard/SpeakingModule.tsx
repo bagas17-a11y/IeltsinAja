@@ -13,6 +13,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
 import { useFeatureGating } from "@/hooks/useFeatureGating";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { SpeakingWeaknessBreakdown } from "@/components/dashboard/WeaknessBreakdown";
 
 // ── Fallback question banks ────────────────────────────────────────────────
 const FALLBACK = {
@@ -129,6 +130,7 @@ export default function SpeakingModule() {
   const [p2Transcript, setP2Transcript] = useState('');
   const [p3Transcript, setP3Transcript] = useState('');
   const [feedback, setFeedback]   = useState<any>(null);
+  const [p2RecordingDuration, setP2RecordingDuration] = useState<number | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -220,6 +222,9 @@ export default function SpeakingModule() {
   };
 
   const saveP2 = () => {
+    if (recordingStartRef.current) {
+      setP2RecordingDuration((Date.now() - recordingStartRef.current) / 1000);
+    }
     setP2Transcript(transcript.trim());
     resetTranscript();
     setPhase('part3');
@@ -754,42 +759,95 @@ export default function SpeakingModule() {
               </div>
             )}
 
-            {/* Criterion cards */}
-            {[
-              { label: "Pronunciation",                data: feedback.pronunciation },
-              { label: "Task Response",                data: feedback.taskResponse },
-              { label: "Fluency & Coherence",          data: feedback.fluencyCoherence },
-              { label: "Lexical Resource",             data: feedback.lexicalResource },
-              { label: "Grammatical Range & Accuracy", data: feedback.grammaticalRange },
-            ].filter(c => c.data).map(c => (
-              <div key={c.label} className="glass-card p-6 text-center">
-                <h3 className="text-base font-semibold mb-2">{c.label}</h3>
-                <p className={`text-4xl font-light mb-4 ${getScoreColor(c.data.score)}`}>{c.data.score?.toFixed(1) ?? "—"}</p>
-                {Array.isArray(c.data.feedback) ? (
-                  <ul className="text-sm text-muted-foreground text-left max-w-xl mx-auto space-y-1.5">
-                    {c.data.feedback.map((pt: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2"><span className="text-accent mt-0.5 shrink-0">•</span><span className="leading-relaxed">{pt}</span></li>
-                    ))}
-                  </ul>
-                ) : <p className="text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto">{c.data.feedback}</p>}
-                {c.label === "Lexical Resource" && c.data.suggestions?.length > 0 && (
-                  <div className="mt-3 flex flex-wrap justify-center gap-2">
-                    {c.data.suggestions.slice(0, 3).map((s: string, i: number) => (
-                      <span key={i} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs">{s}</span>
-                    ))}
+            {/* Filler words + Speech rate */}
+            {(feedback.fillerWords || p2RecordingDuration) && (() => {
+              const fillerCount: number = feedback.fillerWords?.count ?? 0;
+              const fillerImpact: string = feedback.fillerWords?.impact ?? "";
+              const fillerExamples: string[] = feedback.fillerWords?.examples ?? [];
+              const wpm = p2RecordingDuration && p2Transcript
+                ? Math.round(p2Transcript.trim().split(/\s+/).length / (p2RecordingDuration / 60))
+                : null;
+              const wpmLabel = wpm === null ? null : wpm < 100 ? "too slow" : wpm > 160 ? "too fast" : "fluent range";
+              const wpmColor = wpm === null ? "" : wpm < 100 || wpm > 160 ? "text-yellow-400" : "text-green-400";
+              return (
+                <div className="grid grid-cols-2 gap-4">
+                  {feedback.fillerWords && (
+                    <div className="glass-card p-4 text-center">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Filler Words</p>
+                      <p className={`text-3xl font-light mb-1 ${fillerCount > 5 ? "text-destructive" : "text-green-400"}`}>{fillerCount}</p>
+                      {fillerExamples.length > 0 && (
+                        <p className="text-xs text-muted-foreground mb-1">{fillerExamples.join(", ")}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground leading-snug">{fillerCount > 5 ? "Aim for under 5 — replace with a brief pause" : "Good — low filler frequency"}</p>
+                    </div>
+                  )}
+                  {wpm !== null && (
+                    <div className="glass-card p-4 text-center">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Speech Rate (Part 2)</p>
+                      <p className={`text-3xl font-light mb-1 ${wpmColor}`}>{wpm} <span className="text-sm">WPM</span></p>
+                      <p className="text-xs text-muted-foreground leading-snug capitalize">{wpmLabel} — fluent range is 110–150 WPM</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Criterion cards — 3 official IELTS criteria first, then pronunciation */}
+            {(() => {
+              const CRITERIA_NOTE_MAP: Record<string, { slug: string; label: string }> = {
+                "Fluency & Coherence":          { slug: "linking-words-coherence",   label: "Linking Words" },
+                "Lexical Resource":             { slug: "collocations-paraphrasing", label: "Collocations" },
+                "Grammatical Range & Accuracy": { slug: "sentence-structure",        label: "Sentence Structure" },
+                "Task Response":                { slug: "paragraph-structuring",     label: "PEEL Structure" },
+              };
+              const criteriaCards = [
+                { label: "Fluency & Coherence",          data: feedback.fluencyCoherence, ielts: true },
+                { label: "Lexical Resource",             data: feedback.lexicalResource, ielts: true },
+                { label: "Grammatical Range & Accuracy", data: feedback.grammaticalRange, ielts: true },
+                { label: "Task Response",                data: feedback.taskResponse, ielts: false },
+                { label: "Pronunciation",                data: feedback.pronunciation, ielts: false },
+              ];
+              return criteriaCards.filter(c => c.data).map(c => (
+                <div key={c.label} className={`glass-card p-6 text-center ${c.ielts ? "border border-accent/10" : ""}`}>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <h3 className="text-base font-semibold">{c.label}</h3>
+                    {c.ielts && <span className="text-[10px] text-accent border border-accent/30 rounded px-1 py-0.5 uppercase tracking-wide">IELTS Scored</span>}
                   </div>
-                )}
-                {c.label === "Grammatical Range & Accuracy" && c.data.errorsFound?.length > 0 && (
-                  <ul className="mt-3 space-y-1">
-                    {c.data.errorsFound.slice(0, 3).map((e: string, i: number) => (
-                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5 text-left max-w-md mx-auto">
-                        <span className="text-destructive mt-0.5 shrink-0">×</span>{e}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+                  <p className={`text-4xl font-light mb-4 ${getScoreColor(c.data.score)}`}>{c.data.score?.toFixed(1) ?? "—"}</p>
+                  {Array.isArray(c.data.feedback) ? (
+                    <ul className="text-sm text-muted-foreground text-left max-w-xl mx-auto space-y-1.5">
+                      {c.data.feedback.map((pt: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2"><span className="text-accent mt-0.5 shrink-0">•</span><span className="leading-relaxed">{pt}</span></li>
+                      ))}
+                    </ul>
+                  ) : <p className="text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto">{c.data.feedback}</p>}
+                  {c.label === "Lexical Resource" && c.data.suggestions?.length > 0 && (
+                    <div className="mt-3 flex flex-wrap justify-center gap-2">
+                      {c.data.suggestions.slice(0, 3).map((s: string, i: number) => (
+                        <span key={i} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs">{s}</span>
+                      ))}
+                    </div>
+                  )}
+                  {c.label === "Grammatical Range & Accuracy" && c.data.errorsFound?.length > 0 && (
+                    <ul className="mt-3 space-y-1">
+                      {c.data.errorsFound.slice(0, 3).map((e: string, i: number) => (
+                        <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5 text-left max-w-md mx-auto">
+                          <span className="text-destructive mt-0.5 shrink-0">×</span>{e}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {CRITERIA_NOTE_MAP[c.label] && (
+                    <a
+                      href={`/dashboard/revision-notes?topic=${CRITERIA_NOTE_MAP[c.label].slug}`}
+                      className="mt-4 inline-flex items-center gap-1 text-xs text-accent/70 hover:text-accent transition-colors"
+                    >
+                      Revise: {CRITERIA_NOTE_MAP[c.label].label} →
+                    </a>
+                  )}
+                </div>
+              ));
+            })()}
 
             {/* Priority actions */}
             {feedback.improvements?.length > 0 && (
@@ -805,6 +863,9 @@ export default function SpeakingModule() {
                 </ol>
               </div>
             )}
+
+            {/* Weakest criterion → revision note */}
+            <SpeakingWeaknessBreakdown feedback={feedback} />
 
             {/* Model answers — parsed by part */}
             {(feedback.enhancedSpeechNextBand || feedback.enhancedSpeech) && (() => {
@@ -893,6 +954,47 @@ export default function SpeakingModule() {
                 </div>
               );
             })()}
+
+            {/* Part 2 bullet coverage */}
+            {feedback.bulletCoverage?.length > 0 && (
+              <div className="glass-card p-6">
+                <h3 className="text-sm font-semibold mb-3">Part 2 — Cue card coverage</h3>
+                <ul className="space-y-2">
+                  {feedback.bulletCoverage.map((item: { point: string; status: string }, i: number) => {
+                    const covered = item.status === "covered";
+                    const partial = item.status === "partially";
+                    return (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <span className={`mt-0.5 shrink-0 ${covered ? "text-green-400" : partial ? "text-yellow-400" : "text-destructive"}`}>
+                          {covered ? "✓" : partial ? "~" : "✗"}
+                        </span>
+                        <span className={covered ? "text-foreground/80" : partial ? "text-foreground/70" : "text-muted-foreground"}>
+                          {item.point}
+                          {!covered && !partial && <span className="text-destructive ml-1 text-xs">(not addressed)</span>}
+                          {partial && <span className="text-yellow-400 ml-1 text-xs">(partially addressed)</span>}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* Examiner follow-up questions (Day 10) */}
+            {feedback.followUpQuestions?.length > 0 && (
+              <div className="glass-card p-6 border border-accent/20">
+                <h3 className="text-sm font-semibold text-accent uppercase tracking-wide mb-3">Your examiner might ask next...</h3>
+                <p className="text-xs text-muted-foreground mb-4">These Part 3-style questions extend your Part 2 topic. Think about your answer, then record a response.</p>
+                <div className="space-y-3">
+                  {feedback.followUpQuestions.map((q: string, i: number) => (
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30">
+                      <span className="w-5 h-5 rounded-full bg-accent/20 text-accent text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                      <p className="text-sm text-foreground/80 leading-relaxed">{q}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {audioUrl && (
               <div className="glass-card p-6">

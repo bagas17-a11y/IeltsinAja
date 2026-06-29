@@ -27,6 +27,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useCompletedQuestions } from "@/hooks/useCompletedQuestions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListeningCheatsheet } from "@/components/listening/ListeningCheatsheet";
+import { WeaknessBreakdown } from "@/components/dashboard/WeaknessBreakdown";
 
 const NUMBER_WORDS: Record<string, string> = {
   "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
@@ -329,6 +330,7 @@ export default function ListeningModule() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [results, setResults] = useState<Record<string, { correct: boolean; correctAnswer: string }>>({});
+  const [errorCounts, setErrorCounts] = useState<Array<{ type: string; count: number }>>([]);
 
   // Audio player state
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
@@ -840,6 +842,7 @@ export default function ListeningModule() {
 
     let correctCount = 0;
     const newResults: Record<string, { correct: boolean; correctAnswer: string }> = {};
+    const errorsByType: Record<string, number> = {};
 
     currentTest.sections.forEach((section) => {
       section.question_groups.forEach((group) => {
@@ -848,10 +851,14 @@ export default function ListeningModule() {
           const userAnswer = answers[questionId] || "";
           const isCorrect = checkAnswer(userAnswer, item.answer);
           if (isCorrect) correctCount++;
+          else errorsByType[group.type] = (errorsByType[group.type] || 0) + 1;
           newResults[questionId] = { correct: isCorrect, correctAnswer: item.answer };
         });
       });
     });
+
+    const errorCountsArray = Object.entries(errorsByType).map(([type, count]) => ({ type, count }));
+    setErrorCounts(errorCountsArray);
 
     const totalQuestions = currentTest.totalQuestions;
     const bandScore = calculateBandScore(correctCount, totalQuestions);
@@ -882,7 +889,7 @@ export default function ListeningModule() {
             feedback: `Test: ${currentTest.title}`,
             completed_at: new Date().toISOString(),
             time_taken: currentTest.durationMinutes * 60 - timeRemaining,
-            errors_log: [],
+            errors_log: errorCountsArray,
             metadata: { testId: currentTest.id, testTitle: currentTest.title, difficulty: currentTest.difficulty },
           }),
         ]);
@@ -1558,23 +1565,28 @@ export default function ListeningModule() {
 
         {/* Score banner */}
         {isSubmitted && score !== null && (
-          <div className="flex-shrink-0 glass-card p-4 bg-gradient-to-r from-accent/10 to-elite-gold/10">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Your Score</p>
-                <p className="text-3xl font-light">
-                  <span className="text-accent">{score}</span>
-                  <span className="text-muted-foreground text-xl">/{currentTest.totalQuestions}</span>
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Estimated Band</p>
-                <p className="text-3xl font-light text-elite-gold">
-                  {calculateBandScore(score, currentTest.totalQuestions)}
-                </p>
+          <>
+            <div className="flex-shrink-0 glass-card p-4 bg-gradient-to-r from-accent/10 to-elite-gold/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Your Score</p>
+                  <p className="text-3xl font-light">
+                    <span className="text-accent">{score}</span>
+                    <span className="text-muted-foreground text-xl">/{currentTest.totalQuestions}</span>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Estimated Band</p>
+                  <p className="text-3xl font-light text-elite-gold">
+                    {calculateBandScore(score, currentTest.totalQuestions)}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+            {errorCounts.length > 0 && (
+              <WeaknessBreakdown items={errorCounts} noteMap="listening" />
+            )}
+          </>
         )}
 
         {/* Audio Player */}
