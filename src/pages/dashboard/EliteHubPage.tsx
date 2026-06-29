@@ -25,11 +25,7 @@ import {
   ClipboardList,
   TrendingUp,
   Activity,
-  Send,
-  Loader2,
-  Bot,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { RadialBarChart, RadialBar, ResponsiveContainer, Tooltip } from "recharts";
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
 import { SpeakingTutorial } from "@/components/speaking/SpeakingTutorial";
@@ -59,14 +55,6 @@ export default function EliteHubPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  const [mudahinajaModule, setMudahinajaModule] = useState<string | null>(null);
-  const [dailyBrief, setDailyBrief] = useState<string | null>(null);
-  const [briefLoading, setBriefLoading] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "coach"; text: string }>>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-
   // Overview state
   const [recentActivity, setRecentActivity] = useState<ActivityEntry[]>([]);
   const [savedNotes, setSavedNotes] = useState<{ id: string; title: string; savedAt: string }[]>([]);
@@ -74,7 +62,6 @@ export default function EliteHubPage() {
     revisionNotes: 0,
     studyPlan: 0,
     practiceTotal: 0,
-    mudahinaja: 0,
   });
 
   const isElite = profile?.subscription_tier === "elite";
@@ -106,16 +93,6 @@ export default function EliteHubPage() {
         if (count != null) setProgressStats(p => ({ ...p, studyPlan: count }));
       });
 
-    // MudahinAja completed
-    (supabase as any)
-      .from("user_completed_questions")
-      .select("question_id", { count: "exact", head: true })
-      .eq("user_id", uid)
-      .eq("module", "mudahinaja")
-      .then(({ count }: { count: number | null }) => {
-        if (count != null) setProgressStats(p => ({ ...p, mudahinaja: count }));
-      });
-
     // Practice sessions
     (supabase as any)
       .from("user_progress")
@@ -125,43 +102,6 @@ export default function EliteHubPage() {
         if (count != null) setProgressStats(p => ({ ...p, practiceTotal: count }));
       });
   }, [user?.id]);
-
-  const loadDailyBrief = async () => {
-    if (!user) return;
-    setBriefLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data } = await supabase.functions.invoke("mudahinaja-coach", {
-        body: { mode: "daily_brief" },
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-      setDailyBrief(data?.reply ?? null);
-    } catch { /* ignore */ } finally {
-      setBriefLoading(false);
-    }
-  };
-
-  const sendChatMessage = async () => {
-    if (!chatInput.trim() || chatLoading || !user) return;
-    const msg = chatInput.trim();
-    setChatInput("");
-    setChatMessages((prev) => [...prev, { role: "user", text: msg }]);
-    setChatLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data } = await supabase.functions.invoke("mudahinaja-coach", {
-        body: { mode: "chat", message: msg },
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-      const reply = data?.reply ?? "Maaf, ada masalah. Coba lagi ya.";
-      setChatMessages((prev) => [...prev, { role: "coach", text: reply }]);
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-    } catch {
-      setChatMessages((prev) => [...prev, { role: "coach", text: "Koneksi bermasalah. Coba lagi ya." }]);
-    } finally {
-      setChatLoading(false);
-    }
-  };
 
   if (!isElite) {
     return (
@@ -199,13 +139,12 @@ export default function EliteHubPage() {
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setMudahinajaModule(null); }} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start overflow-x-auto border-b border-border rounded-none bg-transparent p-0 h-auto gap-0">
             {[
               { value: "overview",       label: "Overview"       },
               { value: "revision-notes", label: "Revision Notes" },
               { value: "flashcards",     label: "Flashcards"     },
-              { value: "mudahinaja",     label: "MudahinAja"     },
               { value: "mock-exams",     label: "Mock Exams"     },
               { value: "consultation",   label: "Consultation"   },
             ].map((tab) => (
@@ -271,7 +210,7 @@ export default function EliteHubPage() {
                         <div className="w-7 h-7 rounded-lg bg-elite-gold/10 flex items-center justify-center shrink-0">
                           {a.activity_type === "revision_note" && <BookOpen className="w-3.5 h-3.5 text-elite-gold" />}
                           {a.activity_type === "practice"      && <TrendingUp className="w-3.5 h-3.5 text-elite-gold" />}
-                          {a.activity_type === "mudahinaja"    && <Sparkles className="w-3.5 h-3.5 text-elite-gold" />}
+                          {a.activity_type === "elite"         && <Sparkles className="w-3.5 h-3.5 text-elite-gold" />}
                           {a.activity_type === "study_plan"    && <ClipboardList className="w-3.5 h-3.5 text-elite-gold" />}
                           {a.activity_type === "flashcard"     && <Layers className="w-3.5 h-3.5 text-elite-gold" />}
                         </div>
@@ -295,7 +234,6 @@ export default function EliteHubPage() {
                 <div className="space-y-4">
                   {[
                     { label: "Revision Notes",   done: progressStats.revisionNotes, total: TOTAL_REVISION_TOPICS,                        color: "#a78bfa" },
-                    { label: "MudahinAja",        done: progressStats.mudahinaja,    total: 4,                                            color: "#60a5fa" },
                     { label: "Practice Sessions", done: progressStats.practiceTotal, total: Math.max(progressStats.practiceTotal, 10),    color: "#34d399" },
                     { label: "Study Plan Tasks",  done: progressStats.studyPlan,     total: Math.max(progressStats.studyPlan, 40),        color: "#fbbf24" },
                   ].map(({ label, done, total, color }) => {
@@ -395,142 +333,6 @@ export default function EliteHubPage() {
             </div>
           </TabsContent>
 
-          {/* MudahinAja */}
-          <TabsContent value="mudahinaja" className="mt-7 focus-visible:outline-none">
-            {mudahinajaModule === null ? (
-              <div className="space-y-6">
-                {/* Daily Brief */}
-                <div className="glass-card p-5 border border-elite-gold/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Bot className="w-4 h-4 text-elite-gold" />
-                      <span className="text-sm font-medium text-elite-gold">Daily Brief</span>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={loadDailyBrief} disabled={briefLoading} className="text-xs h-7">
-                      {briefLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Get brief"}
-                    </Button>
-                  </div>
-                  {dailyBrief ? (
-                    <p className="text-sm text-foreground/80 leading-relaxed">{dailyBrief}</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Tap "Get brief" for your personalised daily coaching message in Bahasa Indonesia.</p>
-                  )}
-                </div>
-
-                {/* Module tutorials */}
-                <div>
-                  <h2 className="text-base font-semibold text-foreground mb-1">MudahinAja — Tutorial Modul</h2>
-                  <p className="text-sm text-muted-foreground">Step-by-step tutorials for all four IELTS modules.</p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {[
-                    { id: "reading",   label: "Reading",   icon: BookOpen   },
-                    { id: "listening", label: "Listening", icon: Headphones },
-                    { id: "writing",   label: "Writing",   icon: PenTool    },
-                    { id: "speaking",  label: "Speaking",  icon: Mic        },
-                  ].map((mod) => (
-                    <button
-                      key={mod.id}
-                      onClick={() => setMudahinajaModule(mod.id)}
-                      className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl border border-elite-gold/20 bg-elite-gold/5 hover:bg-elite-gold/10 hover:border-elite-gold/35 transition-all text-center"
-                    >
-                      <div className="w-11 h-11 rounded-full bg-elite-gold/15 flex items-center justify-center">
-                        <mod.icon className="w-5 h-5 text-elite-gold" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{mod.label}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Start tutorial</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* AI Chat */}
-                <div className="glass-card p-5 border border-border/30">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Bot className="w-4 h-4 text-accent" />
-                    <span className="text-sm font-medium">Tanya MudahinAja</span>
-                    <span className="text-xs text-muted-foreground">— dalam Bahasa Indonesia</span>
-                  </div>
-                  <div className="min-h-[120px] max-h-72 overflow-y-auto space-y-3 mb-4">
-                    {chatMessages.length === 0 && (
-                      <p className="text-xs text-muted-foreground text-center pt-4">
-                        Tanya apa saja tentang IELTS, strategi belajar, atau minta tips untuk modul tertentu.
-                      </p>
-                    )}
-                    {chatMessages.map((m, i) => (
-                      <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-xs rounded-xl px-3 py-2 text-sm leading-relaxed ${
-                          m.role === "user" ? "bg-accent/15 text-foreground" : "bg-secondary/40 text-foreground/90"
-                        }`}>
-                          {m.text}
-                        </div>
-                      </div>
-                    ))}
-                    {chatLoading && (
-                      <div className="flex justify-start">
-                        <div className="bg-secondary/40 rounded-xl px-3 py-2">
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-                        </div>
-                      </div>
-                    )}
-                    <div ref={chatEndRef} />
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Ketik pertanyaanmu..."
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
-                      className="flex-1 text-sm"
-                      disabled={chatLoading}
-                    />
-                    <Button size="sm" onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} className="px-3">
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : mudahinajaModule === "listening" ? (
-              <div className="space-y-5">
-                <button onClick={() => setMudahinajaModule(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronLeft className="w-4 h-4" /> Back to modules
-                </button>
-                <ListeningTutorial />
-              </div>
-            ) : mudahinajaModule === "reading" ? (
-              <div className="space-y-5">
-                <button onClick={() => setMudahinajaModule(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronLeft className="w-4 h-4" /> Back to modules
-                </button>
-                <ReadingTutorial />
-              </div>
-            ) : mudahinajaModule === "speaking" ? (
-              <div className="space-y-5">
-                <button onClick={() => setMudahinajaModule(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronLeft className="w-4 h-4" /> Back to modules
-                </button>
-                <SpeakingTutorial />
-              </div>
-            ) : mudahinajaModule === "writing" ? (
-              <div className="space-y-5">
-                <button onClick={() => setMudahinajaModule(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronLeft className="w-4 h-4" /> Back to modules
-                </button>
-                <WritingCheatsheet />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <button onClick={() => setMudahinajaModule(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronLeft className="w-4 h-4" /> Back to modules
-                </button>
-                <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                  <Construction className="w-12 h-12 text-muted-foreground/40" />
-                  <p className="text-base font-medium text-muted-foreground">Coming Soon</p>
-                </div>
-              </div>
-            )}
-          </TabsContent>
 
           {/* Mock Exams */}
           <TabsContent value="mock-exams" className="mt-7 focus-visible:outline-none">

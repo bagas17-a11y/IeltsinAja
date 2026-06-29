@@ -11,6 +11,7 @@ import {
   Loader2,
   Tag,
   MessageCircle,
+  ArrowRight,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -284,8 +285,8 @@ export default function PricingSelection() {
                         "Start free"
                       ) : (
                         <>
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          Continue on WhatsApp
+                          Choose this
+                          <ArrowRight className="w-4 h-4 ml-2" />
                         </>
                       )}
                     </Button>

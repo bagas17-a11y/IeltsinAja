@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, BookOpen, Headphones, PenTool, Mic,
   BarChart3, Settings, LogOut, GraduationCap, Shield,
-  Crown, Target, Map, Layers, FlipHorizontal,
+  Crown, Target, Map, Layers, FlipHorizontal, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,7 @@ const GROUPS = [
     items: [
       { title: "Revision Notes", path: "/dashboard/revision-notes", icon: Layers },
       { title: "Flashcards",     path: "/dashboard/flashcards",     icon: FlipHorizontal },
+      { title: "Study Groups",   path: "/dashboard/group",          icon: Users },
     ],
   },
   {

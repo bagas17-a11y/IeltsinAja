@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   MessageCircle,
   UserPlus,
+  Zap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -32,19 +33,13 @@ export const PricingMatrix = () => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = cardRefs.current.findIndex((ref) => ref === entry.target);
-            if (index !== -1) {
-              setRevealedCards((prev) => new Set([...prev, index]));
-            }
+            if (index !== -1) setRevealedCards((prev) => new Set([...prev, index]));
           }
         });
       },
-      { threshold: 0.2 }
+      { threshold: 0.15 }
     );
-
-    cardRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
+    cardRefs.current.forEach((ref) => { if (ref) observer.observe(ref); });
     return () => observer.disconnect();
   }, []);
 
@@ -58,9 +53,6 @@ export const PricingMatrix = () => {
   };
 
   const handleSelectPlan = (planKey: string) => {
-    // Logged-in users go straight to the in-app pricing/payment flow so their
-    // profile is updated correctly. Cold visitors go to signup with the plan
-    // they wanted carried through.
     const target = user
       ? `/pricing-selection?plan=${planKey}`
       : `/auth?mode=signup&plan=${planKey}`;
@@ -69,8 +61,8 @@ export const PricingMatrix = () => {
 
   const getCtaLabel = (planKey: string) => {
     if (planKey === "free") return user ? "Continue with Free" : "Start free";
-    if (planKey === "pro") return profile?.subscription_tier === "pro" ? "Manage Pro" : "Choose Pro";
-    return profile?.subscription_tier === "elite" ? "You're on Elite" : "Talk to us for Elite";
+    if (planKey === "road_to_8") return profile?.subscription_tier === "elite" ? "You're on Elite" : "Talk to us";
+    return "Choose this";
   };
 
   return (
@@ -81,18 +73,13 @@ export const PricingMatrix = () => {
             Simple pricing for your <span className="text-gradient">band-score plan</span>
           </h2>
           <p className="text-base md:text-lg max-w-2xl mx-auto mb-8 text-foreground/70">
-            Start free to see if Eng-InAja fits your routine. Upgrade only when you're
+            Start free to see if IELTSInAja fits your routine. Upgrade only when you're
             ready for unlimited practice or live coaching.
           </p>
 
-          {/* Promo Code Section */}
           <div className="max-w-sm mx-auto">
             {!showPromoInput ? (
-              <Button
-                variant="ghost"
-                onClick={() => setShowPromoInput(true)}
-                className="text-accent hover:text-accent/80"
-              >
+              <Button variant="ghost" onClick={() => setShowPromoInput(true)} className="text-accent hover:text-accent/80">
                 <Tag className="w-4 h-4 mr-2" />
                 Have a promo code?
               </Button>
@@ -113,133 +100,139 @@ export const PricingMatrix = () => {
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+        {/* 4-column pricing grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto items-start">
           {PLANS.map((plan, index) => {
             const isRevealed = revealedCards.has(index);
             const { displayPrice, originalDisplayPrice } = resolvePrice(plan, promoApplied);
             const isCurrent = profile?.subscription_tier === plan.tier;
             const isElite = plan.tier === "elite";
+            const isBestValue = plan.badge === "Best Value";
+            const isRecommended = plan.badge === "Recommended";
+            const ctaLabel = getCtaLabel(plan.planKey);
 
             return (
               <div
                 key={plan.name}
                 ref={(el) => (cardRefs.current[index] = el)}
-                className={`relative transition-all duration-700 ${
-                  isRevealed ? "revealed" : "scroll-reveal"
-                } ${plan.badge === "Recommended" ? "lg:-mt-4 lg:mb-4" : ""}`}
-                style={{ transitionDelay: `${index * 150}ms` }}
+                className={`relative transition-all duration-700 ${isRevealed ? "revealed" : "scroll-reveal"} ${isBestValue ? "lg:-mt-3" : ""}`}
+                style={{ transitionDelay: `${index * 100}ms` }}
               >
-                {plan.badge === "Recommended" && (
-                  <div className="absolute -inset-0.5 bg-gradient-to-b from-accent/50 to-accent/20 rounded-2xl blur-sm -z-10" />
+                {/* Glow behind featured card */}
+                {isBestValue && (
+                  <div className="absolute -inset-px bg-gradient-to-b from-accent to-accent/30 rounded-2xl blur-md -z-10 opacity-60" />
                 )}
                 {isElite && (
-                  <div className="absolute -inset-0.5 bg-gradient-to-b from-elite-gold/50 to-elite-gold/20 rounded-2xl blur-sm -z-10" />
+                  <div className="absolute -inset-px bg-gradient-to-b from-elite-gold/60 to-elite-gold/20 rounded-2xl blur-md -z-10" />
                 )}
 
                 <div
-                  className={`glass-card p-8 h-full flex flex-col ${
-                    plan.badge === "Recommended"
-                      ? "border-accent/30"
+                  className={`rounded-2xl flex flex-col h-full overflow-hidden border ${
+                    isBestValue
+                      ? "bg-accent/10 border-accent/40"
                       : isElite
-                      ? "border-elite-gold/30"
-                      : ""
+                      ? "bg-elite-gold/5 border-elite-gold/30 glass-card"
+                      : "glass-card border-border/20"
                   }`}
                 >
-                  {plan.badge && (
-                    <div
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-6 w-fit ${
-                        plan.badge === "Recommended"
-                          ? "bg-accent/20 text-accent"
-                          : "bg-elite-gold/20 text-elite-gold"
-                      }`}
-                    >
-                      {plan.badge === "Recommended" ? (
-                        <Sparkles className="w-3 h-3" />
-                      ) : (
-                        <Crown className="w-3 h-3" />
-                      )}
-                      {plan.badge}
-                    </div>
-                  )}
-
-                  <h3 className="text-2xl font-light mb-2 text-foreground">{plan.name}</h3>
-
-                  {isElite ? (
-                    <div className="mb-1 select-none">
-                      {/* Blurred strikethrough "original" price — value from plans.ts */}
-                      <p className="text-sm line-through blur-sm text-muted-foreground mb-0.5 pointer-events-none">
-                        {plan.eliteDisplayTeaserPrice ?? "IDR 6M"}
-                      </p>
-                      {/* Actual price shown as ??? */}
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl md:text-5xl font-light text-foreground">???</span>
-                        <span className="text-muted-foreground">one-time</span>
+                  {/* Card header */}
+                  <div className={`px-6 pt-6 pb-4 ${isBestValue ? "border-b border-accent/20" : isElite ? "border-b border-elite-gold/20" : "border-b border-border/20"}`}>
+                    {/* Badge */}
+                    {plan.badge && (
+                      <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 ${
+                        isBestValue ? "bg-accent text-background" : isRecommended ? "bg-accent/20 text-accent" : "bg-elite-gold/20 text-elite-gold"
+                      }`}>
+                        {isBestValue ? <Zap className="w-3 h-3" /> : isRecommended ? <Sparkles className="w-3 h-3" /> : <Crown className="w-3 h-3" />}
+                        {plan.badge}
                       </div>
-                    </div>
-                  ) : (
-                    <div>
-                      {(plan.strikethroughDisplayPrice || originalDisplayPrice) && (
-                        <p className="text-sm text-muted-foreground line-through mb-0.5">
-                          {originalDisplayPrice ?? plan.strikethroughDisplayPrice}
+                    )}
+
+                    <h3 className="text-lg font-medium text-foreground mb-3">{plan.name}</h3>
+
+                    {/* Price */}
+                    {isElite ? (
+                      <div className="mb-3">
+                        <p className="text-sm line-through blur-sm text-muted-foreground mb-0.5 pointer-events-none select-none">
+                          {plan.eliteDisplayTeaserPrice ?? "IDR 6M"}
                         </p>
-                      )}
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-4xl md:text-5xl font-light text-foreground">
-                          {displayPrice}
-                        </span>
-                        {plan.period && (
-                          <span className="text-muted-foreground">{plan.period}</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <p className="text-foreground/60 mb-6">{plan.description}</p>
-
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-3 h-3 text-accent" />
+                        <div className="flex items-baseline gap-1.5">
+                          <span className={`text-3xl font-light ${isElite ? "text-elite-gold" : "text-foreground"}`}>???</span>
+                          <span className="text-sm text-muted-foreground">one-time</span>
                         </div>
-                        <span className="text-sm text-foreground/80">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                      </div>
+                    ) : (
+                      <div className="mb-3">
+                        {(plan.strikethroughDisplayPrice || originalDisplayPrice) && (
+                          <p className="text-sm text-muted-foreground line-through mb-0.5">
+                            {originalDisplayPrice ?? plan.strikethroughDisplayPrice}
+                          </p>
+                        )}
+                        <div className="flex items-baseline gap-1.5">
+                          <span className={`text-3xl font-light ${isBestValue ? "text-accent" : "text-foreground"}`}>
+                            {displayPrice}
+                          </span>
+                          {plan.period && (
+                            <span className="text-sm text-muted-foreground">{plan.period}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
-                  {/* CTA */}
-                  {isElite ? (
-                    <div className="flex flex-col gap-2">
+                    <p className="text-xs text-foreground/50 mb-4 leading-snug">{plan.description}</p>
+
+                    {/* CTA button — top of card for quick scanning */}
+                    {isElite ? (
+                      <div className="space-y-2">
+                        <Button
+                          onClick={() => handleSelectPlan(plan.planKey)}
+                          variant="outline"
+                          className="w-full border-elite-gold/40 text-elite-gold hover:bg-elite-gold/10 text-sm"
+                          disabled={isCurrent}
+                        >
+                          {isCurrent ? "You're on Elite" : "Talk to us"}
+                          {!isCurrent && <ArrowRight className="w-3.5 h-3.5 ml-1.5" />}
+                        </Button>
+                        <a
+                          href={buildWhatsAppLink(CONTACT_MESSAGES.bookConsultation)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-xs text-center text-muted-foreground hover:text-elite-gold transition-colors"
+                        >
+                          or chat on WhatsApp →
+                        </a>
+                      </div>
+                    ) : (
                       <Button
                         onClick={() => handleSelectPlan(plan.planKey)}
-                        variant="outline"
-                        className="w-full border-elite-gold/30 text-elite-gold hover:bg-elite-gold/10"
+                        className={`w-full text-sm ${
+                          isBestValue
+                            ? "bg-accent hover:bg-accent/90 text-background font-medium"
+                            : ""
+                        }`}
+                        variant={isBestValue ? "default" : isRecommended ? "neumorphicPrimary" : "outline"}
                         disabled={isCurrent}
                       >
-                        {isCurrent ? "You're on Elite" : "Book a Meeting"}
-                        {!isCurrent && <ArrowRight className="w-4 h-4 ml-2" />}
+                        {isCurrent ? "Current plan" : ctaLabel}
+                        {!isCurrent && plan.tier !== "free" && <ArrowRight className="w-3.5 h-3.5 ml-1.5" />}
                       </Button>
-                      <a
-                        href={buildWhatsAppLink(CONTACT_MESSAGES.bookConsultation)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-center text-muted-foreground hover:text-elite-gold transition-colors"
-                      >
-                        or chat with us first on WhatsApp →
-                      </a>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={() => handleSelectPlan(plan.planKey)}
-                      variant={plan.badge === "Recommended" ? "neumorphicPrimary" : "outline"}
-                      className="w-full"
-                      disabled={isCurrent}
-                    >
-                      {isCurrent ? "Current plan" : getCtaLabel(plan.planKey)}
-                      {!isCurrent && <ArrowRight className="w-4 h-4 ml-2" />}
-                    </Button>
-                  )}
+                    )}
+                  </div>
+
+                  {/* Features list */}
+                  <div className="px-6 py-5 flex-1">
+                    <ul className="space-y-2.5">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2.5">
+                          <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                            isBestValue ? "bg-accent/20" : "bg-accent/10"
+                          }`}>
+                            <Check className={`w-2.5 h-2.5 ${isBestValue ? "text-accent" : "text-accent"}`} />
+                          </div>
+                          <span className="text-xs text-foreground/75 leading-snug">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             );
