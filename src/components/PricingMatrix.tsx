@@ -167,9 +167,9 @@ export const PricingMatrix = () => {
 
                   {isElite ? (
                     <div className="mb-1 select-none">
-                      {/* Blurred strikethrough "original" price */}
+                      {/* Blurred strikethrough "original" price — value from plans.ts */}
                       <p className="text-sm line-through blur-sm text-muted-foreground mb-0.5 pointer-events-none">
-                        IDR 6M
+                        {plan.eliteDisplayTeaserPrice ?? "IDR 6M"}
                       </p>
                       {/* Actual price shown as ??? */}
                       <div className="flex items-baseline gap-2">

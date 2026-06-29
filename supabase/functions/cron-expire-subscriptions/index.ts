@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     const cronSecret = Deno.env.get('CRON_SECRET');
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       console.error('Unauthorized cron job attempt');
       return new Response(
         JSON.stringify({

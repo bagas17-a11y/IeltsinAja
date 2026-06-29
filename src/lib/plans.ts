@@ -26,6 +26,11 @@ export interface PlanDefinition {
   period: string;
   /** Numeric IDR amount used by Supabase (always full price; promo applied separately). */
   amount: number;
+  /**
+   * Blurred "teaser" price shown on the Elite card on the landing page.
+   * Intentionally obscured so the price isn't the first thing visitors see.
+   */
+  eliteDisplayTeaserPrice?: string;
   /** Amount when promo BAGASCUTS is applied. */
   discountedAmount?: number;
   description: string;
@@ -80,6 +85,7 @@ export const PLANS: PlanDefinition[] = [
     tier: "elite",
     name: "Elite",
     displayPrice: "IDR 2.5M",
+    eliteDisplayTeaserPrice: "IDR 6M",
     period: "one-time",
     amount: 2500000,
     description: "A complete done-for-you roadmap: personalised study plan, live coaching, and expert essay reviews — everything you need for a 1+ band increase.",
