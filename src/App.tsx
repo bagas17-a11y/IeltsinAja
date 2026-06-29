@@ -43,6 +43,7 @@ const SpeakingManager    = lazy(() => import("./pages/admin/SpeakingManager"));
 const ReadingManager     = lazy(() => import("./pages/admin/ReadingManager"));
 const AdminDashboard     = lazy(() => import("./pages/admin/AdminDashboard"));
 const UserManagement     = lazy(() => import("./pages/admin/UserManagement"));
+const StudentProgress    = lazy(() => import("./pages/admin/StudentProgress"));
 
 // ── Full-screen spinner shown while a route chunk is downloading ───────────
 function PageLoader() {
@@ -85,6 +86,7 @@ const App = () => (
               <Route path="/admin/subscriptions" element={<UserManagement />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/diagnostic-test" element={<DiagnosticTest />} />
+              <Route path="/admin/progress" element={<StudentProgress />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/reading" element={<ReadingModule />} />

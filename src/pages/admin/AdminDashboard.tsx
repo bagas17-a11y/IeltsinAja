@@ -29,6 +29,7 @@ import {
   FileText,
   Zap,
   Settings,
+  BarChart2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -300,6 +301,13 @@ export default function AdminDashboard() {
       path: "/admin/reading",
       color: "text-accent",
     },
+    {
+      title: "Student Progress",
+      description: "Module scores, weak areas, study plan completion",
+      icon: <BarChart2 className="w-6 h-6" />,
+      path: "/admin/progress",
+      color: "text-purple-500",
+    },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -474,7 +482,7 @@ export default function AdminDashboard() {
             <Settings className="w-5 h-5 text-accent" />
             Quick Actions
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {quickActions.map((action) => (
               <Card
                 key={action.path}
