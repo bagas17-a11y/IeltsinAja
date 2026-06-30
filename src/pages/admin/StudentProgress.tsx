@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -133,6 +133,27 @@ export default function StudentProgress() {
   const [expandedEssayId, setExpandedEssayId] = useState<string | null>(null);
   const [coachNotes, setCoachNotes] = useState<Record<string, string>>({});
   const [savingNote, setSavingNote] = useState<string | null>(null);
+
+  // Drag-to-resize sheet
+  const [sheetWidth, setSheetWidth] = useState(640);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      if (!isDragging.current) return;
+      const delta = dragStartX.current - e.clientX;
+      setSheetWidth(Math.max(420, Math.min(1100, dragStartWidth.current + delta)));
+    }
+    function onUp() { isDragging.current = false; }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !user) { navigate("/auth"); return; }
@@ -426,9 +447,22 @@ export default function StudentProgress() {
       </div>
 
       <Sheet open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
-        <SheetContent className="w-full max-w-xl overflow-y-auto">
+        <SheetContent
+          className="overflow-y-auto p-0"
+          style={{ width: sheetWidth, maxWidth: "none" }}
+        >
+          {/* Drag handle */}
+          <div
+            onMouseDown={(e) => {
+              isDragging.current = true;
+              dragStartX.current = e.clientX;
+              dragStartWidth.current = sheetWidth;
+              e.preventDefault();
+            }}
+            className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-accent/40 transition-colors z-10"
+          />
           {selectedStudent && (
-            <>
+            <div className="p-6">
               <SheetHeader className="mb-6">
                 <SheetTitle className="font-light text-lg">{selectedStudent.email}</SheetTitle>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -668,7 +702,7 @@ export default function StudentProgress() {
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
         </SheetContent>
       </Sheet>

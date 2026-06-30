@@ -75,6 +75,7 @@ export const PLANS: PlanDefinition[] = [
       "Unlimited AI Writing band-score feedback",
       "Unlimited AI Speaking analysis",
       "Unlimited Revision Notes & Flashcards",
+      "Study Groups — practice together with friends",
       "Progress analytics dashboard",
       "Email + WhatsApp support",
     ],
@@ -90,6 +91,7 @@ export const PLANS: PlanDefinition[] = [
     description: "Same unlimited practice as Pro — best value when you commit to the year.",
     features: [
       "Everything in Pro",
+      "Study Groups — practice together with friends",
       "Save 58% vs monthly (IDR 83K/month)",
       "12-month access — one payment",
       "Unlimited AI across all modules",

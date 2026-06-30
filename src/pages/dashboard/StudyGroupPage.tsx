@@ -238,7 +238,7 @@ export default function StudyGroupPage() {
   if (view === "group" && myGroup) {
     return (
       <DashboardLayout>
-        <div className="space-y-6 max-w-2xl">
+        <div className="space-y-6 max-w-2xl mx-auto">
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-light">{myGroup.name}</h1>
@@ -336,7 +336,7 @@ export default function StudyGroupPage() {
   // Landing: create or join
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-md">
+      <div className="space-y-6 max-w-lg mx-auto">
         <div>
           <h1 className="text-2xl font-light">Study Groups</h1>
           <p className="text-sm text-muted-foreground mt-1">
