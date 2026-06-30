@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   MessageCircle,
   UserPlus,
-  Zap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -21,10 +20,11 @@ import { buildWhatsAppLink, CONTACT_MESSAGES } from "@/lib/contact";
 export const PricingMatrix = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
+  const [proAnnual, setProAnnual] = useState(false);
   const [showPromoInput, setShowPromoInput] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
+  const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -59,11 +59,21 @@ export const PricingMatrix = () => {
     navigate(target);
   };
 
-  const getCtaLabel = (planKey: string) => {
-    if (planKey === "free") return user ? "Continue with Free" : "Start free";
-    if (planKey === "road_to_8") return profile?.subscription_tier === "elite" ? "You're on Elite" : "Talk to us";
-    return "Choose this";
-  };
+  const freePlan   = PLANS.find((p) => p.planKey === "free")!;
+  const proPlan    = PLANS.find((p) => p.planKey === "pro")!;
+  const proAnnPlan = PLANS.find((p) => p.planKey === "pro_annual")!;
+  const elitePlan  = PLANS.find((p) => p.planKey === "road_to_8")!;
+
+  const activePro = proAnnual ? proAnnPlan : proPlan;
+  const { displayPrice: proPrice, originalDisplayPrice: proOriginal } = resolvePrice(activePro, promoApplied);
+
+  const cards = [
+    { plan: freePlan,  index: 0 },
+    { plan: activePro, index: 1 },
+    { plan: elitePlan, index: 2 },
+  ];
+
+  const isCurrent = (tier: string) => profile?.subscription_tier === tier;
 
   return (
     <section id="pricing" className="py-24 md:py-32 relative">
@@ -100,143 +110,189 @@ export const PricingMatrix = () => {
           </div>
         </div>
 
-        {/* 4-column pricing grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto items-start">
-          {PLANS.map((plan, index) => {
-            const isRevealed = revealedCards.has(index);
-            const { displayPrice, originalDisplayPrice } = resolvePrice(plan, promoApplied);
-            const isCurrent = profile?.subscription_tier === plan.tier;
-            const isElite = plan.tier === "elite";
-            const isBestValue = plan.badge === "Best Value";
-            const isRecommended = plan.badge === "Recommended";
-            const ctaLabel = getCtaLabel(plan.planKey);
+        {/* 3-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
 
-            return (
-              <div
-                key={plan.name}
-                ref={(el) => (cardRefs.current[index] = el)}
-                className={`relative transition-all duration-700 ${isRevealed ? "revealed" : "scroll-reveal"} ${isBestValue ? "lg:-mt-3" : ""}`}
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                {/* Glow behind featured card */}
-                {isBestValue && (
-                  <div className="absolute -inset-px bg-gradient-to-b from-accent to-accent/30 rounded-2xl blur-md -z-10 opacity-60" />
-                )}
-                {isElite && (
-                  <div className="absolute -inset-px bg-gradient-to-b from-elite-gold/60 to-elite-gold/20 rounded-2xl blur-md -z-10" />
-                )}
-
-                <div
-                  className={`rounded-2xl flex flex-col h-full overflow-hidden border ${
-                    isBestValue
-                      ? "bg-accent/10 border-accent/40"
-                      : isElite
-                      ? "bg-elite-gold/5 border-elite-gold/30 glass-card"
-                      : "glass-card border-border/20"
-                  }`}
+          {/* ── Free ── */}
+          <div
+            ref={(el) => (cardRefs.current[0] = el)}
+            className={`relative transition-all duration-700 ${revealedCards.has(0) ? "revealed" : "scroll-reveal"}`}
+          >
+            <div className="rounded-2xl flex flex-col h-full overflow-hidden border glass-card border-border/20">
+              <div className="px-6 pt-6 pb-4 border-b border-border/20">
+                <h3 className="text-lg font-medium text-foreground mb-3">Free</h3>
+                <div className="flex items-baseline gap-1.5 mb-3">
+                  <span className="text-3xl font-light text-foreground">IDR 0</span>
+                </div>
+                <p className="text-xs text-foreground/50 mb-4 leading-snug">{freePlan.description}</p>
+                <Button
+                  onClick={() => handleSelectPlan("free")}
+                  variant="outline"
+                  className="w-full text-sm border-border/40"
+                  disabled={isCurrent("free")}
                 >
-                  {/* Card header */}
-                  <div className={`px-6 pt-6 pb-4 ${isBestValue ? "border-b border-accent/20" : isElite ? "border-b border-elite-gold/20" : "border-b border-border/20"}`}>
-                    {/* Badge */}
-                    {plan.badge && (
-                      <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 ${
-                        isBestValue ? "bg-accent text-background" : isRecommended ? "bg-accent/20 text-accent" : "bg-elite-gold/20 text-elite-gold"
-                      }`}>
-                        {isBestValue ? <Zap className="w-3 h-3" /> : isRecommended ? <Sparkles className="w-3 h-3" /> : <Crown className="w-3 h-3" />}
-                        {plan.badge}
+                  {isCurrent("free") ? "Current plan" : user ? "Continue with Free" : "Start free"}
+                </Button>
+              </div>
+              <div className="px-6 py-5 flex-1">
+                <ul className="space-y-2.5">
+                  {freePlan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check className="w-2.5 h-2.5 text-accent" />
                       </div>
-                    )}
+                      <span className="text-xs text-foreground/75 leading-snug">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
 
-                    <h3 className="text-lg font-medium text-foreground mb-3">{plan.name}</h3>
+          {/* ── Pro (with monthly/annual toggle) ── */}
+          <div
+            ref={(el) => (cardRefs.current[1] = el)}
+            className={`relative transition-all duration-700 ${revealedCards.has(1) ? "revealed" : "scroll-reveal"} md:-mt-3`}
+            style={{ transitionDelay: "100ms" }}
+          >
+            <div className="absolute -inset-px bg-gradient-to-b from-accent to-accent/30 rounded-2xl blur-md -z-10 opacity-60" />
+            <div className="rounded-2xl flex flex-col h-full overflow-hidden border bg-accent/10 border-accent/40">
+              <div className="px-6 pt-6 pb-4 border-b border-accent/20">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 bg-accent/20 text-accent">
+                  <Sparkles className="w-3 h-3" />
+                  Recommended
+                </div>
 
-                    {/* Price */}
-                    {isElite ? (
-                      <div className="mb-3">
-                        <p className="text-sm line-through blur-sm text-muted-foreground mb-0.5 pointer-events-none select-none">
-                          {plan.eliteDisplayTeaserPrice ?? "IDR 6M"}
-                        </p>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className={`text-3xl font-light ${isElite ? "text-elite-gold" : "text-foreground"}`}>???</span>
-                          <span className="text-sm text-muted-foreground">one-time</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mb-3">
-                        {(plan.strikethroughDisplayPrice || originalDisplayPrice) && (
-                          <p className="text-sm text-muted-foreground line-through mb-0.5">
-                            {originalDisplayPrice ?? plan.strikethroughDisplayPrice}
-                          </p>
-                        )}
-                        <div className="flex items-baseline gap-1.5">
-                          <span className={`text-3xl font-light ${isBestValue ? "text-accent" : "text-foreground"}`}>
-                            {displayPrice}
-                          </span>
-                          {plan.period && (
-                            <span className="text-sm text-muted-foreground">{plan.period}</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                <h3 className="text-lg font-medium text-foreground mb-3">Pro</h3>
 
-                    <p className="text-xs text-foreground/50 mb-4 leading-snug">{plan.description}</p>
+                {/* Monthly / Annual toggle */}
+                <div className="flex rounded-lg bg-background/30 p-0.5 mb-4 gap-0.5">
+                  <button
+                    onClick={() => setProAnnual(false)}
+                    className={`flex-1 text-xs py-1.5 rounded-md transition-all ${
+                      !proAnnual
+                        ? "bg-background text-foreground shadow-sm font-medium"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setProAnnual(true)}
+                    className={`flex-1 text-xs py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                      proAnnual
+                        ? "bg-background text-foreground shadow-sm font-medium"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Annual
+                    <span className="text-accent text-[10px] font-semibold">-55%</span>
+                  </button>
+                </div>
 
-                    {/* CTA button — top of card for quick scanning */}
-                    {isElite ? (
-                      <div className="space-y-2">
-                        <Button
-                          onClick={() => handleSelectPlan(plan.planKey)}
-                          variant="outline"
-                          className="w-full border-elite-gold/40 text-elite-gold hover:bg-elite-gold/10 text-sm"
-                          disabled={isCurrent}
-                        >
-                          {isCurrent ? "You're on Elite" : "Talk to us"}
-                          {!isCurrent && <ArrowRight className="w-3.5 h-3.5 ml-1.5" />}
-                        </Button>
-                        <a
-                          href={buildWhatsAppLink(CONTACT_MESSAGES.bookConsultation)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block text-xs text-center text-muted-foreground hover:text-elite-gold transition-colors"
-                        >
-                          or chat on WhatsApp →
-                        </a>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={() => handleSelectPlan(plan.planKey)}
-                        className={`w-full text-sm ${
-                          isBestValue
-                            ? "bg-accent hover:bg-accent/90 text-background font-medium"
-                            : ""
-                        }`}
-                        variant={isBestValue ? "default" : isRecommended ? "neumorphicPrimary" : "outline"}
-                        disabled={isCurrent}
-                      >
-                        {isCurrent ? "Current plan" : ctaLabel}
-                        {!isCurrent && plan.tier !== "free" && <ArrowRight className="w-3.5 h-3.5 ml-1.5" />}
-                      </Button>
-                    )}
+                {/* Price */}
+                <div className="mb-1">
+                  {(proOriginal || proPlan.strikethroughDisplayPrice) && !proAnnual && (
+                    <p className="text-sm text-muted-foreground line-through mb-0.5">
+                      {proOriginal ?? proPlan.strikethroughDisplayPrice}
+                    </p>
+                  )}
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl font-light text-accent">{proPrice}</span>
+                    <span className="text-sm text-muted-foreground">{activePro.period}</span>
                   </div>
+                  {proAnnual && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Billed IDR 1.08M upfront · save IDR 1.32M vs monthly
+                    </p>
+                  )}
+                </div>
 
-                  {/* Features list */}
-                  <div className="px-6 py-5 flex-1">
-                    <ul className="space-y-2.5">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-2.5">
-                          <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                            isBestValue ? "bg-accent/20" : "bg-accent/10"
-                          }`}>
-                            <Check className={`w-2.5 h-2.5 ${isBestValue ? "text-accent" : "text-accent"}`} />
-                          </div>
-                          <span className="text-xs text-foreground/75 leading-snug">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <p className="text-xs text-foreground/50 mb-4 mt-3 leading-snug">{activePro.description}</p>
+
+                <Button
+                  onClick={() => handleSelectPlan(proAnnual ? "pro_annual" : "pro")}
+                  className="w-full text-sm bg-accent hover:bg-accent/90 text-background font-medium"
+                  disabled={isCurrent("pro")}
+                >
+                  {isCurrent("pro") ? "Current plan" : "Choose this"}
+                  {!isCurrent("pro") && <ArrowRight className="w-3.5 h-3.5 ml-1.5" />}
+                </Button>
+              </div>
+              <div className="px-6 py-5 flex-1">
+                <ul className="space-y-2.5">
+                  {activePro.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check className="w-2.5 h-2.5 text-accent" />
+                      </div>
+                      <span className="text-xs text-foreground/75 leading-snug">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Elite ── */}
+          <div
+            ref={(el) => (cardRefs.current[2] = el)}
+            className={`relative transition-all duration-700 ${revealedCards.has(2) ? "revealed" : "scroll-reveal"}`}
+            style={{ transitionDelay: "200ms" }}
+          >
+            <div className="absolute -inset-px bg-gradient-to-b from-elite-gold/60 to-elite-gold/20 rounded-2xl blur-md -z-10" />
+            <div className="rounded-2xl flex flex-col h-full overflow-hidden border bg-elite-gold/5 border-elite-gold/30 glass-card">
+              <div className="px-6 pt-6 pb-4 border-b border-elite-gold/20">
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 bg-elite-gold/20 text-elite-gold">
+                  <Crown className="w-3 h-3" />
+                  Limited Spots
+                </div>
+
+                <h3 className="text-lg font-medium text-foreground mb-3">Elite</h3>
+
+                <div className="flex items-baseline gap-1.5 mb-3">
+                  <span className="text-3xl font-light text-elite-gold">From IDR 2.5M</span>
+                  <span className="text-sm text-muted-foreground">one-time</span>
+                </div>
+
+                <p className="text-xs text-foreground/50 mb-4 leading-snug">{elitePlan.description}</p>
+
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => handleSelectPlan(elitePlan.planKey)}
+                    variant="outline"
+                    className="w-full border-elite-gold/40 text-elite-gold hover:bg-elite-gold/10 text-sm"
+                    disabled={isCurrent("elite")}
+                  >
+                    {isCurrent("elite") ? "You're on Elite" : "Talk to us"}
+                    {!isCurrent("elite") && <ArrowRight className="w-3.5 h-3.5 ml-1.5" />}
+                  </Button>
+                  <a
+                    href={buildWhatsAppLink(CONTACT_MESSAGES.bookConsultation)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-xs text-center text-muted-foreground hover:text-elite-gold transition-colors"
+                  >
+                    or chat on WhatsApp →
+                  </a>
                 </div>
               </div>
-            );
-          })}
+              <div className="px-6 py-5 flex-1">
+                <ul className="space-y-2.5">
+                  {elitePlan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full bg-elite-gold/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check className="w-2.5 h-2.5 text-elite-gold" />
+                      </div>
+                      <span className="text-xs text-foreground/75 leading-snug">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* How signup works */}
