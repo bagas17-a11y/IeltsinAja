@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -25,11 +25,7 @@ import {
   ClipboardList,
   TrendingUp,
   Activity,
-  Send,
-  Loader2,
-  Bot,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { RadialBarChart, RadialBar, ResponsiveContainer, Tooltip } from "recharts";
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
 import { SpeakingTutorial } from "@/components/speaking/SpeakingTutorial";
@@ -60,12 +56,6 @@ export default function EliteHubPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [mudahinajaModule, setMudahinajaModule] = useState<string | null>(null);
-  const [dailyBrief, setDailyBrief] = useState<string | null>(null);
-  const [briefLoading, setBriefLoading] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "coach"; text: string }>>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   // Overview state
   const [recentActivity, setRecentActivity] = useState<ActivityEntry[]>([]);
   const [savedNotes, setSavedNotes] = useState<{ id: string; title: string; savedAt: string }[]>([]);
@@ -113,43 +103,6 @@ export default function EliteHubPage() {
         if (count != null) setProgressStats(p => ({ ...p, practiceTotal: count }));
       });
   }, [user?.id]);
-
-  const loadDailyBrief = async () => {
-    if (!user) return;
-    setBriefLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data } = await supabase.functions.invoke("mudahinaja-coach", {
-        body: { mode: "daily_brief" },
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-      setDailyBrief(data?.reply ?? null);
-    } catch { /* ignore */ } finally {
-      setBriefLoading(false);
-    }
-  };
-
-  const sendChatMessage = async () => {
-    if (!chatInput.trim() || chatLoading || !user) return;
-    const msg = chatInput.trim();
-    setChatInput("");
-    setChatMessages((prev) => [...prev, { role: "user", text: msg }]);
-    setChatLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data } = await supabase.functions.invoke("mudahinaja-coach", {
-        body: { mode: "chat", message: msg },
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-      const reply = data?.reply ?? "Maaf, ada masalah. Coba lagi ya.";
-      setChatMessages((prev) => [...prev, { role: "coach", text: reply }]);
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-    } catch {
-      setChatMessages((prev) => [...prev, { role: "coach", text: "Koneksi bermasalah. Coba lagi ya." }]);
-    } finally {
-      setChatLoading(false);
-    }
-  };
 
   if (!isElite) {
     return (
@@ -387,25 +340,6 @@ export default function EliteHubPage() {
           <TabsContent value="mudahinaja" className="mt-7 focus-visible:outline-none">
             {mudahinajaModule === null ? (
               <div className="space-y-6">
-                {/* Daily Brief */}
-                <div className="glass-card p-5 border border-elite-gold/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Bot className="w-4 h-4 text-elite-gold" />
-                      <span className="text-sm font-medium text-elite-gold">Daily Brief</span>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={loadDailyBrief} disabled={briefLoading} className="text-xs h-7">
-                      {briefLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Get brief"}
-                    </Button>
-                  </div>
-                  {dailyBrief ? (
-                    <p className="text-sm text-foreground/80 leading-relaxed">{dailyBrief}</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Tap "Get brief" for your personalised daily coaching message in Bahasa Indonesia.</p>
-                  )}
-                </div>
-
-                {/* Module tutorials */}
                 <div>
                   <h2 className="text-base font-semibold text-foreground mb-1">MudahinAja — Tutorial Modul</h2>
                   <p className="text-sm text-muted-foreground">Step-by-step tutorials for all four IELTS modules.</p>
@@ -431,52 +365,6 @@ export default function EliteHubPage() {
                       </div>
                     </button>
                   ))}
-                </div>
-
-                {/* AI Chat */}
-                <div className="glass-card p-5 border border-border/30">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Bot className="w-4 h-4 text-accent" />
-                    <span className="text-sm font-medium">Tanya MudahinAja</span>
-                    <span className="text-xs text-muted-foreground">— dalam Bahasa Indonesia</span>
-                  </div>
-                  <div className="min-h-[120px] max-h-72 overflow-y-auto space-y-3 mb-4">
-                    {chatMessages.length === 0 && (
-                      <p className="text-xs text-muted-foreground text-center pt-4">
-                        Tanya apa saja tentang IELTS, strategi belajar, atau minta tips untuk modul tertentu.
-                      </p>
-                    )}
-                    {chatMessages.map((m, i) => (
-                      <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-xs rounded-xl px-3 py-2 text-sm leading-relaxed ${
-                          m.role === "user" ? "bg-accent/15 text-foreground" : "bg-secondary/40 text-foreground/90"
-                        }`}>
-                          {m.text}
-                        </div>
-                      </div>
-                    ))}
-                    {chatLoading && (
-                      <div className="flex justify-start">
-                        <div className="bg-secondary/40 rounded-xl px-3 py-2">
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-                        </div>
-                      </div>
-                    )}
-                    <div ref={chatEndRef} />
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Ketik pertanyaanmu..."
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
-                      className="flex-1 text-sm"
-                      disabled={chatLoading}
-                    />
-                    <Button size="sm" onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} className="px-3">
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
                 </div>
               </div>
             ) : mudahinajaModule === "listening" ? (
