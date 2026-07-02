@@ -12,22 +12,22 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { CredibilitySection } from "@/components/CredibilitySection";
 
 const Index = () => {
-  // Landing page is always dark regardless of the user's saved theme preference.
-  // MutationObserver blocks ThemeProvider from re-adding the .light class while
-  // this component is mounted. Cleanup restores the user's theme on navigation away.
+  // Landing page is always light — bright Cluely-style feel regardless of saved preference.
+  // MutationObserver prevents ThemeProvider from removing .light while this page is mounted.
+  // Cleanup restores the user's dashboard theme on navigation away.
   useLayoutEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("light");
+    root.classList.add("light");
 
     const observer = new MutationObserver(() => {
-      if (root.classList.contains("light")) root.classList.remove("light");
+      if (!root.classList.contains("light")) root.classList.add("light");
     });
     observer.observe(root, { attributes: true, attributeFilter: ["class"] });
 
     return () => {
       observer.disconnect();
       const stored = localStorage.getItem("ielts-theme");
-      if (!stored || stored === "light") root.classList.add("light");
+      if (!stored || stored === "dark") root.classList.remove("light");
     };
   }, []);
 

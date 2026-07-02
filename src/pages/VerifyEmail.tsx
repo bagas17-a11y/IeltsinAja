@@ -129,7 +129,7 @@ export default function VerifyEmail() {
           {/* Logo */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-light tracking-tight">
-              Eng<span className="text-accent font-medium">InAja</span>
+              Mum<span className="text-accent font-medium">puni</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-2">
               Verify your email

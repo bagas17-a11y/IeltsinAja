@@ -133,9 +133,9 @@ export function DashboardSidebar() {
             isCollapsed && "text-lg"
           )}>
             {isCollapsed ? (
-              <span className="text-accent font-medium">IA</span>
+              <span className="text-accent font-medium">M</span>
             ) : (
-              <>Eng<span className="text-accent font-medium">InAja</span></>
+              <>Mum<span className="text-accent font-medium">puni</span></>
             )}
           </a>
         </div>

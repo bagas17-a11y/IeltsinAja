@@ -41,7 +41,7 @@ export const Header = () => {
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
           <a href="#" className="text-2xl font-light tracking-tight text-foreground">
-            Mum<span className="text-accent font-medium">pune</span>
+            Mum<span className="text-accent font-medium">puni</span>
           </a>
 
           {/* Desktop Navigation */}
