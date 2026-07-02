@@ -12,7 +12,7 @@
 
 export const OPERATOR = {
   /** Public-facing operator name used on the pricing/payment surface. */
-  name: "Mumpune (operated by Bagas Haryo Wicaksono)",
+  name: "Mumpune",
   /** Country dial code + WhatsApp number for support (no leading +). */
   whatsappNumber: "6281934349453",
   instagramHandle: "eng-inaja",
