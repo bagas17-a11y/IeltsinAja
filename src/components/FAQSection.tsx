@@ -9,9 +9,9 @@ import { buildWhatsAppLink, CONTACT_MESSAGES } from "@/lib/contact";
 
 const faqs = [
   {
-    question: "Apa itu Eng-InAja? / What is Eng-InAja?",
+    question: "Apa itu Mumpune? / What is Mumpune?",
     answer:
-      "Eng-InAja is an AI-powered IELTS prep platform built for Indonesian learners. You can practice Reading, Listening, Writing, and Speaking with instant AI band-score feedback. The Elite plan adds live coaching with an 8.5+ scorer. We're in pilot, so prices and features are evolving — your feedback shapes the next version.",
+      "Mumpune is an AI-powered IELTS prep platform built for Indonesian learners. You can practice Reading, Listening, Writing, and Speaking with instant AI band-score feedback. The Elite plan adds live coaching with an 8.5+ scorer. We're in pilot, so prices and features are evolving — your feedback shapes the next version.",
   },
   {
     question: "How accurate is the AI feedback?",
@@ -29,9 +29,9 @@ const faqs = [
       "Yes. You can upgrade at any time. Pro is billed monthly so simply stop renewing to cancel. Elite is a one-time purchase — once your 5 coaching hours are used or 90 days pass, that's it. For partial refunds during the first 7 days, contact us on WhatsApp and we'll review case-by-case.",
   },
   {
-    question: "Who is behind Eng-InAja?",
+    question: "Who is behind Mumpune?",
     answer:
-      "Eng-InAja is built by Bagas (8.5 IELTS scorer) and a small team in Indonesia. We are not affiliated with British Council, IDP, or Cambridge. We are a pilot-stage indie product and we are honest about that — that's also why we keep WhatsApp as our primary support channel.",
+      "Mumpune is built by Bagas (8.5 IELTS scorer) and a small team in Indonesia. We are not affiliated with British Council, IDP, or Cambridge. We are a pilot-stage indie product and we are honest about that — that's also why we keep WhatsApp as our primary support channel.",
   },
   {
     question: "Which browsers / devices are supported?",
@@ -79,7 +79,7 @@ export const FAQSection = () => {
               Frequently asked <span className="text-gradient">questions</span>
             </h2>
             <p className="text-lg">
-              Straight answers from a small Indonesian team building Eng-InAja in
+              Straight answers from a small Indonesian team building Mumpune in
               public.
             </p>
           </div>

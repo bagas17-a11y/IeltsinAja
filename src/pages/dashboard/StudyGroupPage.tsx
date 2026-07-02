@@ -300,7 +300,7 @@ export default function StudyGroupPage() {
               </div>
               <button
                 onClick={() => {
-                  const text = `I'm averaging Band ${myAvgBand!.toFixed(1)} on IELTSInAja! Join my study group "${myGroup.name}" with code ${myGroup.join_code} 🎯`;
+                  const text = `I'm averaging Band ${myAvgBand!.toFixed(1)} on Mumpune! Join my study group "${myGroup.name}" with code ${myGroup.join_code} 🎯`;
                   if (navigator.share) {
                     navigator.share({ text });
                   } else {

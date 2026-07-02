@@ -5,7 +5,7 @@ import { HeroBackground } from "./HeroBackground";
 import { buildWhatsAppLink } from "@/lib/contact";
 
 const SUGGESTIONS = [
-  "How does Eng-InAja work?",
+  "How does Mumpune work?",
   "What plan is right for me?",
   "How do I improve my Writing band?",
 ];
@@ -24,8 +24,8 @@ export const HeroSection = () => {
   };
 
   const whatsappMsg = query.trim()
-    ? `Hi Eng-InAja! I have a question: ${query}`
-    : "Hi Eng-InAja! I have a question about the platform.";
+    ? `Hi Mumpune! I have a question: ${query}`
+    : "Hi Mumpune! I have a question about the platform.";
 
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-atmospheric overflow-hidden">
@@ -61,7 +61,7 @@ export const HeroSection = () => {
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setShowOptions(false); }}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask anything about IELTS or Eng-InAja..."
+                placeholder="Ask anything about IELTS or Mumpune..."
                 className="flex-1 bg-transparent text-foreground placeholder:text-foreground/30 outline-none text-sm md:text-base"
               />
               <button

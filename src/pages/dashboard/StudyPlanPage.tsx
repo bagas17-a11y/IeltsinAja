@@ -1279,7 +1279,7 @@ function ExternalSourceWorksheetCard({ task }: { task: StudyTask }) {
 </style></head><body>
 <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
 <h1>${task.label}</h1>
-<div class="meta">Completed: ${date} | For review by the Eng-InAja coaching team</div>
+<div class="meta">Completed: ${date} | For review by the Mumpune coaching team</div>
 ${prompts.map(p => `
 ${p.sectionHeader ? `<div class="sec-header">${p.sectionHeader}</div>` : ""}
 <div class="qblock">
@@ -1920,7 +1920,7 @@ export default function StudyPlanPage() {
                 </p>
               </div>
               <a
-                href={buildWhatsAppLink("Hi Eng-InAja team, I'd like to upgrade to Elite to unlock my full Study Plan and get the +1.5 band guarantee.")}
+                href={buildWhatsAppLink("Hi Mumpune team, I'd like to upgrade to Elite to unlock my full Study Plan and get the +1.5 band guarantee.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-xl bg-elite-gold/20 text-elite-gold border border-elite-gold/40 hover:bg-elite-gold/30 transition-colors text-sm font-semibold"

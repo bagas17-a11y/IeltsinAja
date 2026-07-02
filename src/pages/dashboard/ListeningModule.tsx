@@ -1589,7 +1589,7 @@ export default function ListeningModule() {
             <button
               onClick={() => {
                 const band = calculateBandScore(score!, currentTest.totalQuestions);
-                const text = `I just scored ${score}/${currentTest.totalQuestions} (Band ${band}) on IELTS Listening on IELTSInAja! 🎯`;
+                const text = `I just scored ${score}/${currentTest.totalQuestions} (Band ${band}) on IELTS Listening on Mumpune! 🎯`;
                 if (navigator.share) { navigator.share({ text }); }
                 else { navigator.clipboard.writeText(text); toast.success("Score copied to clipboard!"); }
               }}

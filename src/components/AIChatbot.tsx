@@ -21,7 +21,7 @@ export const AIChatbot = () => {
   }, [messages]);
   const handleLanguageSelect = (lang: "en" | "id") => {
     setLanguage(lang);
-    const welcomeMessage = lang === "en" ? "Hello! 👋 I'm your Eng-InAja assistant. How can I help you today? Feel free to ask about our features, pricing plans, or anything else!" : "Halo! 👋 Saya asisten Eng-InAja Anda. Ada yang bisa saya bantu hari ini? Silakan tanyakan tentang fitur, paket harga, atau hal lainnya!";
+    const welcomeMessage = lang === "en" ? "Hello! 👋 I'm your Mumpune assistant. How can I help you today? Feel free to ask about our features, pricing plans, or anything else!" : "Halo! 👋 Saya asisten Mumpune Anda. Ada yang bisa saya bantu hari ini? Silakan tanyakan tentang fitur, paket harga, atau hal lainnya!";
     setMessages([{
       role: "assistant",
       content: welcomeMessage
@@ -86,7 +86,7 @@ export const AIChatbot = () => {
           <div className="bg-[#ADD8E6] p-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-slate-700" />
-              <span className="font-semibold text-slate-700">Eng-InAja Assistant</span>
+              <span className="font-semibold text-slate-700">Mumpune Assistant</span>
             </div>
             <div className="flex items-center gap-2">
               {language && <Button variant="ghost" size="sm" onClick={resetChat} className="text-slate-700 hover:bg-[#87CEEB] h-8 px-2 text-xs">
