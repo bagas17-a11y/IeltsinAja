@@ -253,19 +253,18 @@ export const WritingAIChat = ({ taskType, questionPrompt, userEssay, feedback }:
     setIsLoading(true);
 
     try {
-      const systemContext = buildSystemContext(
-        taskType,
-        questionPrompt,
-        userEssay,
-        buildFeedbackSummary(feedback),
-      );
-
       // Claude API requires the first message to be role "user"
       const firstUserIdx = updatedMessages.findIndex(m => m.role === "user");
       const apiMessages = firstUserIdx >= 0 ? updatedMessages.slice(firstUserIdx) : updatedMessages;
 
-      const { data, error } = await supabase.functions.invoke("ai-chatbot", {
-        body: { messages: apiMessages, language: "en", systemContext },
+      const { data, error } = await supabase.functions.invoke("writing-tutor", {
+        body: {
+          messages: apiMessages,
+          taskType,
+          questionPrompt,
+          userEssay,
+          feedbackSummary: buildFeedbackSummary(feedback),
+        },
       });
 
       if (error) throw error;
