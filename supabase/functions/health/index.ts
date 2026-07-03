@@ -82,16 +82,18 @@ Deno.serve(async (req) => {
             'content-type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001',
+            model: 'claude-sonnet-4-6',
             max_tokens: 10,
             messages: [{ role: 'user', content: 'Hi' }]
           })
         });
 
+        const errorBody = response.ok ? undefined : await response.text().catch(() => "");
+        const errorJson = errorBody ? JSON.parse(errorBody).error?.message : undefined;
         checks.ai_service = {
-          healthy: response.ok || response.status === 429, // 429 means service is up but rate limited
+          healthy: response.ok || response.status === 429,
           latency: Date.now() - aiStart,
-          error: response.ok ? undefined : `Status ${response.status}`
+          error: response.ok ? undefined : (errorJson ?? `Status ${response.status}`)
         };
       }
     } catch (error) {
