@@ -135,7 +135,7 @@ export function DashboardSidebar() {
             {isCollapsed ? (
               <span className="text-accent font-medium">M</span>
             ) : (
-              <>Mum<span className="text-accent font-medium">puni</span></>
+              <>Eng<span className="text-accent font-medium">volve</span></>
             )}
           </a>
         </div>

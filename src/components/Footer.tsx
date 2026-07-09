@@ -24,7 +24,7 @@ export const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-2">
             <a href="#" className="text-2xl font-light tracking-tight text-foreground inline-block mb-4">
-              Mum<span className="text-accent font-medium">puni</span>
+              Eng<span className="text-accent font-medium">volve</span>
             </a>
             <p className="text-foreground/60 max-w-sm mb-6">
               AI-powered IELTS preparation built for Indonesian learners. Currently in pilot.
