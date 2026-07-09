@@ -9,7 +9,7 @@ import { ArrowRight, RotateCcw } from "lucide-react";
 const GoalSetupMockup = () => (
   <div className="mt-6 rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", border: "1px solid rgba(24,86,136,0.10)", boxShadow: "0 4px 24px rgba(24,86,136,0.08)" }}>
     <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(24,86,136,0.08)" }}>
-      <p className="text-[11px] font-semibold" style={{ color: "#185688" }}>Welcome to Mumpuni ✦</p>
+      <p className="text-[11px] font-semibold" style={{ color: "#185688" }}>Welcome to Engvolve ✦</p>
     </div>
     <div className="p-4">
       <p className="text-[11px] font-medium mb-3" style={{ color: "#1A2840" }}>What's your IELTS target band?</p>
@@ -319,7 +319,7 @@ const ReadingSliderMockup = () => {
 
   return (
     <div className="mt-6 rounded-xl overflow-hidden" style={{ border: "1px solid rgba(14,56,96,0.12)", boxShadow: "0 4px 20px rgba(14,56,96,0.08)" }}>
-      <MacWindowBar title="Mumpuni Reading · Academic" />
+      <MacWindowBar title="Engvolve Reading · Academic" />
       <div className="px-3 py-2 flex items-center justify-between"
            style={{ background: slide === 0 ? "rgba(255,255,255,0.90)" : "rgba(254,242,242,0.90)", borderBottom: "1px solid rgba(14,56,96,0.08)", transition: "background 0.4s" }}>
         <div className="flex items-center gap-2">
@@ -386,7 +386,7 @@ const ReadingSliderMockup = () => {
 
 const ListeningMockup = () => (
   <div className="mt-6 rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.80)", border: "1px solid rgba(14,56,96,0.10)", boxShadow: "0 4px 16px rgba(14,56,96,0.07)" }}>
-    <MacWindowBar title="Mumpuni Listening · Part 1" />
+    <MacWindowBar title="Engvolve Listening · Part 1" />
     <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(14,56,96,0.08)" }}>
       <div className="flex items-center justify-between mb-2">
         <p className="text-[10.5px] font-semibold" style={{ color: "#0A1C40" }}>City Information Service</p>
@@ -444,7 +444,7 @@ const WritingSliderMockup = () => {
 
   return (
     <div className="mt-6 rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)" }}>
-      <MacWindowBar title="Mumpuni Writing · Task 1 Academic" dark />
+      <MacWindowBar title="Engvolve Writing · Task 1 Academic" dark />
       <div style={{ minHeight: 230, opacity: fading ? 0 : 1, transition: "opacity 0.28s ease" }}>
 
         {frame === 0 && (
@@ -580,7 +580,7 @@ const SpeakingMockup = () => {
 
   return (
     <div className="mt-6 rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-      <MacWindowBar title="Mumpuni Speaking · Part 2" dark />
+      <MacWindowBar title="Engvolve Speaking · Part 2" dark />
       <div className="p-4">
       <div className="text-center mb-3">
         <p className="text-2xl font-bold tabular-nums" style={{ color: "#F0F8FF", letterSpacing: "0.06em" }}>

@@ -832,9 +832,9 @@ export default function WritingModule() {
     const fixesHtml = (feedbackData.criticalFixes ?? []).map((f: string, i: number) => `<li>${i + 1}. ${f}</li>`).join("");
     const modelHtml = feedbackData.enhancedSpeechNextBand ? `<h3>Model Answer (Band ${Math.min(9, (feedbackData.overallBand ?? 6) + 1)})</h3><div class="essay">${feedbackData.enhancedSpeechNextBand.replace(/\n/g, "<br>")}</div>` : "";
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Writing Feedback — Mumpuni</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Writing Feedback — Engvolve</title>
 <style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;color:#111;line-height:1.6}h1{font-size:1.4em}h2{font-size:1.1em;margin-top:1.5em;border-bottom:1px solid #ccc}h3{font-size:1em;margin-top:1em}table{width:100%;border-collapse:collapse;margin:1em 0}th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:0.9em}th{background:#f5f5f5}.score{font-size:2em;font-weight:bold;color:#0ea5e9}.essay{background:#f9f9f9;padding:12px;border-left:3px solid #0ea5e9;font-size:0.9em;white-space:pre-wrap}ul,ol{padding-left:1.5em}@media print{body{margin:20px}}</style></head>
-<body><h1>IELTS Writing Feedback</h1><p>Mumpuni &mdash; ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
+<body><h1>IELTS Writing Feedback</h1><p>Engvolve &mdash; ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
 <div class="score">Band ${feedbackData.overallBand}</div>
 <h2>Criteria Breakdown</h2><table><tr><th>Criterion</th><th>Band</th><th>Justification</th></tr>${criteriaRows}</table>
 <h2>Your Essay</h2><div class="essay">${essayText.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}</div>
@@ -956,7 +956,7 @@ ${modelHtml}</body></html>`;
       {/* Share score */}
       <button
         onClick={() => {
-          const text = `I just scored Band ${feedbackData.overallBand} on IELTS Writing on Mumpuni! 🎯`;
+          const text = `I just scored Band ${feedbackData.overallBand} on IELTS Writing on Engvolve! 🎯`;
           if (navigator.share) { navigator.share({ text }); }
           else { navigator.clipboard.writeText(text); toast({ title: "Score copied to clipboard!" }); }
         }}

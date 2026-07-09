@@ -463,7 +463,7 @@ export default function RevisionNotesPage() {
                 <h1 className="text-lg font-semibold text-foreground truncate flex-1">
                   {showFormatsView
                     ? `IELTS Test Formats – ${currentFormat.charAt(0).toUpperCase() + currentFormat.slice(1)}`
-                    : `${getTopicTitle(currentTopic)} (Mumpuni Grammar): Revision Note`}
+                    : `${getTopicTitle(currentTopic)} (Engvolve Grammar): Revision Note`}
                 </h1>
               )}
               {!showTopicList && !showFormatsView && (

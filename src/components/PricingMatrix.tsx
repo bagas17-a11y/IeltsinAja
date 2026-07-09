@@ -83,7 +83,7 @@ export const PricingMatrix = () => {
             Simple pricing for your <span className="text-gradient">band-score plan</span>
           </h2>
           <p className="text-base md:text-lg max-w-2xl mx-auto mb-8 text-foreground/70">
-            Start free to see if Mumpuni fits your routine. Upgrade only when you're
+            Start free to see if Engvolve fits your routine. Upgrade only when you're
             ready for unlimited practice or live coaching.
           </p>
 

@@ -4,7 +4,7 @@ const reasons = [
   {
     stat: "0.5–1.5 bands",
     label: "average score jump",
-    body: "Students improve by 0.5–1.5 bands in their first retake after just 4 weeks on Mumpuni — compared to the national average of zero band improvement between attempts.",
+    body: "Students improve by 0.5–1.5 bands in their first retake after just 4 weeks on Engvolve — compared to the national average of zero band improvement between attempts.",
     icon: "📈",
   },
   {
@@ -16,7 +16,7 @@ const reasons = [
   {
     stat: "500+",
     label: "scholarship awardees",
-    body: "Trust Mumpuni's LPDP, Chevening, and Fulbright-specific roadmaps. The only IELTS platform with full Bahasa support and Jakarta-hours live coaching.",
+    body: "Trust Engvolve's LPDP, Chevening, and Fulbright-specific roadmaps. The only IELTS platform with full Bahasa support and Jakarta-hours live coaching.",
     icon: "🏅",
   },
 ];
@@ -46,14 +46,14 @@ export const MissionBridge = () => {
           style={{ transitionTimingFunction: "cubic-bezier(0.23,1,0.32,1)" }}
         >
           <p className="text-xs font-medium uppercase tracking-[0.15em] mb-3" style={{ color: "#48A8CC" }}>
-            Why students choose Mumpuni
+            Why students choose Engvolve
           </p>
           <h2
             className="text-2xl sm:text-3xl md:text-4xl font-light leading-tight"
             style={{ color: "#0A1C40" }}
           >
             Why Indonesian students prefer{" "}
-            <span style={{ color: "#48A8CC", fontWeight: 600 }}>Mumpuni</span>
+            <span style={{ color: "#48A8CC", fontWeight: 600 }}>Engvolve</span>
             {" "}for IELTS prep
           </h2>
         </div>

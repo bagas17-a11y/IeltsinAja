@@ -49,7 +49,7 @@ export const Header = () => {
         >
           {/* Logo */}
           <a href="#" className="text-[17px] font-light tracking-tight mr-3" style={{ color: "#0A1C40" }}>
-            Mum<span style={{ color: "#48A8CC", fontWeight: 500 }}>puni</span>
+            Eng<span style={{ color: "#48A8CC", fontWeight: 500 }}>volve</span>
           </a>
 
           {/* Divider */}
@@ -110,7 +110,7 @@ export const Header = () => {
       >
         <div className="flex items-center justify-between px-5">
           <a href="#" className="text-xl font-light" style={{ color: isScrolled ? "#0A1C40" : "#FFFFFF" }}>
-            Mum<span style={{ color: isScrolled ? "#48A8CC" : "#FFE4A0", fontWeight: 500 }}>puni</span>
+            Eng<span style={{ color: isScrolled ? "#48A8CC" : "#FFE4A0", fontWeight: 500 }}>volve</span>
           </a>
           <button
             className="p-2"

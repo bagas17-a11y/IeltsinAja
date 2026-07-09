@@ -87,7 +87,7 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-border/30">
           <p className="text-xs text-muted-foreground text-center md:text-left">
-            © {new Date().getFullYear()} Mumpuni. Independent IELTS prep — not affiliated with British Council, IDP, or Cambridge.
+            © {new Date().getFullYear()} Engvolve. Independent IELTS prep — not affiliated with British Council, IDP, or Cambridge.
           </p>
           <div className="flex items-center gap-3">
             <a

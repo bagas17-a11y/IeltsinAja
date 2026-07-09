@@ -831,7 +831,7 @@ export default function ReadingModule() {
                 onClick={() => {
                   const { correct, total } = calculateScore();
                   const band = rawScoreToBand(correct, total);
-                  const text = `I just scored ${correct}/${total} (Band ${band}) on IELTS Reading on Mumpuni! 🎯`;
+                  const text = `I just scored ${correct}/${total} (Band ${band}) on IELTS Reading on Engvolve! 🎯`;
                   if (navigator.share) { navigator.share({ text }); }
                   else { navigator.clipboard.writeText(text); toast({ title: "Score copied to clipboard!" }); }
                 }}

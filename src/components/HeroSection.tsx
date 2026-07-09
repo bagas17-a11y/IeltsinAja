@@ -44,7 +44,7 @@ export const HeroSection = () => {
           className="text-sm md:text-base max-w-lg mb-10 leading-relaxed animate-entrance"
           style={{ color: "rgba(255,255,255,0.70)", animationDelay: "200ms", fontWeight: 300 }}
         >
-          Mumpuni gives you personalised feedback, real Band 6.5+ strategies, and a coach in
+          Engvolve gives you personalised feedback, real Band 6.5+ strategies, and a coach in
           your pocket — built by scorers who've been where you are.
         </p>
 
@@ -83,7 +83,7 @@ export const HeroSection = () => {
                 <span className="w-3 h-3 rounded-full" style={{ background: "rgba(40,201,64,0.55)" }} />
                 <div className="flex-1 flex items-center justify-between px-2">
                   <div className="flex items-center gap-2">
-                    <span style={{ color: "rgba(72,168,204,0.80)", fontSize: "0.72rem", fontWeight: 600 }}>Mumpuni</span>
+                    <span style={{ color: "rgba(72,168,204,0.80)", fontSize: "0.72rem", fontWeight: 600 }}>Engvolve</span>
                     <span style={{ color: "rgba(255,255,255,0.20)", fontSize: "0.72rem" }}>·</span>
                     <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.72rem" }}>Writing Task 2 · Academic</span>
                   </div>

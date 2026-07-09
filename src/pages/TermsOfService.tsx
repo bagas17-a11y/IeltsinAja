@@ -22,7 +22,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-light mb-4 text-foreground">1. Acceptance of Terms</h2>
             <p className="text-foreground/80 leading-relaxed">
-              By accessing and using Mumpuni, you accept and agree to be bound by these Terms of Service. 
+              By accessing and using Engvolve, you accept and agree to be bound by these Terms of Service. 
               If you do not agree to these terms, please do not use our platform. We reserve the right to 
               modify these terms at any time, with changes effective upon posting.
             </p>
@@ -31,7 +31,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-light mb-4 text-foreground">2. Description of Service</h2>
             <p className="text-foreground/80 leading-relaxed">
-              Mumpuni is an AI-powered IELTS preparation platform offering practice tests, instant feedback, 
+              Engvolve is an AI-powered IELTS preparation platform offering practice tests, instant feedback, 
               and personalized learning tools for Reading, Listening, Writing, and Speaking modules. Our 
               premium plans include access to human consultants for personalized coaching.
             </p>
@@ -87,8 +87,8 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-light mb-4 text-foreground">7. Intellectual Property</h2>
             <p className="text-foreground/80 leading-relaxed">
-              All content on Mumpuni, including practice materials, AI models, and branding, is owned by 
-              Mumpuni or its licensors. You retain ownership of your submitted essays and recordings, 
+              All content on Engvolve, including practice materials, AI models, and branding, is owned by 
+              Engvolve or its licensors. You retain ownership of your submitted essays and recordings, 
               but grant us a license to process them for service delivery.
             </p>
           </section>
@@ -96,7 +96,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-light mb-4 text-foreground">8. Disclaimer of Warranties</h2>
             <p className="text-foreground/80 leading-relaxed">
-              Mumpuni is provided "as is" without warranties of any kind. While we strive for accuracy in 
+              Engvolve is provided "as is" without warranties of any kind. While we strive for accuracy in 
               our AI scoring, we do not guarantee that scores will match official IELTS results. Our platform 
               is a preparation tool and not a substitute for official testing.
             </p>
@@ -105,7 +105,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-light mb-4 text-foreground">9. Limitation of Liability</h2>
             <p className="text-foreground/80 leading-relaxed">
-              To the maximum extent permitted by law, Mumpuni shall not be liable for any indirect, 
+              To the maximum extent permitted by law, Engvolve shall not be liable for any indirect, 
               incidental, or consequential damages arising from your use of the platform. Our total liability 
               shall not exceed the amount you paid for the service.
             </p>
