@@ -18,6 +18,9 @@ interface Profile {
   current_speaking_score: number | null;
   is_verified: boolean;
   exam_date: string | null;
+  username_changed: boolean;
+  preferred_plan_tier: "foundation" | "developing" | "polishing" | null;
+  created_at?: string;
 }
 
 interface AuthContextType {

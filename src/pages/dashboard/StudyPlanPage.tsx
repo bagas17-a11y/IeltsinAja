@@ -1806,12 +1806,14 @@ function shortTaskLabel(label: string): string {
 // Component
 // ─────────────────────────────────────────────
 export default function StudyPlanPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [diagnosticBand, setDiagnosticBand] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [selectedTask, setSelectedTask] = useState<{ task: StudyTask; week: StudyWeek } | null>(null);
+  const [showPlanSwitcher, setShowPlanSwitcher] = useState(false);
+  const [savingTier, setSavingTier] = useState(false);
   const completedRef = useRef(completedTasks);
   completedRef.current = completedTasks;
 
@@ -1924,8 +1926,17 @@ export default function StudyPlanPage() {
     );
   }
 
-  const tierKey = getTier(diagnosticBand);
+  const tierKey = profile?.preferred_plan_tier ?? getTier(diagnosticBand);
   const plan = PLANS[tierKey];
+
+  const handleChangeTier = async (tier: "foundation" | "developing" | "polishing") => {
+    if (!user) return;
+    setSavingTier(true);
+    await supabase.from("profiles").update({ preferred_plan_tier: tier }).eq("user_id", user.id);
+    await refreshProfile();
+    setSavingTier(false);
+    setShowPlanSwitcher(false);
+  };
 
   const allTasks = plan.weeks.flatMap(w => w.tasks);
   const totalTasks = allTasks.length;
@@ -1995,7 +2006,46 @@ export default function StudyPlanPage() {
                 {plan.tier} Track
               </span>
               <span className="text-xs text-muted-foreground">Predicted Band {diagnosticBand} → Target {plan.targetBand}</span>
+              <button
+                onClick={() => setShowPlanSwitcher(v => !v)}
+                className="ml-auto text-[10px] font-medium text-accent/70 hover:text-accent border border-accent/20 hover:border-accent/50 rounded-full px-2.5 py-0.5 transition-colors"
+              >
+                {showPlanSwitcher ? "Cancel" : "Change track"}
+              </button>
             </div>
+
+            {/* Plan switcher */}
+            {showPlanSwitcher && (
+              <div className="mb-3 p-3 rounded-2xl border border-border/50 bg-card space-y-2">
+                <p className="text-xs text-muted-foreground mb-2">Choose your learning track:</p>
+                {(["foundation", "developing", "polishing"] as const).map(t => {
+                  const p = PLANS[t];
+                  const isSelected = tierKey === t;
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => handleChangeTier(t)}
+                      disabled={savingTier}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
+                        isSelected
+                          ? "border-accent/50 bg-accent/8"
+                          : "border-border/40 hover:border-accent/30 hover:bg-secondary/50"
+                      )}
+                    >
+                      <div className={cn("w-2 h-2 rounded-full shrink-0", isSelected ? "bg-accent" : "bg-border")} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-foreground">{p.tier} <span className="font-normal text-muted-foreground">· Band {p.bandRange}</span></p>
+                        <p className="text-[10px] text-muted-foreground truncate">{p.headline}</p>
+                      </div>
+                      {isSelected && <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />}
+                      {savingTier && !isSelected && <div className="w-4 h-4 rounded-full border-2 border-accent/30 border-t-accent animate-spin shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <h1 className="text-2xl font-bold text-foreground mb-3">Your Study Roadmap</h1>
 
             <div className="grid grid-cols-4 gap-2 mb-3">
