@@ -1,24 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
+import { motion } from "framer-motion";
 import { HeroBackground } from "./HeroBackground";
-
-const LOOP_DURATION = 5; // seconds before resetting
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const screenRef = useRef<HTMLVideoElement>(null);
   const selfieRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const vids = [screenRef.current, selfieRef.current].filter(Boolean) as HTMLVideoElement[];
-    const handlers: (() => void)[] = [];
-    vids.forEach(v => {
-      const fn = () => { if (v.currentTime >= LOOP_DURATION) v.currentTime = 0; };
-      v.addEventListener("timeupdate", fn);
-      handlers.push(() => v.removeEventListener("timeupdate", fn));
-    });
-    return () => handlers.forEach(h => h());
-  }, []);
 
   return (
     <section className="relative min-h-screen overflow-hidden">
@@ -26,9 +14,12 @@ export const HeroSection = () => {
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 pt-36 pb-0">
 
-        {/* Badge */}
-        <div
-          className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs mb-8 animate-entrance"
+        {/* Badge — appears after mac */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.6, ease: "easeOut" }}
+          className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs mb-8"
           style={{
             border: "1px solid rgba(255,255,255,0.22)",
             background: "rgba(255,255,255,0.14)",
@@ -37,38 +28,51 @@ export const HeroSection = () => {
         >
           <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FFE4A0" }} />
           AI-powered · Built by 8.5+ scorers · For Indonesian students
-        </div>
+        </motion.div>
 
         {/* Headline */}
-        <h1
-          className="leading-[1.10] mb-5 max-w-3xl animate-entrance"
+        <motion.h1
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.75, ease: "easeOut" }}
+          className="leading-[1.10] mb-5 max-w-3xl"
           style={{
             fontSize: "clamp(2.4rem, 6vw, 4.5rem)",
             fontWeight: 300,
             color: "#FFFFFF",
-            animationDelay: "100ms",
           }}
         >
           Indonesia's First Ever<br />
-          <span style={{ fontWeight: 600, color: "#FFE4A0" }}>All-in-one IELTS</span>
+          <motion.span
+            initial={{ opacity: 0, scale: 0.88, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.92, ease: [0.22, 1, 0.36, 1] }}
+            style={{ fontWeight: 600, color: "#FFE4A0", display: "inline-block" }}
+          >
+            All-in-one IELTS
+          </motion.span>
           <br />
           <span style={{ fontWeight: 300 }}>Prep Platform.</span>
-        </h1>
+        </motion.h1>
 
         {/* Subheadline */}
-        <p
-          className="text-sm md:text-base max-w-lg mb-10 leading-relaxed animate-entrance"
-          style={{ color: "rgba(255,255,255,0.70)", animationDelay: "200ms", fontWeight: 300 }}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 1.05, ease: "easeOut" }}
+          className="text-sm md:text-base max-w-lg mb-10 leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.70)", fontWeight: 300 }}
         >
           Engvolve gives you personalised feedback, real Band 6.5+ strategies, and a coach in
           your pocket — built by scorers who've been where you are.
-        </p>
+        </motion.p>
 
-
-        {/* Mac desktop video demo */}
-        <div
-          className="relative w-full max-w-5xl mx-auto animate-entrance"
-          style={{ animationDelay: "480ms" }}
+        {/* Mac desktop video demo — appears first */}
+        <motion.div
+          initial={{ opacity: 0, y: 36, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.75, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          className="relative w-full max-w-4xl mx-auto"
         >
           {/* Ambient glow */}
           <div className="absolute -inset-4 -bottom-10 rounded-3xl pointer-events-none" style={{
@@ -133,11 +137,14 @@ export const HeroSection = () => {
                     src="/videos/demo.mov"
                     autoPlay
                     muted
+                    loop
                     playsInline
+                    disablePictureInPicture
                     className="w-full h-full object-cover block"
+                    style={{ pointerEvents: "none" }}
                   />
 
-                  {/* Talking-head PIP — place selfie.mov in public/videos/ to activate */}
+                  {/* Talking-head PIP */}
                   <div
                     className="absolute bottom-3 right-3 rounded-xl overflow-hidden"
                     style={{
@@ -153,8 +160,11 @@ export const HeroSection = () => {
                       src="/videos/selfie.mp4"
                       autoPlay
                       muted
+                      loop
                       playsInline
+                      disablePictureInPicture
                       className="w-full h-full object-cover block"
+                      style={{ pointerEvents: "none" }}
                     />
                   </div>
                 </div>
@@ -190,7 +200,7 @@ export const HeroSection = () => {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
