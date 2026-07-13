@@ -216,8 +216,8 @@ export default function Auth() {
         <div className="glass-card p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="flex flex-col items-center gap-2 mb-1">
-              <img src="/icon.png" alt="Engvolve" className="w-14 h-14" />
+            <div className="flex flex-col items-center gap-1 mb-1">
+              <img src="/icon.png" alt="Engvolve" className="w-24 h-24 -mb-1" />
               <h1 className="text-2xl font-light tracking-tight">
                 Eng<span className="text-accent font-medium">volve</span>
               </h1>
