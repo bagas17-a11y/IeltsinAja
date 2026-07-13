@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Phone, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Phone, AlertCircle, CheckCircle2 } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -44,6 +44,10 @@ export default function Auth() {
   const navigate = useNavigate();
 
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -147,17 +151,15 @@ export default function Auth() {
 
         if (error) throw error;
 
-        const needsEmailConfirmation =
-          data.user && !data.user.email_confirmed_at && data.user.identities?.length === 1;
+        // Send welcome email via Resend (fire-and-forget — don't block navigation)
+        supabase.functions.invoke("send-welcome-email", {
+          body: { email, full_name: fullName },
+        }).catch(() => {});
 
-        if (needsEmailConfirmation) {
-          toast({ title: "Check your email!", description: "We sent you a 6-digit verification code." });
-          navigate(`/verify-email?email=${encodeURIComponent(email)}${planParam ? `&plan=${planParam}` : ""}`);
-        } else if (planParam === "free") {
-          toast({ title: "Account created!", description: "Welcome! Taking you to your dashboard." });
+        toast({ title: "Welcome to Engvolve! 🎉", description: "Check your inbox for a welcome email." });
+        if (planParam === "free") {
           navigate("/dashboard");
         } else {
-          toast({ title: "Account created!", description: "Setting up your plan..." });
           navigate(pricingDest);
         }
       }
@@ -171,6 +173,21 @@ export default function Auth() {
       setAuthError(message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setResetLoading(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setResetSent(true);
     }
   };
 
@@ -292,7 +309,55 @@ export default function Auth() {
                 </button>
               </div>
               {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => { setShowForgotPassword(true); setResetSent(false); setForgotEmail(email); }}
+                  className="text-xs text-accent hover:text-accent/80 transition-colors mt-1"
+                >
+                  Forgot password?
+                </button>
+              )}
             </div>
+
+            {/* Forgot password panel */}
+            {showForgotPassword && (
+              <div className="rounded-xl border border-border/50 bg-secondary/30 p-4 space-y-3">
+                {resetSent ? (
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Check your inbox</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">We sent a password reset link to <strong>{forgotEmail}</strong>.</p>
+                      <button type="button" onClick={() => setShowForgotPassword(false)} className="text-xs text-accent mt-2 hover:underline">Back to sign in</button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-3">
+                    <p className="text-sm font-medium text-foreground">Reset your password</p>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={e => setForgotEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="pl-10 bg-secondary/50 border-border/50 h-9 text-sm"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="submit" size="sm" disabled={resetLoading} className="flex-1 h-8 text-xs">
+                        {resetLoading ? "Sending..." : "Send reset link"}
+                      </Button>
+                      <Button type="button" size="sm" variant="ghost" onClick={() => setShowForgotPassword(false)} className="h-8 text-xs">
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
 
             {authError && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
