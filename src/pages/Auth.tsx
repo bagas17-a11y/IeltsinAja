@@ -217,7 +217,7 @@ export default function Auth() {
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <img src="/icon.png" alt="Engvolve" className="w-9 h-9" />
+              <img src="/icon.png" alt="Engvolve" className="w-14 h-14" />
               <h1 className="text-2xl font-light tracking-tight">
                 Eng<span className="text-accent font-medium">volve</span>
               </h1>

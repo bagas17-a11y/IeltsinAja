@@ -88,7 +88,7 @@ export function AppSidebar() {
     >
       {/* ── Logo ─────────────────────────────────────────────────────────── */}
       <div className="h-12 flex items-center gap-3 px-3.5 border-b border-border/30 shrink-0">
-        <img src="/icon.png" alt="Engvolve" className="w-7 h-7 shrink-0" />
+        <img src="/icon.png" alt="Engvolve" className="w-10 h-10 shrink-0" />
         <div className="overflow-hidden opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">
           <p className="text-sm font-semibold leading-none">Engvolve</p>
           <p className="text-[10px] text-muted-foreground mt-0.5">Study Dashboard</p>
@@ -153,7 +153,7 @@ export function AppSidebar() {
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <div className="border-t border-border/30 p-3 shrink-0">
         <div className="flex items-center gap-3">
-          <Avatar className="w-7 h-7 shrink-0">
+          <Avatar className="w-10 h-10 shrink-0">
             <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback className="bg-accent/20 text-accent text-[10px]">
               {getInitials(profile?.full_name)}
