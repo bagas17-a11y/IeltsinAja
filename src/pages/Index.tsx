@@ -1,4 +1,5 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { SocialProofBar } from "@/components/SocialProofBar";
@@ -9,8 +10,16 @@ import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { CredibilitySection } from "@/components/CredibilitySection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate("/dashboard", { replace: true });
+    });
+  }, [navigate]);
   // Landing page is always light — daytime ocean background needs light theme for nav/sections.
   // MutationObserver prevents ThemeProvider from removing .light while mounted.
   // Cleanup restores the user's saved dashboard theme on navigation away.
