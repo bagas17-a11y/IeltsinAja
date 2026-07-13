@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 110">
+  <!-- Background: deep navy rounded square -->
+  <rect width="140" height="110" rx="22" fill="#071525"/>
+
+  <!-- Figure 1: Runner (small, sky blue) — hunched forward, one arm fwd, one back, legs split -->
+  <g stroke="#7dcfee" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="24" cy="37" r="6" fill="#7dcfee" stroke="none"/>
+    <!-- Body: leaning forward -->
+    <line x1="24" y1="43" x2="20" y2="57"/>
+    <!-- Arm forward -->
+    <line x1="22" y1="48" x2="12" y2="44"/>
+    <!-- Arm back -->
+    <line x1="22" y1="48" x2="30" y2="52"/>
+    <!-- Front leg -->
+    <line x1="20" y1="57" x2="13" y2="68"/>
+    <!-- Back leg -->
+    <line x1="20" y1="57" x2="28" y2="65"/>
+  </g>
+
+  <!-- Figure 2: Standing (medium, near-white) — upright, arms relaxed at sides -->
+  <g stroke="#e8f6fc" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="68" cy="29" r="7.5" fill="#e8f6fc" stroke="none"/>
+    <!-- Body -->
+    <line x1="68" y1="36.5" x2="68" y2="60"/>
+    <!-- Left arm -->
+    <line x1="68" y1="45" x2="56" y2="53"/>
+    <!-- Right arm -->
+    <line x1="68" y1="45" x2="80" y2="53"/>
+    <!-- Left leg -->
+    <line x1="68" y1="60" x2="60" y2="74"/>
+    <!-- Right leg -->
+    <line x1="68" y1="60" x2="76" y2="74"/>
+  </g>
+
+  <!-- Figure 3: Celebrating (large, gold) — arms raised high in V, wide stance -->
+  <g stroke="#FFE4A0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="114" cy="24" r="10" fill="#FFE4A0" stroke="none"/>
+    <!-- Body -->
+    <line x1="114" y1="34" x2="114" y2="65"/>
+    <!-- Left arm up -->
+    <line x1="114" y1="45" x2="94" y2="30"/>
+    <!-- Right arm up -->
+    <line x1="114" y1="45" x2="134" y2="30"/>
+    <!-- Left leg -->
+    <line x1="114" y1="65" x2="103" y2="80"/>
+    <!-- Right leg -->
+    <line x1="114" y1="65" x2="125" y2="80"/>
+  </g>
+</svg>

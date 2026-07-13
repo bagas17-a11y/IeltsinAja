@@ -24,7 +24,7 @@ export const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-2">
             <a href="#" className="flex items-center gap-2 text-2xl font-light tracking-tight text-foreground mb-4 w-fit">
-              <img src="/logo.png" alt="Engvolve" className="w-8 h-8 rounded-lg object-cover" />
+              <img src="/logo.svg" alt="Engvolve" className="w-8 h-8" />
               Eng<span className="text-accent font-medium">volve</span>
             </a>
             <p className="text-foreground/60 max-w-sm mb-6">
