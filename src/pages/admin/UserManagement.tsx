@@ -764,6 +764,7 @@ export default function UserManagement() {
                     <TableRow>
                       <TableHead>Full Name</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>Plan Type</TableHead>
                       <TableHead>Sub Status</TableHead>
                       <TableHead>Days Left</TableHead>
@@ -786,6 +787,9 @@ export default function UserManagement() {
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {u.email || "—"}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {u.phone_number || "—"}
                           </TableCell>
                           <TableCell>{getTierBadge(u.subscription_tier)}</TableCell>
                           <TableCell>{getSubStatusBadge(status)}</TableCell>

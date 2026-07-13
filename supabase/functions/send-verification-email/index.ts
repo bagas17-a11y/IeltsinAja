@@ -14,143 +14,87 @@ interface VerificationEmailRequest {
   plan_name: string;
 }
 
-const getPlanFeatures = (planName: string): string[] => {
-  const planLower = planName.toLowerCase();
-  
-  if (planLower === 'pro') {
-    return [
-      "Unlimited Reading practice sessions",
-      "Unlimited Listening practice sessions", 
-      "Unlimited Writing submissions with AI feedback",
-      "Unlimited Speaking practice with analysis",
-      "Full access for 31 days"
-    ];
-  } else if (planLower === 'elite') {
-    return [
-      "Everything in Pro plan",
-      "Lifetime access - no expiration",
-      "Priority support",
-      "Exclusive consultation sessions",
-      "All future feature updates included"
-    ];
-  }
-  
-  return ["Access to IELTS practice materials"];
-};
-
-const handler = async (req: Request): Promise<Response> => {
-  console.log("send-verification-email function called");
-
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+serve(async (req: Request): Promise<Response> => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { email, full_name, plan_name }: VerificationEmailRequest = await req.json();
-    
-    console.log(`Sending verification email to: ${email}, name: ${full_name}, plan: ${plan_name}`);
+    if (!email) throw new Error("Email is required");
 
-    if (!email) {
-      throw new Error("Email is required");
-    }
+    const displayName = full_name?.split(" ")[0] || "there";
+    const planDisplay = plan_name === "road_to_8" || plan_name === "elite" ? "Elite" : "Pro";
+    const loginUrl = "https://engvolve.com/auth";
 
-    const dashboardUrl = "https://ieltsinaja.id/dashboard";
-    const displayName = full_name || "IELTS Learner";
-    const planDisplayName = plan_name ? plan_name.charAt(0).toUpperCase() + plan_name.slice(1).toLowerCase() : "Premium";
-    const features = getPlanFeatures(plan_name || 'pro');
+    const features = planDisplay === "Elite"
+      ? ["Everything in Pro", "Lifetime access — no expiry", "1-on-1 consultation sessions", "Priority support", "All future updates included"]
+      : ["Unlimited Reading & Listening practice", "Unlimited Writing with AI feedback", "Unlimited Speaking with AI analysis", "My Journey personalised roadmap", "Full access for 31 days"];
 
-    const featuresHtml = features.map(feature => 
-      `<li style="margin-bottom: 8px;">✅ ${feature}</li>`
-    ).join('');
+    const featuresHtml = features.map(f =>
+      `<tr><td style="padding:5px 0;color:#166534;font-size:14px;">✅ ${f}</td></tr>`
+    ).join("");
 
-    const emailResponse = await resend.emails.send({
-      from: "IELTSinAja <ieltsinaja.id@gmail.com>",
+    await resend.emails.send({
+      from: "Engvolve <noreply@engvolve.com>",
       to: [email],
-      subject: `Your IELTSinAja account is now ${planDisplayName}! 🚀`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f5;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px 16px 0 0; padding: 40px; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Congratulations! 🎉</h1>
-              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px;">You're now a <strong>${planDisplayName}</strong> member!</p>
-            </div>
-            
-            <div style="background: white; padding: 40px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-              <p style="color: #374151; font-size: 18px; margin: 0 0 20px 0;">
-                Hi <strong>${displayName}</strong>,
-              </p>
-              
-              <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                Great news! Your payment has been verified and your <strong>${planDisplayName}</strong> subscription is now active. You now have unlimited access to all the tools you need to achieve Band 8.0!
-              </p>
-              
-              <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #22c55e; padding: 20px; margin: 24px 0; border-radius: 0 12px 12px 0;">
-                <p style="color: #166534; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">
-                  🚀 Your ${planDisplayName} Benefits:
-                </p>
-                <ul style="color: #166534; margin: 0; padding-left: 0; list-style: none; font-size: 14px; line-height: 1.8;">
-                  ${featuresHtml}
-                </ul>
-              </div>
-              
-              <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                Let's get that <strong>Band 8.0</strong>! Start practicing now and track your progress towards your IELTS goals.
-              </p>
-              
-              <div style="text-align: center; margin: 32px 0;">
-                <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);">
-                  Start Practicing Now →
-                </a>
-              </div>
-              
-              <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 24px 0;">
-                <p style="color: #92400e; font-size: 14px; margin: 0; text-align: center;">
-                  💡 <strong>Pro Tip:</strong> Consistent daily practice is the key to IELTS success!
-                </p>
-              </div>
-              
-              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0; text-align: center;">
-                If you have any questions, feel free to reach out to our support team.
-              </p>
-            </div>
-            
-            <div style="text-align: center; padding: 24px;">
-              <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                © 2025 IELTSinAja. All rights reserved.
-              </p>
-              <p style="color: #9ca3af; font-size: 12px; margin: 8px 0 0 0;">
-                This email was sent because your payment was verified on IELTSinAja.
-              </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      subject: `Your ${planDisplay} plan is active! 🎉`,
+      html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+
+    <div style="background:linear-gradient(135deg,#0e3860 0%,#1a5c8a 60%,#48A8CC 100%);border-radius:16px 16px 0 0;padding:44px 40px;text-align:center;">
+      <p style="color:rgba(255,255,255,0.6);margin:0 0 6px 0;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;">Engvolve</p>
+      <h1 style="color:#FFE4A0;margin:0;font-size:32px;font-weight:700;">You're in! 🎉</h1>
+      <p style="color:rgba(255,255,255,0.85);margin:10px 0 0 0;font-size:16px;">Your <strong>${planDisplay}</strong> plan is now active</p>
+    </div>
+
+    <div style="background:#fff;padding:40px;border-radius:0 0 16px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+      <p style="color:#1a1a2e;font-size:17px;margin:0 0 16px 0;">Hey ${displayName} 👋</p>
+
+      <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 24px 0;">
+        Your payment has been confirmed and your <strong>${planDisplay}</strong> subscription is live. You now have full access to everything on Engvolve.
+      </p>
+
+      <div style="background:#f0fdf4;border-radius:12px;padding:24px;margin:0 0 28px 0;">
+        <p style="color:#166534;font-size:13px;font-weight:700;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:0.08em;">What's unlocked for you</p>
+        <table style="width:100%;border-collapse:collapse;">
+          ${featuresHtml}
+        </table>
+      </div>
+
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${loginUrl}" style="display:inline-block;background:linear-gradient(135deg,#0e3860,#48A8CC);color:#FFE4A0;text-decoration:none;padding:16px 40px;border-radius:10px;font-weight:700;font-size:15px;letter-spacing:0.02em;">
+          Log in to Engvolve →
+        </a>
+      </div>
+
+      <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 8px 0;">
+        Start with the <strong>Diagnostic Quiz</strong> if you haven't already — it builds your personalised study roadmap automatically.
+      </p>
+
+      <p style="color:#9ca3af;font-size:13px;margin:28px 0 0 0;">
+        Any questions? Reply to this email or WhatsApp us — we respond fast.
+      </p>
+      <p style="color:#1a1a2e;font-size:14px;margin:8px 0 0 0;font-weight:600;">— The Engvolve Team</p>
+    </div>
+
+    <div style="text-align:center;padding:24px;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;">© 2026 Engvolve. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`,
     });
 
-    console.log("Email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("Error sending verification email:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: false, error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
-};
-
-serve(handler);
+});

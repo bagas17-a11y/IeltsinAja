@@ -82,8 +82,8 @@ export default function WaitingRoom() {
               Waiting for activation
             </h1>
             <p className="text-muted-foreground leading-relaxed">
-              Terima kasih! We&apos;re confirming your plan on WhatsApp. You can still
-              use Free practice on the{" "}
+              Your account will be approved immediately once you have completed payment via WhatsApp and an admin confirms it.
+              You can still use Free practice on the{" "}
               <button
                 type="button"
                 className="text-accent underline"
@@ -110,14 +110,14 @@ export default function WaitingRoom() {
             </p>
 
             <a
-              href={buildWhatsAppLink(CONTACT_MESSAGES.paymentTransferred)}
+              href={buildWhatsAppLink(CONTACT_MESSAGES.statusCheck)}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
             >
               <Button variant="outline" className="w-full">
                 <MessageCircle className="w-4 h-4 mr-2" />
-                Nudge us on WhatsApp
+                Check my package status
               </Button>
             </a>
 

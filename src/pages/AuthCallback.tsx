@@ -50,7 +50,15 @@ export default function AuthCallback() {
             full_name: session.user.user_metadata?.full_name,
           },
         }).catch(() => {});
-        navigate(pricingDest);
+        supabase.functions.invoke("send-admin-notification", {
+          body: {
+            email: session.user.email,
+            full_name: session.user.user_metadata?.full_name,
+            sign_up_method: "google",
+          },
+        }).catch(() => {});
+        // Collect phone number before pricing for Google users
+        navigate("/onboarding/phone");
         return;
       }
 

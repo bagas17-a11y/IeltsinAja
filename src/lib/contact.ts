@@ -43,6 +43,8 @@ export const CONTACT_MESSAGES = {
     "Hi Engvolve team, I'd like to book a 1-on-1 IELTS coaching session.",
   paymentTransferred:
     "Hi Engvolve team, I have just made a transfer and uploaded my receipt. Please confirm.",
+  statusCheck:
+    "Hi Engvolve team, may I know the status of my package? Thank you!",
 };
 
 /** Prefilled message when a user picks a paid plan after signup. */

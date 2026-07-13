@@ -155,6 +155,9 @@ export default function Auth() {
         supabase.functions.invoke("send-welcome-email", {
           body: { email, full_name: fullName },
         }).catch(() => {});
+        supabase.functions.invoke("send-admin-notification", {
+          body: { email, full_name: fullName, sign_up_method: "email" },
+        }).catch(() => {});
 
         toast({ title: "Welcome to Engvolve! 🎉", description: "Check your inbox for a welcome email." });
         if (planParam === "free") {

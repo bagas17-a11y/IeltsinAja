@@ -38,6 +38,7 @@ const DiagnosticTest     = lazy(() => import("./pages/DiagnosticTest"));
 const NotFound           = lazy(() => import("./pages/NotFound"));
 const AuthCallback       = lazy(() => import("./pages/AuthCallback"));
 const ResetPassword      = lazy(() => import("./pages/ResetPassword"));
+const OnboardingPhone    = lazy(() => import("./pages/OnboardingPhone"));
 // Admin pages (rarely visited — biggest win from lazy-loading)
 const PaymentVerification= lazy(() => import("./pages/admin/PaymentVerification"));
 const ContentManager     = lazy(() => import("./pages/admin/ContentManager"));
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/onboarding/phone" element={<OnboardingPhone />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/pricing-selection" element={<PricingSelection />} />
               <Route path="/waiting-room" element={<WaitingRoom />} />
