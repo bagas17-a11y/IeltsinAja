@@ -50,7 +50,7 @@ export const Header = () => {
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 mr-3 text-[17px] font-light tracking-tight" style={{ color: "#0A1C40" }}>
             <img src="/icon.png" alt="Engvolve" className="w-10 h-10" />
-            Eng<span style={{ color: "#48A8CC", fontWeight: 500 }}>volve</span>
+            <span className="whitespace-nowrap">Eng<span style={{ color: "#48A8CC", fontWeight: 500 }}>volve</span></span>
           </a>
 
           {/* Divider */}
@@ -112,7 +112,7 @@ export const Header = () => {
         <div className="flex items-center justify-between px-5">
           <a href="#" className="flex items-center gap-2 text-xl font-light" style={{ color: isScrolled ? "#0A1C40" : "#FFFFFF" }}>
             <img src="/icon.png" alt="Engvolve" className="w-11 h-11" />
-            Eng<span style={{ color: isScrolled ? "#48A8CC" : "#FFE4A0", fontWeight: 500 }}>volve</span>
+            <span className="whitespace-nowrap">Eng<span style={{ color: isScrolled ? "#48A8CC" : "#FFE4A0", fontWeight: 500 }}>volve</span></span>
           </a>
           <button
             className="p-2"
