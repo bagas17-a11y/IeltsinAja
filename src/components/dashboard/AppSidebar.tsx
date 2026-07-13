@@ -88,7 +88,7 @@ export function AppSidebar() {
     >
       {/* ── Logo ─────────────────────────────────────────────────────────── */}
       <div className="h-12 flex items-center gap-3 px-3.5 border-b border-border/30 shrink-0">
-        <img src="/logo.svg" alt="Engvolve" className="w-7 h-7 shrink-0" />
+        <img src="/icon.png" alt="Engvolve" className="w-7 h-7 shrink-0" />
         <div className="overflow-hidden opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">
           <p className="text-sm font-semibold leading-none">Engvolve</p>
           <p className="text-[10px] text-muted-foreground mt-0.5">Study Dashboard</p>

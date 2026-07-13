@@ -42,7 +42,7 @@ export default function OnboardingPhone() {
         <div className="glass-card p-8 space-y-6">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2">
-              <img src="/logo.svg" alt="Engvolve" className="w-9 h-9" />
+              <img src="/icon.png" alt="Engvolve" className="w-9 h-9" />
               <h1 className="text-2xl font-light tracking-tight">
                 Eng<span className="text-accent font-medium">volve</span>
               </h1>
