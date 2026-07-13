@@ -38,8 +38,12 @@ export default function AuthCallback() {
 
       const pricingDest = planParam ? `/pricing-selection?plan=${planParam}` : "/pricing-selection";
 
-      if (!profile || !profile.subscription_tier) {
-        // New Google user — no profile or hasn't chosen a plan yet
+      // Brand-new account = created within the last 2 minutes
+      const isNewUser = session.user.created_at
+        ? Date.now() - new Date(session.user.created_at).getTime() < 120_000
+        : false;
+
+      if (!profile || isNewUser) {
         supabase.functions.invoke("send-welcome-email", {
           body: {
             email: session.user.email,
