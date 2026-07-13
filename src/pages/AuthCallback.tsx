@@ -36,16 +36,24 @@ export default function AuthCallback() {
         await new Promise((r) => setTimeout(r, 1000));
       }
 
-      if (!profile) {
-        // New Google user — no profile yet (trigger may have failed); send to pricing
-        navigate(planParam ? `/pricing-selection?plan=${planParam}` : "/pricing-selection");
+      const pricingDest = planParam ? `/pricing-selection?plan=${planParam}` : "/pricing-selection";
+
+      if (!profile || !profile.subscription_tier) {
+        // New Google user — no profile or hasn't chosen a plan yet
+        supabase.functions.invoke("send-welcome-email", {
+          body: {
+            email: session.user.email,
+            full_name: session.user.user_metadata?.full_name,
+          },
+        }).catch(() => {});
+        navigate(pricingDest);
         return;
       }
 
       if (!profile.is_verified) { navigate("/waiting-room"); return; }
 
       // If they came from a plan link, respect that
-      if (planParam) { navigate(`/pricing-selection?plan=${planParam}`); return; }
+      if (planParam) { navigate(pricingDest); return; }
 
       navigate("/dashboard");
     });
