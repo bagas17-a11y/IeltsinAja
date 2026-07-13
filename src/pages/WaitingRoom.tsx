@@ -48,7 +48,7 @@ export default function WaitingRoom() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate("/auth");
   };
 
   if (isLoading) {
