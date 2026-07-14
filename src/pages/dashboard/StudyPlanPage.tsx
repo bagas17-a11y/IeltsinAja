@@ -1777,19 +1777,21 @@ const WEEK_BANNER_GRADIENTS: Record<string, string> = {
   red:    "linear-gradient(135deg,#b91c1c 0%,#f87171 100%)",
 };
 
+// Consistent color palette aligned to Engvolve brand (navy / sky-blue / gold)
+// One fixed color per material type — never changes regardless of week or tier.
 function getNodeInfo(task: StudyTask): { color: string; shadow: string; IconComponent: React.ElementType } {
   const l = task.label.toLowerCase();
-  if (l.startsWith("optional"))                          return { color: "#14b8a6", shadow: "#14b8a640", IconComponent: Sparkles };
-  if (l.includes("worksheet"))                           return { color: "#6366f1", shadow: "#6366f140", IconComponent: ClipboardList };
-  if (l.includes("mudahinaja"))                          return { color: "#f59e0b", shadow: "#f59e0b40", IconComponent: Brain };
-  if (l.includes("revision notes") && l.includes("vocab")) return { color: "#a855f7", shadow: "#a855f740", IconComponent: Sparkles };
-  if (l.includes("revision notes"))                     return { color: "#8b5cf6", shadow: "#8b5cf640", IconComponent: BookOpen };
-  if (l.includes("reading"))                             return { color: "#3b82f6", shadow: "#3b82f640", IconComponent: BookOpen };
-  if (l.includes("listening"))                           return { color: "#10b981", shadow: "#10b98140", IconComponent: Headphones };
-  if (l.includes("writing"))                             return { color: "#f97316", shadow: "#f9731640", IconComponent: PenTool };
-  if (l.includes("speaking"))                            return { color: "#ec4899", shadow: "#ec489940", IconComponent: Mic };
-  if (l.includes("end-of-week") || l.includes("submit")) return { color: "#f59e0b", shadow: "#f59e0b40", IconComponent: Trophy };
-  return { color: "#48A8CC", shadow: "#48A8CC40", IconComponent: BookOpen };
+  if (l.startsWith("optional"))                             return { color: "#0891b2", shadow: "#0891b240", IconComponent: Sparkles };      // sky-cyan  — bonus content
+  if (l.includes("worksheet"))                              return { color: "#4338ca", shadow: "#4338ca40", IconComponent: ClipboardList }; // deep indigo — exercises
+  if (l.includes("mudahinaja"))                             return { color: "#b45309", shadow: "#b4530940", IconComponent: Brain };         // amber-brown — AI/interactive
+  if (l.includes("revision notes") && l.includes("vocab")) return { color: "#a855f7", shadow: "#a855f740", IconComponent: Sparkles };      // violet — vocabulary
+  if (l.includes("revision notes"))                         return { color: "#7c3aed", shadow: "#7c3aed40", IconComponent: BookOpen };      // deep violet — notes
+  if (l.includes("reading"))                                return { color: "#1279A0", shadow: "#1279A040", IconComponent: BookOpen };      // brand dark-blue — reading
+  if (l.includes("listening"))                              return { color: "#059669", shadow: "#05966940", IconComponent: Headphones };    // emerald — audio
+  if (l.includes("writing"))                                return { color: "#0e7490", shadow: "#0e749040", IconComponent: PenTool };       // dark teal — writing
+  if (l.includes("speaking"))                               return { color: "#6d28d9", shadow: "#6d28d940", IconComponent: Mic };          // purple — voice/speech
+  if (l.includes("end-of-week") || l.includes("submit"))   return { color: "#d97706", shadow: "#d9770640", IconComponent: Trophy };        // gold — achievement
+  return { color: "#48A8CC", shadow: "#48A8CC40", IconComponent: BookOpen };                                                               // brand accent — default
 }
 
 function shortTaskLabel(label: string): string {
@@ -1967,7 +1969,7 @@ export default function StudyPlanPage() {
 
         {/* ── Header stats ── */}
         <div className="relative z-10 px-5 pt-5 pb-3">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-2xl mx-auto">
             <Breadcrumb className="mb-3">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -2027,29 +2029,30 @@ export default function StudyPlanPage() {
               </div>
             )}
 
-            <h1 className="text-2xl font-bold text-foreground mb-3">Your Study Roadmap</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-1">Your Study Roadmap</h1>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{plan.description}</p>
 
-            <div className="grid grid-cols-4 gap-2 mb-3">
+            <div className="grid grid-cols-4 gap-3 mb-4">
               {[
-                { label: "Weeks", value: plan.weeks.length },
-                { label: "Done", value: weeksCompleted },
-                { label: "Tasks", value: `${completedCount}/${totalTasks}` },
-                { label: "Hours", value: `${Math.round(totalMinutes / 60)}h` },
+                { label: "Weeks total", value: plan.weeks.length },
+                { label: "Completed weeks", value: weeksCompleted },
+                { label: "Tasks done", value: `${completedCount}/${totalTasks}` },
+                { label: "Total study hours", value: `${Math.round(totalMinutes / 60)}h` },
               ].map(s => (
-                <div key={s.label} className="rounded-xl p-3 text-center bg-card border border-border/40">
-                  <p className="text-lg font-bold text-foreground">{s.value}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{s.label}</p>
+                <div key={s.label} className="rounded-xl p-4 text-center bg-card border border-border/40">
+                  <p className="text-2xl font-bold text-foreground">{s.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
                 </div>
               ))}
             </div>
 
             <div>
-              <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
+              <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
                 <span>Overall progress</span>
                 <span>{Math.round((completedCount / totalTasks) * 100)}%</span>
               </div>
-              <div className="w-full rounded-full h-1.5 bg-border">
-                <motion.div className="h-1.5 rounded-full bg-accent"
+              <div className="w-full rounded-full h-2 bg-border">
+                <motion.div className="h-2 rounded-full bg-accent"
                   animate={{ width: `${(completedCount / totalTasks) * 100}%` }}
                   transition={{ duration: 0.5 }} />
               </div>
@@ -2057,8 +2060,9 @@ export default function StudyPlanPage() {
           </div>
         </div>
 
-        {/* ─── Vertical week cards with horizontal checkpoint nodes ─── */}
+        {/* ─── Vertical week cards ─── */}
         <div className="relative z-10 px-5 pb-6">
+          <div className="max-w-2xl mx-auto">
           {/* Elite gate overlay */}
           {profile?.subscription_tier !== "elite" && (
             <div className="absolute inset-0 z-20 flex items-center justify-center">
@@ -2094,42 +2098,42 @@ export default function StudyPlanPage() {
                 <div key={week.week} className="rounded-2xl border border-border/40 bg-card overflow-hidden">
 
                   {/* Week header */}
-                  <div className="flex items-center gap-3.5 px-4 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="flex items-center gap-4 px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                     {/* Numbered circle */}
-                    <div className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white"
+                    <div className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center text-base font-bold text-white"
                       style={{ background: grad }}>
                       {week.week}
                     </div>
                     {/* Title + meta */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-foreground leading-tight">{week.theme}</p>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-white shrink-0"
+                        <p className="text-base font-semibold text-foreground leading-tight">{week.theme}</p>
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold text-white shrink-0"
                           style={{ background: accentColor + "cc" }}>
                           {week.focus}
                         </span>
                         {allWeekDone && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/15 text-green-400 border border-green-500/25 shrink-0">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/15 text-green-400 border border-green-500/25 shrink-0">
                             Completed ✓
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="text-[11px] text-muted-foreground">{weekDone}/{week.tasks.length} tasks</span>
-                        <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground">{weekDone}/{week.tasks.length} tasks</span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />{Math.round(weekMinutes / 60 * 10) / 10}h
                         </span>
                       </div>
                       {/* Week progress bar */}
-                      <div className="mt-1.5 w-full h-1 rounded-full bg-border/40">
-                        <div className="h-1 rounded-full transition-all duration-500"
+                      <div className="mt-2 w-full h-1.5 rounded-full bg-border/40">
+                        <div className="h-1.5 rounded-full transition-all duration-500"
                           style={{ width: `${(weekDone / week.tasks.length) * 100}%`, background: accentColor }} />
                       </div>
                     </div>
                   </div>
 
                   {/* Vertical checkpoint list */}
-                  <div className="px-4 pt-3 pb-4">
+                  <div className="px-5 pt-4 pb-5">
                     {week.tasks.map((task, ti) => {
                       const done = completedTasks.has(task.id);
                       const isActive = task.id === globalActiveId;
@@ -2159,10 +2163,10 @@ export default function StudyPlanPage() {
                               )}
                               <button
                                 onClick={() => setSelectedTask({ task, week })}
-                                className="relative w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none active:scale-95"
+                                className="relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none active:scale-95"
                                 style={{
                                   background: nodeColor,
-                                  boxShadow: `0 3px 12px ${nodeShadow}, 0 1px 4px rgba(0,0,0,0.12)`,
+                                  boxShadow: `0 4px 14px ${nodeShadow}, 0 1px 4px rgba(0,0,0,0.14)`,
                                 }}
                               >
                                 <div className="absolute inset-x-0 bottom-0 h-1/3 rounded-b-full bg-black/20 pointer-events-none" />
@@ -2177,36 +2181,36 @@ export default function StudyPlanPage() {
 
                             {/* Title + day */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
+                              <div className="flex items-center gap-2 mb-1">
                                 {dayLabel && (
-                                  <span className="text-[10px] font-bold shrink-0" style={{ color: accentColor }}>
+                                  <span className="text-xs font-bold shrink-0" style={{ color: accentColor }}>
                                     {dayLabel}
                                   </span>
                                 )}
                                 {done && (
-                                  <span className="text-[9px] text-green-400 font-medium shrink-0">Completed</span>
+                                  <span className="text-xs text-green-400 font-medium shrink-0">Completed</span>
                                 )}
                                 {isActive && (
-                                  <span className="text-[9px] font-bold shrink-0" style={{ color: accentColor }}>← Continue here</span>
+                                  <span className="text-xs font-bold shrink-0" style={{ color: accentColor }}>← Continue here</span>
                                 )}
                               </div>
-                              <p className="text-[12px] font-medium text-foreground leading-snug">{fullTitle}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                  <Clock className="w-3 h-3" /> {task.minutes} min
+                              <p className="text-sm font-medium text-foreground leading-snug">{fullTitle}</p>
+                              <div className="flex items-center gap-3 mt-1.5">
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5" /> {task.minutes} min
                                 </span>
                                 {isWeekResourceTask && (
-                                  <span className="text-[10px] text-accent flex items-center gap-0.5">
-                                    <Newspaper className="w-3 h-3" /> {week.externalResources!.length} sources
+                                  <span className="text-xs text-accent flex items-center gap-1">
+                                    <Newspaper className="w-3.5 h-3.5" /> {week.externalResources!.length} sources
                                   </span>
                                 )}
                                 {!isWeekResourceTask && task.sourceUrl && (
                                   <a href={task.sourceUrl} target="_blank" rel="noopener noreferrer"
                                     onClick={e => e.stopPropagation()}
-                                    className="text-[10px] text-accent flex items-center gap-0.5 hover:underline">
+                                    className="text-xs text-accent flex items-center gap-1 hover:underline">
                                     {task.sourceType === "video"
-                                      ? <><PlayCircle className="w-3 h-3" /> Watch</>
-                                      : <><ExternalLink className="w-3 h-3" /> Read article</>}
+                                      ? <><PlayCircle className="w-3.5 h-3.5" /> Watch</>
+                                      : <><ExternalLink className="w-3.5 h-3.5" /> Read article</>}
                                   </a>
                                 )}
                               </div>
@@ -2215,7 +2219,7 @@ export default function StudyPlanPage() {
 
                           {/* Vertical connector to next task */}
                           {ti < week.tasks.length - 1 && (
-                            <div className="ml-[21px] w-[2px] h-5 rounded-full" style={{ background: accentColor + "30" }} />
+                            <div className="ml-[23px] w-[2px] h-6 rounded-full" style={{ background: accentColor + "30" }} />
                           )}
                         </div>
                       );
@@ -2225,11 +2229,12 @@ export default function StudyPlanPage() {
               );
             })}
           </div>
+          </div>{/* /max-w-2xl */}
         </div>
 
         {/* Retake CTA */}
         <div className="relative z-10 px-5 pb-6 md:pb-4 pt-2">
-          <div className="rounded-2xl p-4 flex items-center justify-between gap-4 bg-card border border-border/40">
+          <div className="max-w-2xl mx-auto rounded-2xl p-4 flex items-center justify-between gap-4 bg-card border border-border/40">
             <div>
               <p className="text-sm font-medium text-foreground">Retake the diagnostic?</p>
               <p className="text-xs text-muted-foreground mt-0.5">Your roadmap updates automatically based on your latest diagnostic result.</p>
