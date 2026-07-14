@@ -23,6 +23,7 @@ const ConsultationHub    = lazy(() => import("./pages/dashboard/ConsultationHub"
 const MaterialsPage      = lazy(() => import("./pages/dashboard/MaterialsPage"));
 const EliteHubPage       = lazy(() => import("./pages/dashboard/EliteHubPage"));
 const RevisionNotesPage  = lazy(() => import("./pages/dashboard/RevisionNotesPage"));
+const ExternalResourceWorksheetsPage = lazy(() => import("./pages/dashboard/ExternalResourceWorksheetsPage"));
 const FlashcardsPage     = lazy(() => import("./pages/dashboard/FlashcardsPage"));
 const FlashcardsTopicPage= lazy(() => import("./pages/dashboard/FlashcardsTopicPage"));
 const StatsPage          = lazy(() => import("./pages/dashboard/StatsPage"));
@@ -109,6 +110,7 @@ const App = () => (
               <Route path="/dashboard/materials" element={<MaterialsPage />} />
               <Route path="/dashboard/elite" element={<EliteHubPage />} />
               <Route path="/dashboard/revision-notes" element={<RevisionNotesPage />} />
+              <Route path="/dashboard/external-worksheets" element={<ExternalResourceWorksheetsPage />} />
               <Route path="/dashboard/flashcards" element={<FlashcardsPage />} />
               <Route path="/dashboard/flashcards/topic" element={<FlashcardsTopicPage />} />
               <Route path="/dashboard/group" element={<StudyGroupPage />} />

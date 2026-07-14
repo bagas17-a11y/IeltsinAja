@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, BookOpen, Headphones, PenTool, Mic,
   BarChart3, Settings, LogOut, Shield,
-  Crown, Target, Map, Layers, FlipHorizontal, Users,
+  Crown, Target, Map, Layers, FlipHorizontal, Users, FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,9 +39,10 @@ const GROUPS = [
   {
     label: "Pro",
     items: [
-      { title: "Revision Notes", path: "/dashboard/revision-notes", icon: Layers },
-      { title: "Flashcards",     path: "/dashboard/flashcards",     icon: FlipHorizontal },
-      { title: "Study Groups",   path: "/dashboard/group",          icon: Users },
+      { title: "Revision Notes",              path: "/dashboard/revision-notes",          icon: Layers },
+      { title: "Flashcards",                 path: "/dashboard/flashcards",              icon: FlipHorizontal },
+      { title: "Study Groups",               path: "/dashboard/group",                   icon: Users },
+      { title: "External Resource Worksheets", path: "/dashboard/external-worksheets", icon: FolderOpen },
     ],
   },
   {
