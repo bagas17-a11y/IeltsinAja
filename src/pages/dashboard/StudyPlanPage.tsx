@@ -1568,7 +1568,7 @@ function VocabSlideshow({ items }: { items: VocabItem[] }) {
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-5 py-8 space-y-5">
+        <div className="max-w-lg mx-auto px-5 py-8 space-y-5">
           {/* Term */}
           <div>
             <h2 className="text-2xl font-bold text-foreground leading-tight">{item.term}</h2>
@@ -1968,8 +1968,8 @@ export default function StudyPlanPage() {
       <div className="flex flex-col flex-1 relative overflow-hidden bg-background">
 
         {/* ── Header stats ── */}
-        <div className="relative z-10 px-5 pt-5 pb-3">
-          <div className="max-w-2xl mx-auto">
+        <div className="relative z-10 px-4 pt-5 pb-3">
+          <div className="max-w-lg mx-auto">
             <Breadcrumb className="mb-3">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -2061,8 +2061,8 @@ export default function StudyPlanPage() {
         </div>
 
         {/* ─── Vertical week cards ─── */}
-        <div className="relative z-10 px-5 pb-6">
-          <div className="max-w-2xl mx-auto">
+        <div className="relative z-10 px-4 pb-8">
+          <div className="max-w-lg mx-auto">
           {/* Elite gate overlay */}
           {profile?.subscription_tier !== "elite" && (
             <div className="absolute inset-0 z-20 flex items-center justify-center">
@@ -2233,8 +2233,8 @@ export default function StudyPlanPage() {
         </div>
 
         {/* Retake CTA */}
-        <div className="relative z-10 px-5 pb-6 md:pb-4 pt-2">
-          <div className="max-w-2xl mx-auto rounded-2xl p-4 flex items-center justify-between gap-4 bg-card border border-border/40">
+        <div className="relative z-10 px-4 pb-6 md:pb-4 pt-2">
+          <div className="max-w-lg mx-auto rounded-2xl p-4 flex items-center justify-between gap-4 bg-card border border-border/40">
             <div>
               <p className="text-sm font-medium text-foreground">Retake the diagnostic?</p>
               <p className="text-xs text-muted-foreground mt-0.5">Your roadmap updates automatically based on your latest diagnostic result.</p>
