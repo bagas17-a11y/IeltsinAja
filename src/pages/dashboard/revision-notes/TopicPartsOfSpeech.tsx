@@ -492,7 +492,7 @@ export function TopicPartsOfSpeech() {
           />
           <WorksheetQuestion id="pos1b-a-4" number={4} multiline
             question='Obvious, governments must take stronger action to address the rising cost of living.'
-            modelAnswer='Obviously, governments must take stronger action to address the rising cost of living. ("Obvious" is an adjective; the sentence adverb "Obviously" is needed here to show the speaker\'s stance.)'
+            modelAnswer={`Obviously, governments must take stronger action to address the rising cost of living. ("Obvious" is an adjective; the sentence adverb "Obviously" is needed here to show the speaker's stance.)`}
           />
           <WorksheetQuestion id="pos1b-a-5" number={5} multiline
             question='Write a declarative alternative to this imperative suitable for IELTS Writing Task 2: "Stop using plastic bags."'
