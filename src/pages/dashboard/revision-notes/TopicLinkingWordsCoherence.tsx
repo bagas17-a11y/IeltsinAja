@@ -131,8 +131,13 @@ export function TopicLinkingWordsCoherence() {
           <>Wrong — &quot;Firstly&quot; is repeated three times. Use &quot;Firstly&quot;, &quot;Secondly&quot;, &quot;Finally&quot; or other linkers like &quot;Furthermore&quot;, &quot;In addition&quot;.</>,
         ]}
       />
-      <SectionTitle number={6} title="Worksheet — Conjunctions Practice" />
-      <WorksheetContainer topicName="Linking Words & Conjunctions">
+    </div>
+  );
+}
+
+export function TopicLinkingWordsCoherenceWorksheet1() {
+  return (
+    <WorksheetContainer topicName="Linking Words & Conjunctions">
 
         <WorksheetBlock
           title="Part A — Join the sentences using the conjunction shown"
@@ -210,10 +215,13 @@ export function TopicLinkingWordsCoherence() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
+    </WorksheetContainer>
+  );
+}
 
-      <SectionTitle number={7} title="Worksheet 2 — Linking Words & Cohesion Practice" />
-      <WorksheetContainer topicName="Linking Words, Referencing & Coherence — Worksheet 2">
+export function TopicLinkingWordsCoherenceWorksheet2() {
+  return (
+    <WorksheetContainer topicName="Linking Words, Referencing & Coherence — Worksheet 2">
 
         <WorksheetBlock
           title="Part A — Find and fix the error"
@@ -289,7 +297,6 @@ export function TopicLinkingWordsCoherence() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
-    </div>
+    </WorksheetContainer>
   );
 }

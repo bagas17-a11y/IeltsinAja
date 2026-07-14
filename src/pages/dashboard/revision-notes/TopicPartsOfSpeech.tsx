@@ -185,89 +185,6 @@ export function TopicPartsOfSpeech() {
         ]}
       />
 
-      <WorksheetContainer topicName="Parts of Speech — Worksheet 1a (Parts 1–4)">
-
-        <WorksheetBlock
-          title="Part A — Identify and correct the error"
-          instruction="Each sentence contains one grammar error related to subjects, verbs, or pronouns. Rewrite the full corrected sentence, then click Check answer."
-        >
-          <WorksheetQuestion id="pos1a-a-1" number={1} multiline
-            question='The number of applicants applying for the scholarship have increased this year.'
-            modelAnswer='The number of applicants applying for the scholarship has increased this year. (The subject is "The number" — singular — so the verb must be "has", not "have".)'
-          />
-          <WorksheetQuestion id="pos1a-a-2" number={2} multiline
-            question='She seen significant improvements since she started practising every day.'
-            modelAnswer='She has seen significant improvements since she started practising every day. (Present perfect "has seen" is needed — "since" connects a past starting point to the present.)'
-          />
-          <WorksheetQuestion id="pos1a-a-3" number={3} multiline
-            question='Scientists has discovered a new vaccine that could prevent the disease.'
-            modelAnswer='Scientists have discovered a new vaccine that could prevent the disease. ("Scientists" is plural, so the auxiliary must be "have", not "has".)'
-          />
-          <WorksheetQuestion id="pos1a-a-4" number={4} multiline
-            question='It widely accepted that renewable energy is the future of global power.'
-            modelAnswer='It is widely accepted that renewable energy is the future of global power. (The dummy subject "It" needs the auxiliary verb "is" — "It widely accepted" is missing the verb.)'
-          />
-          <WorksheetQuestion id="pos1a-a-5" number={5} multiline
-            question='This results show a clear upward trend over the past decade.'
-            modelAnswer='These results show a clear upward trend over the past decade. ("Results" is plural, so the demonstrative pronoun must be "These", not "This".)'
-          />
-        </WorksheetBlock>
-
-        <WorksheetBlock
-          title="Part B — Choose the correct option"
-          instruction="Select the correct word or phrase, then click Check answer."
-        >
-          <WorksheetQuestion id="pos1a-b-1" number={1}
-            question='What is the subject of: "The proportion of elderly residents in Japan has risen significantly."?'
-            choices={["The proportion", "Japan", "elderly residents", "significantly"]}
-            accepted={["The proportion"]}
-            modelAnswer='"The proportion" — "of elderly residents in Japan" is a prepositional phrase modifying the head noun "proportion". The verb "has risen" must agree with this singular subject.'
-          />
-          <WorksheetQuestion id="pos1a-b-2" number={2}
-            question='"___ is well known that exercise improves mental health." Which word completes the sentence?'
-            choices={["It", "This", "There", "That"]}
-            accepted={["It"]}
-            modelAnswer='"It" — a dummy subject used in the fixed expression "it is + adjective + that clause". It fills the subject position without adding meaning.'
-          />
-          <WorksheetQuestion id="pos1a-b-3" number={3}
-            question='"Many people live in cities. ___ face pollution problems." Which pronoun correctly replaces "many people"?'
-            choices={["They", "It", "This", "Those"]}
-            accepted={["They"]}
-            modelAnswer='"They" — a personal pronoun replacing the plural noun phrase "many people" to avoid repetition and maintain cohesion.'
-          />
-          <WorksheetQuestion id="pos1a-b-4" number={4}
-            question='Which verb form correctly completes: "The proportion of workers using computers ___ risen since 2010."?'
-            choices={["have", "has", "having", "had"]}
-            accepted={["has"]}
-            modelAnswer='"has" — the subject is "The proportion" (singular), so the auxiliary verb must be singular. "Of workers using computers" is a modifier, not the subject.'
-          />
-          <WorksheetQuestion id="pos1a-b-5" number={5}
-            question='Which verb type is "could lead to" in: "Urbanisation could lead to increased inequality."?'
-            choices={["Lexical (main) verb", "Modal auxiliary verb", "Past participle", "Present perfect"]}
-            accepted={["Modal auxiliary verb"]}
-            modelAnswer='"could" is a modal auxiliary verb expressing possibility. "Lead to" is the lexical (main) verb. Together they form "could lead to" — a modal + base verb structure.'
-          />
-        </WorksheetBlock>
-
-        <WorksheetBlock
-          title="Part C — Write your own sentences"
-          instruction="Write a full sentence using the guideline shown. Click Check answer to compare with the model."
-        >
-          <WorksheetQuestion id="pos1a-c-1" number={1} multiline
-            question="Write an IELTS Task 1 sentence where the subject is a measurement word (e.g., proportion, number, amount, percentage) — not 'people' or 'they'."
-            modelAnswer='Example: "The proportion of households owning at least one car doubled between 1990 and 2010." (Subject: "The proportion" — "of households" is a modifier, not the subject.)'
-          />
-          <WorksheetQuestion id="pos1a-c-2" number={2} multiline
-            question="Write a sentence using a modal auxiliary verb (could, would, might, should, or may) to express possibility or a recommendation about an IELTS topic."
-            modelAnswer='Example: "Governments could implement stricter emission regulations to significantly reduce urban air pollution." (Modal "could" expresses possibility; "implement" is the lexical verb.)'
-          />
-          <WorksheetQuestion id="pos1a-c-3" number={3} multiline
-            question='Rewrite this to use a pronoun and avoid repetition: "Online learning is becoming more popular. Online learning allows students to study at their own pace."'
-            modelAnswer='"Online learning is becoming more popular. It allows students to study at their own pace." (Personal pronoun "It" replaces the second "Online learning" to improve cohesion.)'
-          />
-        </WorksheetBlock>
-
-      </WorksheetContainer>
 
       <SectionTitle number={5} title="Adjectives" />
       <SubSectionTitle title="5.1 What it is (Definition + Function)" />
@@ -471,8 +388,103 @@ export function TopicPartsOfSpeech() {
           </>
         }
       />
-      <SectionTitle number={9} title="Worksheet 1b — Parts 5–8 Practice" />
-      <WorksheetContainer topicName="Parts of Speech — Worksheet 1b (Parts 5–8)">
+    </div>
+  );
+}
+
+export function TopicPartsOfSpeechWorksheet1() {
+  return (
+    <div className="space-y-8">
+      <div>
+        <p className="text-sm font-semibold text-slate-300 mb-4">Worksheet 1a — Parts 1–4: Overview, Subjects, Verbs &amp; Pronouns</p>
+        <WorksheetContainer topicName="Parts of Speech — Worksheet 1a (Parts 1–4)">
+
+          <WorksheetBlock
+            title="Part A — Identify and correct the error"
+            instruction="Each sentence contains one grammar error related to subjects, verbs, or pronouns. Rewrite the full corrected sentence, then click Check answer."
+          >
+            <WorksheetQuestion id="pos1a-a-1" number={1} multiline
+              question='The number of applicants applying for the scholarship have increased this year.'
+              modelAnswer='The number of applicants applying for the scholarship has increased this year. (The subject is "The number" — singular — so the verb must be "has", not "have".)'
+            />
+            <WorksheetQuestion id="pos1a-a-2" number={2} multiline
+              question='She seen significant improvements since she started practising every day.'
+              modelAnswer='She has seen significant improvements since she started practising every day. (Present perfect "has seen" is needed — "since" connects a past starting point to the present.)'
+            />
+            <WorksheetQuestion id="pos1a-a-3" number={3} multiline
+              question='Scientists has discovered a new vaccine that could prevent the disease.'
+              modelAnswer='Scientists have discovered a new vaccine that could prevent the disease. ("Scientists" is plural, so the auxiliary must be "have", not "has".)'
+            />
+            <WorksheetQuestion id="pos1a-a-4" number={4} multiline
+              question='It widely accepted that renewable energy is the future of global power.'
+              modelAnswer='It is widely accepted that renewable energy is the future of global power. (The dummy subject "It" needs the auxiliary verb "is" — "It widely accepted" is missing the verb.)'
+            />
+            <WorksheetQuestion id="pos1a-a-5" number={5} multiline
+              question='This results show a clear upward trend over the past decade.'
+              modelAnswer='These results show a clear upward trend over the past decade. ("Results" is plural, so the demonstrative pronoun must be "These", not "This".)'
+            />
+          </WorksheetBlock>
+
+          <WorksheetBlock
+            title="Part B — Choose the correct option"
+            instruction="Select the correct word or phrase, then click Check answer."
+          >
+            <WorksheetQuestion id="pos1a-b-1" number={1}
+              question='What is the subject of: "The proportion of elderly residents in Japan has risen significantly."?'
+              choices={["The proportion", "Japan", "elderly residents", "significantly"]}
+              accepted={["The proportion"]}
+              modelAnswer='"The proportion" — "of elderly residents in Japan" is a prepositional phrase modifying the head noun "proportion". The verb "has risen" must agree with this singular subject.'
+            />
+            <WorksheetQuestion id="pos1a-b-2" number={2}
+              question='"___ is well known that exercise improves mental health." Which word completes the sentence?'
+              choices={["It", "This", "There", "That"]}
+              accepted={["It"]}
+              modelAnswer='"It" — a dummy subject used in the fixed expression "it is + adjective + that clause". It fills the subject position without adding meaning.'
+            />
+            <WorksheetQuestion id="pos1a-b-3" number={3}
+              question='"Many people live in cities. ___ face pollution problems." Which pronoun correctly replaces "many people"?'
+              choices={["They", "It", "This", "Those"]}
+              accepted={["They"]}
+              modelAnswer='"They" — a personal pronoun replacing the plural noun phrase "many people" to avoid repetition and maintain cohesion.'
+            />
+            <WorksheetQuestion id="pos1a-b-4" number={4}
+              question='Which verb form correctly completes: "The proportion of workers using computers ___ risen since 2010."?'
+              choices={["have", "has", "having", "had"]}
+              accepted={["has"]}
+              modelAnswer='"has" — the subject is "The proportion" (singular), so the auxiliary verb must be singular. "Of workers using computers" is a modifier, not the subject.'
+            />
+            <WorksheetQuestion id="pos1a-b-5" number={5}
+              question='Which verb type is "could lead to" in: "Urbanisation could lead to increased inequality."?'
+              choices={["Lexical (main) verb", "Modal auxiliary verb", "Past participle", "Present perfect"]}
+              accepted={["Modal auxiliary verb"]}
+              modelAnswer='"could" is a modal auxiliary verb expressing possibility. "Lead to" is the lexical (main) verb. Together they form "could lead to" — a modal + base verb structure.'
+            />
+          </WorksheetBlock>
+
+          <WorksheetBlock
+            title="Part C — Write your own sentences"
+            instruction="Write a full sentence using the guideline shown. Click Check answer to compare with the model."
+          >
+            <WorksheetQuestion id="pos1a-c-1" number={1} multiline
+              question="Write an IELTS Task 1 sentence where the subject is a measurement word (e.g., proportion, number, amount, percentage) — not 'people' or 'they'."
+              modelAnswer='Example: "The proportion of households owning at least one car doubled between 1990 and 2010." (Subject: "The proportion" — "of households" is a modifier, not the subject.)'
+            />
+            <WorksheetQuestion id="pos1a-c-2" number={2} multiline
+              question="Write a sentence using a modal auxiliary verb (could, would, might, should, or may) to express possibility or a recommendation about an IELTS topic."
+              modelAnswer='Example: "Governments could implement stricter emission regulations to significantly reduce urban air pollution." (Modal "could" expresses possibility; "implement" is the lexical verb.)'
+            />
+            <WorksheetQuestion id="pos1a-c-3" number={3} multiline
+              question='Rewrite this to use a pronoun and avoid repetition: "Online learning is becoming more popular. Online learning allows students to study at their own pace."'
+              modelAnswer='"Online learning is becoming more popular. It allows students to study at their own pace." (Personal pronoun "It" replaces the second "Online learning" to improve cohesion.)'
+            />
+          </WorksheetBlock>
+
+        </WorksheetContainer>
+      </div>
+
+      <div className="border-t border-border/50 pt-6">
+        <p className="text-sm font-semibold text-slate-300 mb-4">Worksheet 1b — Parts 5–8: Adjectives, Adverbs, Imperatives &amp; Practice</p>
+        <WorksheetContainer topicName="Parts of Speech — Worksheet 1b (Parts 5–8)">
 
         <WorksheetBlock
           title="Part A — Identify and correct the error"
@@ -548,10 +560,15 @@ export function TopicPartsOfSpeech() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
+        </WorksheetContainer>
+      </div>
+    </div>
+  );
+}
 
-      <SectionTitle number={10} title="Worksheet 2 — Parts of Speech Practice" />
-      <WorksheetContainer topicName="Parts of Speech — Worksheet 2">
+export function TopicPartsOfSpeechWorksheet2() {
+  return (
+    <WorksheetContainer topicName="Parts of Speech — Worksheet 2">
 
         <WorksheetBlock
           title="Part A — Identify and correct the error"
@@ -633,7 +650,6 @@ export function TopicPartsOfSpeech() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
-    </div>
+    </WorksheetContainer>
   );
 }

@@ -23,7 +23,7 @@ import {
   type RevisionNoteFormatId,
   REVISION_NOTE_FORMAT_IDS,
 } from "@/content/revisionNotes";
-import { REVISION_TOPIC_COMPONENTS, TestFormatsView } from "./revision-notes";
+import { REVISION_TOPIC_COMPONENTS, WORKSHEET_COMPONENTS, TestFormatsView } from "./revision-notes";
 import {
   ChevronRight,
   ChevronDown,
@@ -71,6 +71,7 @@ export default function RevisionNotesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const topicParam = searchParams.get("topic") as RevisionNoteTopicId | null;
   const formatParam = searchParams.get("format") as RevisionNoteFormatId | null;
+  const subtopicParam = searchParams.get("subtopic") as "worksheet-1" | "worksheet-2" | null;
   const viewAll = searchParams.get("view") === "all";
   const showFormatsView = searchParams.get("view") === "formats";
   const currentFormat: RevisionNoteFormatId =
@@ -82,6 +83,8 @@ export default function RevisionNotesPage() {
     topicParam && REVISION_NOTE_TOPICS.some((t) => t.id === topicParam)
       ? topicParam
       : FIRST_TOPIC;
+
+  const currentSubtopic = subtopicParam ?? null;
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(260);
@@ -179,6 +182,11 @@ export default function RevisionNotesPage() {
     setMobileMenuOpen(false);
   };
 
+  const setWorksheet = (topicId: RevisionNoteTopicId, worksheetId: "worksheet-1" | "worksheet-2") => {
+    setSearchParams({ topic: topicId, subtopic: worksheetId });
+    setMobileMenuOpen(false);
+  };
+
   const setViewAll = () => {
     setSearchParams({ view: "all" });
     setMobileMenuOpen(false);
@@ -191,10 +199,14 @@ export default function RevisionNotesPage() {
 
   const showTopicList = viewAll && !topicParam && !showFormatsView;
 
-  const TopicContent = useMemo(
-    () => REVISION_TOPIC_COMPONENTS[currentTopic],
-    [currentTopic]
-  );
+  const TopicContent = useMemo(() => {
+    if (currentSubtopic) {
+      const ws = WORKSHEET_COMPONENTS[currentTopic];
+      const wsComponent = ws?.[currentSubtopic];
+      if (wsComponent) return wsComponent;
+    }
+    return REVISION_TOPIC_COMPONENTS[currentTopic];
+  }, [currentTopic, currentSubtopic]);
 
   const showMainContent = !showTopicList && !showFormatsView;
 
@@ -348,33 +360,54 @@ export default function RevisionNotesPage() {
                       {catExpanded && (
                         <div className="ml-2 mt-1 space-y-0.5 pl-2">
                           {topicsInCategory.map((section) => {
-                            const isActive = !showFormatsView && currentTopic === section.id;
+                            const isTopicActive = !showFormatsView && currentTopic === section.id && !currentSubtopic;
+                            const isTopicSelected = !showFormatsView && currentTopic === section.id;
                             const progress = progressState[section.id];
                             return (
-                              <div key={section.id} className="flex items-center gap-2 py-0.5">
-                                <div className="flex items-center justify-center shrink-0 w-4">
-                                  {progress === "complete" ? (
-                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                                  ) : progress === "in_progress" ? (
-                                    <div
-                                      className="h-2.5 w-2.5 rounded-full ring-2 ring-[#3b82f6] ring-offset-2 ring-offset-background"
-                                      style={{ backgroundColor: PRIMARY_GLOW }}
-                                    />
-                                  ) : (
-                                    <Circle className="h-3 w-3 text-slate-600" />
-                                  )}
+                              <div key={section.id}>
+                                <div className="flex items-center gap-2 py-0.5">
+                                  <div className="flex items-center justify-center shrink-0 w-4">
+                                    {progress === "complete" ? (
+                                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                                    ) : progress === "in_progress" ? (
+                                      <div
+                                        className="h-2.5 w-2.5 rounded-full ring-2 ring-[#3b82f6] ring-offset-2 ring-offset-background"
+                                        style={{ backgroundColor: PRIMARY_GLOW }}
+                                      />
+                                    ) : (
+                                      <Circle className="h-3 w-3 text-slate-600" />
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => setTopic(section.id as RevisionNoteTopicId)}
+                                    className={cn(
+                                      "flex-1 rounded px-2 py-1 text-sm text-left transition-all truncate",
+                                      isTopicActive
+                                        ? "bg-[#3b82f6]/20 text-foreground border border-[#3b82f6]/50"
+                                        : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground/80 border border-transparent"
+                                    )}
+                                  >
+                                    {section.title}
+                                  </button>
                                 </div>
-                                <button
-                                  onClick={() => setTopic(section.id as RevisionNoteTopicId)}
-                                  className={cn(
-                                    "flex-1 rounded px-2 py-1 text-sm text-left transition-all truncate",
-                                    isActive
-                                      ? "bg-[#3b82f6]/20 text-foreground border border-[#3b82f6]/50"
-                                      : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground/80 border border-transparent"
-                                  )}
-                                >
-                                  {section.title}
-                                </button>
+                                {isTopicSelected && section.worksheets && section.worksheets.map((ws) => {
+                                  const isWsActive = currentSubtopic === ws.id;
+                                  return (
+                                    <div key={ws.id} className="flex items-center gap-2 py-0.5 pl-6">
+                                      <button
+                                        onClick={() => setWorksheet(section.id as RevisionNoteTopicId, ws.id)}
+                                        className={cn(
+                                          "flex-1 rounded px-2 py-1 text-xs text-left transition-all truncate",
+                                          isWsActive
+                                            ? "bg-[#3b82f6]/20 text-foreground border border-[#3b82f6]/50"
+                                            : "text-muted-foreground/70 hover:bg-secondary/40 hover:text-foreground/80 border border-transparent"
+                                        )}
+                                      >
+                                        {ws.label}
+                                      </button>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             );
                           })}
@@ -463,7 +496,9 @@ export default function RevisionNotesPage() {
                 <h1 className="text-lg font-semibold text-foreground truncate flex-1">
                   {showFormatsView
                     ? `IELTS Test Formats – ${currentFormat.charAt(0).toUpperCase() + currentFormat.slice(1)}`
-                    : `${getTopicTitle(currentTopic)} (Engvolve Grammar): Revision Note`}
+                    : currentSubtopic
+                      ? `${getTopicTitle(currentTopic)} — ${currentSubtopic === "worksheet-1" ? "Worksheet 1" : "Worksheet 2"}`
+                      : `${getTopicTitle(currentTopic)} (Engvolve Grammar): Revision Note`}
                 </h1>
               )}
               {!showTopicList && !showFormatsView && (

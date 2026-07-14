@@ -16,6 +16,7 @@ export interface RevisionNoteSection {
   title: string;
   category: RevisionNoteCategory;
   subItems: { id: string; label: string }[];
+  worksheets?: { id: "worksheet-1" | "worksheet-2"; label: string }[];
 }
 
 export const REVISION_NOTE_CATEGORIES: { id: RevisionNoteCategory; label: string }[] = [
@@ -35,6 +36,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "subject", label: "Subject, Verb, Pronouns, Adjectives, Adverbs" },
       { id: "imperatives", label: "Imperatives" },
     ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
+    ],
   },
   {
     id: "verb-tenses",
@@ -44,6 +49,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "past", label: "Past" },
       { id: "present", label: "Present" },
       { id: "future", label: "Future" },
+    ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
     ],
   },
   {
@@ -55,6 +64,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "non-defining", label: "Non-defining clauses" },
       { id: "pronouns-where-when", label: "Relative pronouns and where/when/why" },
     ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
+    ],
   },
   {
     id: "sentence-structure",
@@ -63,6 +76,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
     subItems: [
       { id: "active-passive", label: "Active and passive voice" },
       { id: "simple-compound-complex", label: "Simple, compound, complex" },
+    ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
     ],
   },
   {
@@ -74,6 +91,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "definite", label: "The" },
       { id: "no-article", label: "No article" },
     ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
+    ],
   },
   {
     id: "subject-verb-agreement",
@@ -82,6 +103,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
     subItems: [
       { id: "sva-basics", label: "Singular/plural, special patterns" },
       { id: "conditionals", label: "Conditionals, word order" },
+    ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
     ],
   },
   {
@@ -102,6 +127,9 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "types", label: "Types" },
       { id: "functions", label: "Functions" },
     ],
+    worksheets: [
+      { id: "worksheet-2", label: "Worksheet 2" },
+    ],
   },
   {
     id: "punctuation",
@@ -110,6 +138,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
     subItems: [
       { id: "commas", label: "Commas, colons, semicolons" },
       { id: "quotes-dashes", label: "Quotation marks, dashes" },
+    ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
     ],
   },
   {
@@ -132,6 +164,10 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "referencing", label: "Referencing" },
       { id: "paragraph-flow", label: "Paragraph flow" },
     ],
+    worksheets: [
+      { id: "worksheet-1", label: "Worksheet 1" },
+      { id: "worksheet-2", label: "Worksheet 2" },
+    ],
   },
   {
     id: "text-types",
@@ -148,6 +184,9 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
     subItems: [
       { id: "simple-reporting", label: "Simple reporting structures" },
       { id: "passive-reporting", label: "Passive reporting (It is said that…)" },
+    ],
+    worksheets: [
+      { id: "worksheet-2", label: "Worksheet 2" },
     ],
   },
   {

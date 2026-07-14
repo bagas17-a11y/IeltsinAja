@@ -110,13 +110,18 @@ export function TopicArticles() {
           <>Sentence <strong className="text-white">B</strong> is correct. &quot;Education&quot; used as a general uncountable concept takes no article. &quot;The education&quot; would only be correct if referring to a specific education system already mentioned.</>,
         ]}
       />
-      <SectionTitle number={7} title="Worksheet — Articles Practice" />
-      <WorksheetContainer topicName="Articles (a / an / the / Ø)">
+    </div>
+  );
+}
 
-        <WorksheetBlock
-          title="Part A — Fill in the gap (a / an / the / Ø)"
-          instruction='Type a, an, the, or Ø (no article) in each gap. For two-gap sentences, separate with a comma e.g. "the, Ø".'
-        >
+export function TopicArticlesWorksheet1() {
+  return (
+    <WorksheetContainer topicName="Articles (a / an / the / Ø)">
+
+      <WorksheetBlock
+        title="Part A — Fill in the gap (a / an / the / Ø)"
+        instruction='Type a, an, the, or Ø (no article) in each gap. For two-gap sentences, separate with a comma e.g. "the, Ø".'
+      >
           <WorksheetQuestion id="art-a-1" number={1}
             question='"___ internet has changed ___ way people find information."'
             modelAnswer='"the" internet (specific, unique) / "the" way (the specific manner it changed)'
@@ -197,10 +202,13 @@ export function TopicArticles() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
+    </WorksheetContainer>
+  );
+}
 
-      <SectionTitle number={8} title="Worksheet 2 — Articles Practice" />
-      <WorksheetContainer topicName="Articles (a / an / the / Ø) — Worksheet 2">
+export function TopicArticlesWorksheet2() {
+  return (
+    <WorksheetContainer topicName="Articles (a / an / the / Ø) — Worksheet 2">
 
         <WorksheetBlock
           title="Part A — Fill in the gap (a / an / the / Ø)"
@@ -286,7 +294,6 @@ export function TopicArticles() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
-    </div>
+    </WorksheetContainer>
   );
 }

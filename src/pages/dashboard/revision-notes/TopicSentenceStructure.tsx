@@ -88,8 +88,13 @@ export function TopicSentenceStructure() {
           <>&quot;Education is important, <strong>but</strong> many children cannot go to school <strong>because</strong> their families are poor.&quot;</>,
         ]}
       />
-      <SectionTitle number={5} title="Worksheet 1 — Sentence Structure Practice" />
-      <WorksheetContainer topicName="Sentence Structure & Conjunctions">
+    </div>
+  );
+}
+
+export function TopicSentenceStructureWorksheet1() {
+  return (
+    <WorksheetContainer topicName="Sentence Structure & Conjunctions">
 
         <WorksheetBlock
           title="Part A — Identify and correct the error"
@@ -171,10 +176,13 @@ export function TopicSentenceStructure() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
+    </WorksheetContainer>
+  );
+}
 
-      <SectionTitle number={6} title="Worksheet 2 — Sentence Structure Practice" />
-      <WorksheetContainer topicName="Sentence Structure & Conjunctions — Worksheet 2">
+export function TopicSentenceStructureWorksheet2() {
+  return (
+    <WorksheetContainer topicName="Sentence Structure & Conjunctions — Worksheet 2">
 
         <WorksheetBlock
           title="Part A — Identify and correct the error"
@@ -250,7 +258,6 @@ export function TopicSentenceStructure() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
-    </div>
+    </WorksheetContainer>
   );
 }

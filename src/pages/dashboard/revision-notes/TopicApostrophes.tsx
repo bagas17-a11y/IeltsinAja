@@ -7,6 +7,9 @@ import {
   MiniPractice,
   MistakeRow,
   RevisionTable,
+  WorksheetContainer,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicApostrophes() {
@@ -160,5 +163,87 @@ export function TopicApostrophes() {
         ]}
       />
     </div>
+  );
+}
+
+export function TopicApostrophesWorksheet2() {
+  return (
+    <WorksheetContainer topicName="Apostrophes — Worksheet 2">
+
+      <WorksheetBlock
+        title="Part A — Identify and correct the apostrophe error"
+        instruction="Each sentence contains one apostrophe error. Rewrite the full corrected sentence, then click Check answer."
+      >
+        <WorksheetQuestion id="apos2-a-1" number={1} multiline
+          question={`The 1990's witnessed unprecedented economic growth across the Asian tiger economies.`}
+          modelAnswer={`"The 1990s witnessed unprecedented economic growth across the Asian tiger economies." (No apostrophe for plurals of decades. "1990s" = the decade, not a possessive.)`}
+        />
+        <WorksheetQuestion id="apos2-a-2" number={2} multiline
+          question={`The students' progress reports were distributed to each of they're parents before the end of the school term.`}
+          modelAnswer={`"The students' progress reports were distributed to each of their parents before the end of the school term." ("they're" = "they are" — a contraction. "their" = possessive adjective, meaning "belonging to them". The sentence needs the possessive.)`}
+        />
+        <WorksheetQuestion id="apos2-a-3" number={3} multiline
+          question={`The governments decision to prioritise renewable energy over fossil fuels has been broadly welcomed by environmental campaigners.`}
+          modelAnswer={`"The government's decision to prioritise renewable energy over fossil fuels has been broadly welcomed by environmental campaigners." (Singular possessive: the decision belongs to the government — add 's.)`}
+        />
+        <WorksheetQuestion id="apos2-a-4" number={4} multiline
+          question={`It's key features include affordability, accessibility, and low maintenance costs.`}
+          modelAnswer={`"Its key features include affordability, accessibility, and low maintenance costs." ("It's" = "it is" or "it has" — a contraction. "Its" (no apostrophe) = possessive. The sentence needs the possessive adjective "its".)`}
+        />
+        <WorksheetQuestion id="apos2-a-5" number={5} multiline
+          question={`Both childrens' performances at the national competition were widely praised by teachers and community members alike.`}
+          modelAnswer={`"Both children's performances at the national competition were widely praised by teachers and community members alike." ("Children" is an irregular plural — it does not end in -s. Add 's directly: children's, not childrens'.)`}
+        />
+      </WorksheetBlock>
+
+      <WorksheetBlock
+        title="Part B — Choose the correct option"
+        instruction="Select the correct form, then click Check answer."
+      >
+        <WorksheetQuestion id="apos2-b-1" number={1}
+          question={`Which form is correct in an academic sentence?`}
+          choices={["The committee's decision was final.", "The committees decision was final.", "The committee's' decision was final.", "The committees' decision was final."]}
+          accepted={["The committee's decision was final."]}
+          modelAnswer={`"The committee's decision" — singular possessive: add 's to "committee". "Committees'" would be correct only if referring to multiple committees' shared decision.`}
+        />
+        <WorksheetQuestion id="apos2-b-2" number={2}
+          question={`Which sentence uses "its" correctly?`}
+          choices={["The research lost it's credibility after the data was questioned.", "It's widely agreed that education is a public good.", "The organisation changed it's priorities following the review.", "The policy achieved its stated objectives within two years."]}
+          accepted={["The policy achieved its stated objectives within two years."]}
+          modelAnswer={`"its" (no apostrophe) is the possessive adjective — "the objectives belonging to the policy". The other options all incorrectly use "it's" (= "it is") where a possessive is needed, or correctly use "It's" as a contraction but in those sentences it is the subject, not a possessive.`}
+        />
+        <WorksheetQuestion id="apos2-b-3" number={3}
+          question={`Which plural is correctly formed?`}
+          choices={["CEO's of major corporations attended the summit.", "CEOs' of major corporations attended the summit.", "CEOs of major corporations attended the summit.", "CEO's' of major corporations attended the summit."]}
+          accepted={["CEOs of major corporations attended the summit."]}
+          modelAnswer={`"CEOs" — no apostrophe for simple plurals, even for abbreviations. "CEO's" would mean something belonging to one CEO. "CEOs'" would mean something belonging to multiple CEOs.`}
+        />
+        <WorksheetQuestion id="apos2-b-4" number={4}
+          question={`Which contraction correctly replaces "it has"?`}
+          choices={["Its", "Its'", "It's", "It`s"]}
+          accepted={["It's"]}
+          modelAnswer={`"It's" — this contraction can mean either "it is" or "it has". The apostrophe replaces the missing letters: "it ha_s" → "it's". "Its" (no apostrophe) is always possessive, never a contraction.`}
+        />
+      </WorksheetBlock>
+
+      <WorksheetBlock
+        title="Part C — Write your own sentences"
+        instruction="Write sentences using the apostrophe rule shown. Click Check answer to compare with the model."
+      >
+        <WorksheetQuestion id="apos2-c-1" number={1} multiline
+          question={`Write a sentence about education that uses both a singular possessive apostrophe (e.g., the university's) AND a plural possessive apostrophe (e.g., the students').`}
+          modelAnswer={`Example: "The university's decision to increase tuition fees has sparked protests among students' unions across the country." [Singular possessive: "university's" — the decision belongs to one university | Plural possessive: "students'" — the unions belong to multiple students]`}
+        />
+        <WorksheetQuestion id="apos2-c-2" number={2} multiline
+          question={`Rewrite this informal sentence in formal IELTS Writing style, removing any contractions: "It's clear that the government doesn't understand the workers' concerns."`}
+          modelAnswer={`"It is clear that the government does not understand the workers' concerns." [Remove contractions for formal writing: "It's" → "It is", "doesn't" → "does not". The possessive "workers'" stays — it is not a contraction, it shows ownership.]`}
+        />
+        <WorksheetQuestion id="apos2-c-3" number={3} multiline
+          question={`Write a sentence about a company, institution, or country using "its" as a possessive adjective (not "it's"). Make sure the sentence clearly shows that "its" refers to something belonging to the subject.`}
+          modelAnswer={`Example: "The organisation revised its annual report after the initial data was found to be inaccurate." ["its annual report" = the report belonging to the organisation — possessive adjective, no apostrophe. Compare: "It's important to revise the report" — here "It's" = "It is", a contraction.]`}
+        />
+      </WorksheetBlock>
+
+    </WorksheetContainer>
   );
 }

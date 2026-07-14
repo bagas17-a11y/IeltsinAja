@@ -136,8 +136,13 @@ export function TopicPunctuation() {
           <><strong>Mistake 5:</strong> Check the paragraph for any remaining punctuation issues and correct them.</>,
         ]}
       />
-      <SectionTitle number={7} title="Worksheet 1 — Punctuation Practice" />
-      <WorksheetContainer topicName="Punctuation">
+    </div>
+  );
+}
+
+export function TopicPunctuationWorksheet1() {
+  return (
+    <WorksheetContainer topicName="Punctuation">
 
         <WorksheetBlock
           title="Part A — Identify and correct the punctuation error"
@@ -213,10 +218,13 @@ export function TopicPunctuation() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
+    </WorksheetContainer>
+  );
+}
 
-      <SectionTitle number={8} title="Worksheet 2 — Punctuation Practice" />
-      <WorksheetContainer topicName="Punctuation — Worksheet 2">
+export function TopicPunctuationWorksheet2() {
+  return (
+    <WorksheetContainer topicName="Punctuation — Worksheet 2">
 
         <WorksheetBlock
           title="Part A — Identify and correct the punctuation error(s)"
@@ -292,7 +300,6 @@ export function TopicPunctuation() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
-    </div>
+    </WorksheetContainer>
   );
 }

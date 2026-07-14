@@ -158,8 +158,13 @@ export function TopicRelativeClauses() {
           <>&quot;The country that I want to study in is Australia.&quot; (remove the repeated &quot;the country&quot;)</>,
         ]}
       />
-      <SectionTitle number={6} title="Worksheet 1 — Relative Clauses Practice" />
-      <WorksheetContainer topicName="Relative Clauses">
+    </div>
+  );
+}
+
+export function TopicRelativeClausesWorksheet1() {
+  return (
+    <WorksheetContainer topicName="Relative Clauses">
 
         <WorksheetBlock
           title="Part A — Identify and correct the error"
@@ -241,10 +246,13 @@ export function TopicRelativeClauses() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
+    </WorksheetContainer>
+  );
+}
 
-      <SectionTitle number={7} title="Worksheet 2 — Relative Clauses Practice" />
-      <WorksheetContainer topicName="Relative Clauses — Worksheet 2">
+export function TopicRelativeClausesWorksheet2() {
+  return (
+    <WorksheetContainer topicName="Relative Clauses — Worksheet 2">
 
         <WorksheetBlock
           title="Part A — Identify and correct the error"
@@ -326,7 +334,6 @@ export function TopicRelativeClauses() {
           />
         </WorksheetBlock>
 
-      </WorksheetContainer>
-    </div>
+    </WorksheetContainer>
   );
 }
