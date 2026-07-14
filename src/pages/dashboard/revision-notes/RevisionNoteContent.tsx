@@ -404,7 +404,7 @@ ${sections.map(s => `
           className="w-full flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-500/10 px-4 py-3 text-sm font-semibold text-blue-400 hover:bg-blue-500/20 transition-colors"
         >
           <ClipboardList className="w-4 h-4" />
-          Download worksheet as PDF (for team grading)
+          Download worksheet as PDF (for answer key and submit)
         </button>
       </div>
     </WsCtx.Provider>

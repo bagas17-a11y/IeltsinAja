@@ -68,7 +68,7 @@ export const WORKSHEET_COMPONENTS: Partial<Record<
     "worksheet-2": TopicSubjectVerbAgreementWorksheet2,
   },
   apostrophes: {
-    "worksheet-2": TopicApostrophesWorksheet2,
+    "worksheet-1": TopicApostrophesWorksheet2,
   },
   punctuation: {
     "worksheet-1": TopicPunctuationWorksheet1,
@@ -79,7 +79,7 @@ export const WORKSHEET_COMPONENTS: Partial<Record<
     "worksheet-2": TopicLinkingWordsCoherenceWorksheet2,
   },
   "reporting-verbs": {
-    "worksheet-2": TopicReportingVerbsWorksheet2,
+    "worksheet-1": TopicReportingVerbsWorksheet2,
   },
 };
 

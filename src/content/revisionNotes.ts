@@ -128,7 +128,7 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "functions", label: "Functions" },
     ],
     worksheets: [
-      { id: "worksheet-2", label: "Worksheet 2" },
+      { id: "worksheet-1", label: "Worksheet 1" },
     ],
   },
   {
@@ -186,7 +186,7 @@ export const REVISION_NOTE_TOPICS: RevisionNoteSection[] = [
       { id: "passive-reporting", label: "Passive reporting (It is said that…)" },
     ],
     worksheets: [
-      { id: "worksheet-2", label: "Worksheet 2" },
+      { id: "worksheet-1", label: "Worksheet 1" },
     ],
   },
   {
