@@ -5,6 +5,9 @@ import {
   SubSectionTitle,
   WorkedExample,
   MiniPractice,
+  WorksheetContainer,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicSentenceStructure() {
@@ -85,6 +88,90 @@ export function TopicSentenceStructure() {
           <>&quot;Education is important, <strong>but</strong> many children cannot go to school <strong>because</strong> their families are poor.&quot;</>,
         ]}
       />
+      <SectionTitle number={5} title="Worksheet 1 — Sentence Structure Practice" />
+      <WorksheetContainer topicName="Sentence Structure & Conjunctions">
+
+        <WorksheetBlock
+          title="Part A — Identify and correct the error"
+          instruction="Each sentence contains a sentence structure or conjunction error. Rewrite the corrected version, then click Check answer."
+        >
+          <WorksheetQuestion id="ss-a-1" number={1} multiline
+            question='Many people drive to work, it causes heavy traffic in most major cities.'
+            modelAnswer='Many people drive to work, so it causes heavy traffic in most major cities. OR: Many people drive to work. It causes heavy traffic in most major cities. (Comma splice — two independent clauses cannot be joined with only a comma. Use a conjunction or a full stop.)'
+          />
+          <WorksheetQuestion id="ss-a-2" number={2} multiline
+            question='Although many students study hard but they still struggle to achieve a high band score.'
+            modelAnswer='Although many students study hard, they still struggle to achieve a high band score. OR: Many students study hard, but they still struggle to achieve a high band score. ("Although" and "but" cannot both be used in the same sentence — choose one subordinating or one coordinating conjunction.)'
+          />
+          <WorksheetQuestion id="ss-a-3" number={3} multiline
+            question='Because the government invested heavily in education, so the literacy rate improved significantly.'
+            modelAnswer='Because the government invested heavily in education, the literacy rate improved significantly. OR: The government invested heavily in education, so the literacy rate improved significantly. ("Because" and "so" both signal a cause-effect link — using both creates a redundant, incorrect structure.)'
+          />
+          <WorksheetQuestion id="ss-a-4" number={4} multiline
+            question='The policy was introduced in 2015. And it reduced crime rates by 20% within three years.'
+            modelAnswer='The policy was introduced in 2015, and it reduced crime rates by 20% within three years. (In formal academic writing, sentences should not begin with "And". Join the clauses with a comma + coordinating conjunction instead.)'
+          />
+          <WorksheetQuestion id="ss-a-5" number={5} multiline
+            question='Taxes were increased by the government. The reason was to fund public services.'
+            modelAnswer='The government increased taxes to fund public services. (Combine into one active sentence. A clear subject + purpose clause is more concise and shows better grammatical control.)'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part B — Choose the correct conjunction or structure"
+          instruction="Select the correct word or phrase to complete the sentence, then click Check answer."
+        >
+          <WorksheetQuestion id="ss-b-1" number={1}
+            question='"Many students study abroad ___ they want access to better facilities." Which conjunction is correct?'
+            choices={["because", "although", "however", "therefore"]}
+            accepted={["because"]}
+            modelAnswer='"because" — introduces a dependent clause explaining the reason. "Although" shows contrast; "however" and "therefore" are adverbs, not conjunctions, and cannot directly join two clauses without a full stop before them.'
+          />
+          <WorksheetQuestion id="ss-b-2" number={2}
+            question='"Public transport is cheap ___ it is often crowded." Which conjunction best shows contrast?'
+            choices={["but", "and", "so", "because"]}
+            accepted={["but"]}
+            modelAnswer='"but" — a coordinating conjunction showing contrast between two independent clauses. "And" adds information, "so" shows result, and "because" shows reason.'
+          />
+          <WorksheetQuestion id="ss-b-3" number={3}
+            question='"The government launched a new policy. ___, it was not effective." Which transition is correct?'
+            choices={["However", "Furthermore", "Therefore", "Similarly"]}
+            accepted={["However"]}
+            modelAnswer='"However" — signals a contrast between the policy being launched and it being ineffective. The others add (Furthermore), conclude (Therefore), or compare (Similarly) rather than contrast.'
+          />
+          <WorksheetQuestion id="ss-b-4" number={4}
+            question='"_____ the cost is high, many families still prioritise education." Which word is correct?'
+            choices={["Although", "Because", "So", "And"]}
+            accepted={["Although"]}
+            modelAnswer='"Although" — a subordinating conjunction showing concession. It introduces the dependent clause and goes at the start when the dependent clause comes first, followed by a comma before the main clause.'
+          />
+          <WorksheetQuestion id="ss-b-5" number={5}
+            question='Which sentence correctly uses a semicolon?'
+            choices={["Traffic is terrible; many people are late every day.", "Traffic is terrible; and many people are late.", "Traffic; is terrible many people are late.", "Traffic is terrible, many; people are late."]}
+            accepted={["Traffic is terrible; many people are late every day."]}
+            modelAnswer='A semicolon joins two closely related independent clauses without a conjunction. "Traffic is terrible" and "many people are late every day" are both complete sentences. Never place a semicolon before "and" or in the middle of a clause.'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part C — Write your own sentences"
+          instruction="Write full sentences using the structure described. Click Check answer to compare with the model."
+        >
+          <WorksheetQuestion id="ss-c-1" number={1} multiline
+            question="Write a compound sentence about technology or education using a coordinating conjunction (and, but, so, yet, or)."
+            modelAnswer='Example: "Online education has become increasingly accessible, yet many students still prefer face-to-face learning for its social benefits." (Two independent clauses joined by "yet" showing contrast.)'
+          />
+          <WorksheetQuestion id="ss-c-2" number={2} multiline
+            question="Write a complex sentence about urbanisation or the environment using a subordinating conjunction (although, because, while, when, since, or if)."
+            modelAnswer='Example: "Although urbanisation has brought economic opportunities to many developing nations, it has also increased pressure on housing, transport, and natural resources." (Dependent clause with "Although" + main clause — complex sentence.)'
+          />
+          <WorksheetQuestion id="ss-c-3" number={3} multiline
+            question='Combine these two simple sentences into one improved sentence: "Cities are growing rapidly. This is causing serious environmental problems."'
+            modelAnswer='Example: "Cities are growing so rapidly that they are causing serious environmental problems." OR: "The rapid growth of cities is causing serious environmental problems." (Combine using a conjunction or by restructuring into a single clause.)'
+          />
+        </WorksheetBlock>
+
+      </WorksheetContainer>
     </div>
   );
 }

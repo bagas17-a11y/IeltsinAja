@@ -6,6 +6,9 @@ import {
   WorkedExample,
   MiniPractice,
   MistakeRow,
+  WorksheetContainer,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicPunctuation() {
@@ -133,6 +136,84 @@ export function TopicPunctuation() {
           <><strong>Mistake 5:</strong> Check the paragraph for any remaining punctuation issues and correct them.</>,
         ]}
       />
+      <SectionTitle number={7} title="Worksheet 1 — Punctuation Practice" />
+      <WorksheetContainer topicName="Punctuation">
+
+        <WorksheetBlock
+          title="Part A — Identify and correct the punctuation error"
+          instruction="Each sentence contains one or more punctuation errors. Rewrite the corrected version, then click Check answer."
+        >
+          <WorksheetQuestion id="punc-a-1" number={1} multiline
+            question='Many students struggle with time management, however they can improve with consistent daily practice.'
+            modelAnswer='Many students struggle with time management; however, they can improve with consistent daily practice. OR: Many students struggle with time management. However, they can improve with consistent daily practice. ("However" is an adverb, not a conjunction. A comma alone cannot join two independent clauses — use a semicolon, then a comma after "however".)'
+          />
+          <WorksheetQuestion id="punc-a-2" number={2} multiline
+            question='The report identified three key problems education funding healthcare and transport infrastructure.'
+            modelAnswer='The report identified three key problems: education funding, healthcare, and transport infrastructure. (A colon introduces the list after a complete clause. Commas separate the three items in the list.)'
+          />
+          <WorksheetQuestion id="punc-a-3" number={3} multiline
+            question='Furthermore governments should invest more heavily in renewable energy sources.'
+            modelAnswer='Furthermore, governments should invest more heavily in renewable energy sources. (A comma is required after a sentence adverb or linking word that appears at the start of a sentence.)'
+          />
+          <WorksheetQuestion id="punc-a-4" number={4} multiline
+            question='Many teenagers use multiple social media apps at once; and this constant switching prevents deep concentration.'
+            modelAnswer='Many teenagers use multiple social media apps at once, and this constant switching prevents deep concentration. (A semicolon should not be placed before a coordinating conjunction like "and". Use a comma before "and" instead.)'
+          />
+          <WorksheetQuestion id="punc-a-5" number={5} multiline
+            question='The number of students, using online platforms increased significantly last year.'
+            modelAnswer='The number of students using online platforms increased significantly last year. (Do not place a comma between a subject and its verb. "Using online platforms" is a participial phrase modifying "students", not a parenthetical that requires commas.)'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part B — Choose the correct punctuation"
+          instruction="Select the correctly punctuated sentence, then click Check answer."
+        >
+          <WorksheetQuestion id="punc-b-1" number={1}
+            question='Which sentence uses a comma correctly after a linking word?'
+            choices={["However, this solution may be too costly.", "However this solution may be too costly.", "This solution, however may be too costly.", "This solution however, may be too costly."]}
+            accepted={["However, this solution may be too costly."]}
+            modelAnswer='"However, this solution may be too costly." — When a linking word appears at the start of a sentence, a comma must follow it. When it appears mid-sentence, it needs commas on both sides: "This solution, however, may be too costly."'
+          />
+          <WorksheetQuestion id="punc-b-2" number={2}
+            question='Which option correctly joins these two ideas: "Traffic is a serious problem" + "many people are late every day"?'
+            choices={["Traffic is a serious problem; many people are late every day.", "Traffic is a serious problem, many people are late every day.", "Traffic is a serious problem, and; many people are late.", "Traffic is a serious problem. And many people are late every day."]}
+            accepted={["Traffic is a serious problem; many people are late every day."]}
+            modelAnswer='A semicolon correctly joins two closely related independent clauses without a conjunction. Option B is a comma splice. Option C has incorrect mixed punctuation. Option D begins a sentence with "And", which is informal.'
+          />
+          <WorksheetQuestion id="punc-b-3" number={3}
+            question='Which sentence correctly uses a colon?'
+            choices={["There is one clear solution: more investment in public transport.", "Governments should focus on: education and healthcare.", "The reason: is that costs are too high.", "Public transport: is the solution."]}
+            accepted={["There is one clear solution: more investment in public transport."]}
+            modelAnswer='A colon must follow a complete independent clause ("There is one clear solution" is complete). The colon then introduces the explanation. In Options B, C, and D, the colon incorrectly breaks the sentence structure mid-clause.'
+          />
+          <WorksheetQuestion id="punc-b-4" number={4}
+            question='Which sentence correctly uses a dash?'
+            choices={["The results were clear — the policy had failed.", "The results — were clear the policy had failed.", "The results were — clear the policy had failed.", "The — results were clear the policy had failed."]}
+            accepted={["The results were clear — the policy had failed."]}
+            modelAnswer='"The results were clear — the policy had failed." — The dash joins two related independent clauses with a strong pause, similar to a semicolon. A complete clause must appear before the dash.'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part C — Write your own sentences"
+          instruction="Write original sentences using the punctuation mark shown. Click Check answer to compare with the model."
+        >
+          <WorksheetQuestion id="punc-c-1" number={1} multiline
+            question="Write a sentence that lists at least three items. Use a colon to introduce the list and commas to separate the items."
+            modelAnswer='Example: "Developing nations face several overlapping challenges: poverty, inadequate infrastructure, and limited access to quality education." (Colon after a complete clause; commas between three or more list items.)'
+          />
+          <WorksheetQuestion id="punc-c-2" number={2} multiline
+            question="Write a sentence using a semicolon to join two closely related independent clauses (no conjunction needed)."
+            modelAnswer='Example: "Air pollution is a growing concern in many cities; governments must act now to reduce harmful emissions." (Both sides are complete sentences closely linked in meaning — ideal for a semicolon.)'
+          />
+          <WorksheetQuestion id="punc-c-3" number={3} multiline
+            question="Write a sentence using a dash to add extra information or emphasis. Make sure the main clause is complete before the dash."
+            modelAnswer='Example: "Indonesia faces a unique urban challenge — a capital city that is gradually sinking into the sea." (Complete independent clause before the dash, then the explanation or extra detail after.)'
+          />
+        </WorksheetBlock>
+
+      </WorksheetContainer>
     </div>
   );
 }

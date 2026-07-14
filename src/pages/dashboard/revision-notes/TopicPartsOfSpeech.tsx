@@ -7,6 +7,9 @@ import {
   KeyList,
   MiniPractice,
   RevisionTable,
+  WorksheetContainer,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicPartsOfSpeech() {
@@ -181,6 +184,90 @@ export function TopicPartsOfSpeech() {
           <>Some solutions are ineffective. <strong>They</strong> should be avoided.</>,
         ]}
       />
+
+      <WorksheetContainer topicName="Parts of Speech — Worksheet 1a (Parts 1–4)">
+
+        <WorksheetBlock
+          title="Part A — Identify and correct the error"
+          instruction="Each sentence contains one grammar error related to subjects, verbs, or pronouns. Rewrite the full corrected sentence, then click Check answer."
+        >
+          <WorksheetQuestion id="pos1a-a-1" number={1} multiline
+            question='The number of applicants applying for the scholarship have increased this year.'
+            modelAnswer='The number of applicants applying for the scholarship has increased this year. (The subject is "The number" — singular — so the verb must be "has", not "have".)'
+          />
+          <WorksheetQuestion id="pos1a-a-2" number={2} multiline
+            question='She seen significant improvements since she started practising every day.'
+            modelAnswer='She has seen significant improvements since she started practising every day. (Present perfect "has seen" is needed — "since" connects a past starting point to the present.)'
+          />
+          <WorksheetQuestion id="pos1a-a-3" number={3} multiline
+            question='Scientists has discovered a new vaccine that could prevent the disease.'
+            modelAnswer='Scientists have discovered a new vaccine that could prevent the disease. ("Scientists" is plural, so the auxiliary must be "have", not "has".)'
+          />
+          <WorksheetQuestion id="pos1a-a-4" number={4} multiline
+            question='It widely accepted that renewable energy is the future of global power.'
+            modelAnswer='It is widely accepted that renewable energy is the future of global power. (The dummy subject "It" needs the auxiliary verb "is" — "It widely accepted" is missing the verb.)'
+          />
+          <WorksheetQuestion id="pos1a-a-5" number={5} multiline
+            question='This results show a clear upward trend over the past decade.'
+            modelAnswer='These results show a clear upward trend over the past decade. ("Results" is plural, so the demonstrative pronoun must be "These", not "This".)'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part B — Choose the correct option"
+          instruction="Select the correct word or phrase, then click Check answer."
+        >
+          <WorksheetQuestion id="pos1a-b-1" number={1}
+            question='What is the subject of: "The proportion of elderly residents in Japan has risen significantly."?'
+            choices={["The proportion", "Japan", "elderly residents", "significantly"]}
+            accepted={["The proportion"]}
+            modelAnswer='"The proportion" — "of elderly residents in Japan" is a prepositional phrase modifying the head noun "proportion". The verb "has risen" must agree with this singular subject.'
+          />
+          <WorksheetQuestion id="pos1a-b-2" number={2}
+            question='"___ is well known that exercise improves mental health." Which word completes the sentence?'
+            choices={["It", "This", "There", "That"]}
+            accepted={["It"]}
+            modelAnswer='"It" — a dummy subject used in the fixed expression "it is + adjective + that clause". It fills the subject position without adding meaning.'
+          />
+          <WorksheetQuestion id="pos1a-b-3" number={3}
+            question='"Many people live in cities. ___ face pollution problems." Which pronoun correctly replaces "many people"?'
+            choices={["They", "It", "This", "Those"]}
+            accepted={["They"]}
+            modelAnswer='"They" — a personal pronoun replacing the plural noun phrase "many people" to avoid repetition and maintain cohesion.'
+          />
+          <WorksheetQuestion id="pos1a-b-4" number={4}
+            question='Which verb form correctly completes: "The proportion of workers using computers ___ risen since 2010."?'
+            choices={["have", "has", "having", "had"]}
+            accepted={["has"]}
+            modelAnswer='"has" — the subject is "The proportion" (singular), so the auxiliary verb must be singular. "Of workers using computers" is a modifier, not the subject.'
+          />
+          <WorksheetQuestion id="pos1a-b-5" number={5}
+            question='Which verb type is "could lead to" in: "Urbanisation could lead to increased inequality."?'
+            choices={["Lexical (main) verb", "Modal auxiliary verb", "Past participle", "Present perfect"]}
+            accepted={["Modal auxiliary verb"]}
+            modelAnswer='"could" is a modal auxiliary verb expressing possibility. "Lead to" is the lexical (main) verb. Together they form "could lead to" — a modal + base verb structure.'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part C — Write your own sentences"
+          instruction="Write a full sentence using the guideline shown. Click Check answer to compare with the model."
+        >
+          <WorksheetQuestion id="pos1a-c-1" number={1} multiline
+            question="Write an IELTS Task 1 sentence where the subject is a measurement word (e.g., proportion, number, amount, percentage) — not 'people' or 'they'."
+            modelAnswer='Example: "The proportion of households owning at least one car doubled between 1990 and 2010." (Subject: "The proportion" — "of households" is a modifier, not the subject.)'
+          />
+          <WorksheetQuestion id="pos1a-c-2" number={2} multiline
+            question="Write a sentence using a modal auxiliary verb (could, would, might, should, or may) to express possibility or a recommendation about an IELTS topic."
+            modelAnswer='Example: "Governments could implement stricter emission regulations to significantly reduce urban air pollution." (Modal "could" expresses possibility; "implement" is the lexical verb.)'
+          />
+          <WorksheetQuestion id="pos1a-c-3" number={3} multiline
+            question='Rewrite this to use a pronoun and avoid repetition: "Online learning is becoming more popular. Online learning allows students to study at their own pace."'
+            modelAnswer='"Online learning is becoming more popular. It allows students to study at their own pace." (Personal pronoun "It" replaces the second "Online learning" to improve cohesion.)'
+          />
+        </WorksheetBlock>
+
+      </WorksheetContainer>
 
       <SectionTitle number={5} title="Adjectives" />
       <SubSectionTitle title="5.1 What it is (Definition + Function)" />
@@ -384,6 +471,84 @@ export function TopicPartsOfSpeech() {
           </>
         }
       />
+      <SectionTitle number={9} title="Worksheet 1b — Parts 5–8 Practice" />
+      <WorksheetContainer topicName="Parts of Speech — Worksheet 1b (Parts 5–8)">
+
+        <WorksheetBlock
+          title="Part A — Identify and correct the error"
+          instruction="Each sentence contains one error related to adjectives, adverbs, or imperatives. Rewrite the corrected sentence, then click Check answer."
+        >
+          <WorksheetQuestion id="pos1b-a-1" number={1} multiline
+            question='The results were extreme useful for policymakers trying to understand the data.'
+            modelAnswer='The results were extremely useful for policymakers trying to understand the data. ("Extreme" is an adjective; you need the adverb "extremely" to modify the adjective "useful".)'
+          />
+          <WorksheetQuestion id="pos1b-a-2" number={2} multiline
+            question='The population grew extreme rapid in the 1990s, causing a strain on resources.'
+            modelAnswer='The population grew extremely rapidly in the 1990s, causing a strain on resources. (Both words need to be adverbs: "extremely" modifies the adverb "rapidly", which modifies the verb "grew".)'
+          />
+          <WorksheetQuestion id="pos1b-a-3" number={3} multiline
+            question='The city solved the problem of traffic very quick by introducing a congestion charge.'
+            modelAnswer='The city solved the problem of traffic very quickly by introducing a congestion charge. ("Quick" is an adjective; "quickly" is the adverb needed to modify the verb phrase "solved".)'
+          />
+          <WorksheetQuestion id="pos1b-a-4" number={4} multiline
+            question='Obvious, governments must take stronger action to address the rising cost of living.'
+            modelAnswer='Obviously, governments must take stronger action to address the rising cost of living. ("Obvious" is an adjective; the sentence adverb "Obviously" is needed here to show the speaker\'s stance.)'
+          />
+          <WorksheetQuestion id="pos1b-a-5" number={5} multiline
+            question='Write a declarative alternative to this imperative suitable for IELTS Writing Task 2: "Stop using plastic bags."'
+            modelAnswer='Example: "Governments should ban single-use plastic bags in order to reduce environmental pollution." (Imperative → declarative with subject "Governments" + modal "should" + base verb.)'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part B — Choose the correct option"
+          instruction="Select the correct word, then click Check answer."
+        >
+          <WorksheetQuestion id="pos1b-b-1" number={1}
+            question='"The graph shows a ___ increase in online shopping between 2010 and 2020." Which word is correct?'
+            choices={["dramatic", "dramatically", "drama", "dramatise"]}
+            accepted={["dramatic"]}
+            modelAnswer='"dramatic" — an adjective is needed here to modify the noun "increase". An adverb (dramatically) would modify a verb, not a noun.'
+          />
+          <WorksheetQuestion id="pos1b-b-2" number={2}
+            question='"Sales figures ___ declined after the economic crisis." Which word correctly completes the sentence?'
+            choices={["sharp", "sharper", "sharply", "sharpness"]}
+            accepted={["sharply"]}
+            modelAnswer='"sharply" — an adverb is needed to modify the verb "declined". "Sharp" is an adjective; "sharpness" is a noun; "sharper" is a comparative adjective.'
+          />
+          <WorksheetQuestion id="pos1b-b-3" number={3}
+            question='Which sentence best converts "Stop using plastic bags" into formal IELTS academic writing?'
+            choices={["Governments should ban the use of plastic bags.", "Stop using plastic bags immediately.", "You need to not use plastic bags.", "People: stop using plastic bags."]}
+            accepted={["Governments should ban the use of plastic bags."]}
+            modelAnswer='In formal IELTS writing, direct imperatives become declarative sentences. Adding a subject (Governments) and a modal verb (should) makes the sentence academic and appropriately hedged.'
+          />
+          <WorksheetQuestion id="pos1b-b-4" number={4}
+            question='Which adverb best replaces "very" in: "Pollution is very harmful to public health."?'
+            choices={["extremely", "much", "many", "good"]}
+            accepted={["extremely"]}
+            modelAnswer='"extremely" — a more academic and precise degree adverb than "very". It modifies the adjective "harmful". "Much" and "many" are used before nouns; "good" is an adjective.'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part C — Write your own sentences"
+          instruction="Write full IELTS-style sentences using the guideline shown. Click Check answer to compare with the model."
+        >
+          <WorksheetQuestion id="pos1b-c-1" number={1} multiline
+            question="Write a sentence about climate change or urbanisation using a manner adverb (e.g., steadily, dramatically, gradually, rapidly) to modify a verb."
+            modelAnswer='Example: "Global temperatures have risen steadily over the past century, threatening ecosystems around the world." (Manner adverb "steadily" modifies the verb "risen".)'
+          />
+          <WorksheetQuestion id="pos1b-c-2" number={2} multiline
+            question="Write a sentence using a degree adverb (e.g., highly, extremely, remarkably, particularly) to modify an adjective."
+            modelAnswer='Example: "Public transport is particularly effective in densely populated cities where car ownership is high." (Degree adverb "particularly" modifies the adjective "effective".)'
+          />
+          <WorksheetQuestion id="pos1b-c-3" number={3} multiline
+            question='Rewrite this imperative in softer, formal language suitable for an IELTS Task 2 essay: "Reduce your carbon footprint."'
+            modelAnswer='Example: "Individuals should consider reducing their carbon footprint through small daily changes such as using public transport or reducing meat consumption." (Imperative → declarative with modal "should" and suggested actions.)'
+          />
+        </WorksheetBlock>
+
+      </WorksheetContainer>
     </div>
   );
 }

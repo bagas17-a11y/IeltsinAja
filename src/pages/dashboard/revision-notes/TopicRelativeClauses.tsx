@@ -7,6 +7,9 @@ import {
   MiniPractice,
   ExaminerTip,
   RevisionTable,
+  WorksheetContainer,
+  WorksheetBlock,
+  WorksheetQuestion,
 } from "./RevisionNoteContent";
 
 export function TopicRelativeClauses() {
@@ -155,6 +158,90 @@ export function TopicRelativeClauses() {
           <>&quot;The country that I want to study in is Australia.&quot; (remove the repeated &quot;the country&quot;)</>,
         ]}
       />
+      <SectionTitle number={6} title="Worksheet 1 — Relative Clauses Practice" />
+      <WorksheetContainer topicName="Relative Clauses">
+
+        <WorksheetBlock
+          title="Part A — Identify and correct the error"
+          instruction="Each sentence contains a relative clause error. Rewrite the corrected sentence, then click Check answer."
+        >
+          <WorksheetQuestion id="rc-a-1" number={1} multiline
+            question='The country that the country has the highest GDP per capita is Luxembourg.'
+            modelAnswer='The country that has the highest GDP per capita is Luxembourg. (Remove the repeated subject "the country" inside the relative clause — the relative pronoun "that" already serves as the subject.)'
+          />
+          <WorksheetQuestion id="rc-a-2" number={2} multiline
+            question='My sister, that lives in Singapore, is a software engineer.'
+            modelAnswer='My sister, who lives in Singapore, is a software engineer. ("That" cannot be used in non-defining relative clauses (those with commas). Use "who" for people.)'
+          />
+          <WorksheetQuestion id="rc-a-3" number={3} multiline
+            question='The reason which I decided to study abroad was the scholarship opportunity.'
+            modelAnswer='The reason why I decided to study abroad was the scholarship opportunity. (Use "why" after "reason", not "which". "Which" is used for things; "why" introduces a reason clause.)'
+          />
+          <WorksheetQuestion id="rc-a-4" number={4} multiline
+            question='The students which study the hardest usually achieve the highest band scores.'
+            modelAnswer='The students who study the hardest usually achieve the highest band scores. ("Which" refers to things, not people. Use "who" or "that" when referring to people.)'
+          />
+          <WorksheetQuestion id="rc-a-5" number={5} multiline
+            question='The city where I grew up it has changed dramatically over the past twenty years.'
+            modelAnswer='The city where I grew up has changed dramatically over the past twenty years. (Remove "it" — the relative clause "where I grew up" already connects back to "the city". Adding "it" creates a double subject error.)'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part B — Choose the correct relative word"
+          instruction="Select the correct relative pronoun or adverb, then click Check answer."
+        >
+          <WorksheetQuestion id="rc-b-1" number={1}
+            question='"The student ___ essay won the competition is from Indonesia." Which word is correct?'
+            choices={["whose", "who", "which", "where"]}
+            accepted={["whose"]}
+            modelAnswer='"whose" — shows possession (the essay belongs to the student). "Who" is for subject position; "which" is for things; "where" is for places.'
+          />
+          <WorksheetQuestion id="rc-b-2" number={2}
+            question='"The school ___ I attended for six years was in the city centre." Which word is correct?'
+            choices={["where", "which", "who", "when"]}
+            accepted={["where"]}
+            modelAnswer='Both "where" and "which" are correct. "Where" = the place at which; "which" = the school that I attended. Either is grammatically valid here.'
+          />
+          <WorksheetQuestion id="rc-b-3" number={3}
+            question='"The day ___ the exam results were announced was extremely stressful." Which word is correct?'
+            choices={["when", "where", "which", "who"]}
+            accepted={["when"]}
+            modelAnswer='"when" — used after time nouns (day, year, time, moment) to introduce a relative clause about that time period.'
+          />
+          <WorksheetQuestion id="rc-b-4" number={4}
+            question='"People ___ are disciplined tend to achieve better academic results." Which word is correct?'
+            choices={["who", "which", "whose", "where"]}
+            accepted={["who"]}
+            modelAnswer='"who" — refers to people in subject position (the people do the action of being disciplined). "Which" is for things; "whose" shows possession; "where" is for places.'
+          />
+          <WorksheetQuestion id="rc-b-5" number={5}
+            question='Which sentence uses non-defining relative clause punctuation correctly?'
+            choices={["Jakarta, which is the capital of Indonesia, has terrible traffic.", "Jakarta which is the capital of Indonesia has terrible traffic.", "Jakarta, that is the capital of Indonesia, has terrible traffic.", "Jakarta which, is the capital of Indonesia has terrible traffic."]}
+            accepted={["Jakarta, which is the capital of Indonesia, has terrible traffic."]}
+            modelAnswer='Non-defining relative clauses require commas on both sides. "That" cannot be used in non-defining clauses — only "who", "which", "whose", "where", or "when".'
+          />
+        </WorksheetBlock>
+
+        <WorksheetBlock
+          title="Part C — Write your own sentences"
+          instruction="Write full sentences using the structure shown. Click Check answer to compare with the model."
+        >
+          <WorksheetQuestion id="rc-c-1" number={1} multiline
+            question='Combine using a defining relative clause: "The university is famous for its research. I graduated from it last year."'
+            modelAnswer='"The university (that/which) I graduated from last year is famous for its research." (Defining clause — no commas needed. "That" can be omitted when the relative pronoun is in object position.)'
+          />
+          <WorksheetQuestion id="rc-c-2" number={2} multiline
+            question='Combine using a non-defining relative clause: "Public transport is usually cheaper than driving. It is often crowded."'
+            modelAnswer='"Public transport, which is often crowded, is usually cheaper than driving." (Non-defining clause — commas required on both sides. "That" cannot be used here; "which" is correct for things.)'
+          />
+          <WorksheetQuestion id="rc-c-3" number={3} multiline
+            question='Write one original IELTS-style sentence using "whose" to show possession (about a person, group, or country).'
+            modelAnswer='Example: "Countries whose economies depend heavily on tourism were among the hardest hit by the global pandemic." ("Whose" shows possession — the economies belong to the countries.)'
+          />
+        </WorksheetBlock>
+
+      </WorksheetContainer>
     </div>
   );
 }
