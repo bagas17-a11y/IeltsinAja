@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, BookOpen, Headphones, PenTool, Mic,
   BarChart3, Settings, LogOut, Shield,
-  Crown, Target, Map, Layers, FlipHorizontal, Users, FolderOpen,
+  Crown, Target, Map, Layers, FlipHorizontal, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -47,8 +47,7 @@ const GROUPS = [
   {
     label: "Elite",
     items: [
-      { title: "Elite Hub",                    path: "/dashboard/elite",                icon: Crown },
-      { title: "External Resource Worksheets", path: "/dashboard/external-worksheets", icon: FolderOpen },
+      { title: "Elite Hub", path: "/dashboard/elite", icon: Crown },
     ],
   },
 ];

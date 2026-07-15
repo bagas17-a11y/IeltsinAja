@@ -25,13 +25,13 @@ import {
   ClipboardList,
   TrendingUp,
   Activity,
+  FolderOpen,
 } from "lucide-react";
 import { RadialBarChart, RadialBar, ResponsiveContainer, Tooltip } from "recharts";
 import { WritingCheatsheet } from "@/components/writing/WritingCheatsheet";
 import { SpeakingTutorial } from "@/components/speaking/SpeakingTutorial";
 import { ReadingTutorial } from "@/components/reading/ReadingTutorial";
 import { ListeningTutorial } from "@/components/listening/ListeningTutorial";
-import { HeroBackground } from "@/components/HeroBackground";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { getRecentActivity, getSavedNotes, type ActivityEntry } from "@/lib/activity";
@@ -144,12 +144,13 @@ export default function EliteHubPage() {
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setMudahinajaModule(null); }} className="w-full">
           <TabsList className="w-full justify-start overflow-x-auto border-b border-border rounded-none bg-transparent p-0 h-auto gap-0">
             {[
-              { value: "overview",       label: "Overview"       },
-              { value: "revision-notes", label: "Revision Notes" },
-              { value: "flashcards",     label: "Flashcards"     },
-              { value: "mudahinaja",     label: "MudahinAja"     },
-              { value: "mock-exams",     label: "Mock Exams"     },
-              { value: "consultation",   label: "Consultation"   },
+              { value: "overview",         label: "Overview"            },
+              { value: "revision-notes",   label: "Revision Notes"      },
+              { value: "flashcards",       label: "Flashcards"          },
+              { value: "mudahinaja",       label: "MudahinAja"          },
+              { value: "ext-worksheets",   label: "Ext. Worksheets"     },
+              { value: "mock-exams",       label: "Mock Exams"          },
+              { value: "consultation",     label: "Consultation"        },
             ].map((tab) => (
               <TabsTrigger
                 key={tab.value}
@@ -409,6 +410,32 @@ export default function EliteHubPage() {
             )}
           </TabsContent>
 
+          {/* External Resource Worksheets */}
+          <TabsContent value="ext-worksheets" className="mt-7 focus-visible:outline-none">
+            <h2 className="text-base font-semibold text-foreground mb-1">External Resource Worksheets</h2>
+            <p className="text-sm text-muted-foreground mb-6">Structured reading and listening worksheets with vocabulary practice, comprehension tasks, and voice recording.</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { band: "4-5", label: "Band 4–5", description: "Foundation vocabulary & comprehension" },
+                { band: "6-7", label: "Band 6–7", description: "Argument development & passage analysis" },
+                { band: "7+",  label: "Band 7+",  description: "Advanced paraphrasing & sophistication" },
+              ].map((b) => (
+                <Link key={b.band} to={`/dashboard/external-worksheets?band=${b.band}`}>
+                  <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-elite-gold/30 transition-colors cursor-pointer">
+                    <div className="w-9 h-9 rounded-lg bg-elite-gold/10 flex items-center justify-center shrink-0">
+                      <FolderOpen className="h-4 w-4 text-elite-gold" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">{b.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{b.description}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </TabsContent>
+
           {/* Mock Exams */}
           <TabsContent value="mock-exams" className="mt-7 focus-visible:outline-none">
             <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6">
@@ -485,26 +512,6 @@ export default function EliteHubPage() {
             </div>
           </TabsContent>
         </Tabs>
-
-        {/* Atmospheric hero banner — bottom */}
-        <div className="relative rounded-2xl overflow-hidden bg-atmospheric" style={{ minHeight: "340px" }}>
-          <HeroBackground />
-          <div className="noise-overlay" />
-          <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background/60 to-transparent" />
-
-          <div className="relative z-10 flex flex-col justify-center px-8 py-16 md:px-12">
-            <div className="flex items-center gap-2 mb-5">
-              <Crown className="w-4 h-4 text-elite-gold" />
-              <span className="text-xs font-medium text-elite-gold uppercase tracking-[0.14em]">Elite Plan</span>
-            </div>
-            <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tight leading-[0.92] text-white mb-5">
-              ELITE IELTS<br />PREPARATION.
-            </h2>
-            <p className="text-sm text-white/55 max-w-md leading-relaxed">
-              Revision notes, flashcards, step-by-step tutorials, mock exams, and 1-on-1 coaching — built by 8.5+ scorers for Indonesian students.
-            </p>
-          </div>
-        </div>
 
       </div>
     </DashboardLayout>
