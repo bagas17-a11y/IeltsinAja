@@ -213,7 +213,7 @@ const LISTENING_QUESTIONS: LQ[] = [
 
 const SPEAKING_QS = [
   { id: "s1", part: "Part 1 — Interview",  text: "Tell me about your educational background. What did you study, and where?" },
-  { id: "s2", part: "Part 2 — Long Turn",  text: "Do you think university education should be free for all students? Why or why not? Please speak for about 1–2 minutes." },
+  { id: "s2", part: "Part 2 — Long Turn",  text: "Describe a person who has had a significant positive influence on your life. You should say: who this person is, how you know them, what qualities they have, and explain how they have influenced you. Please speak for about 1–2 minutes." },
   { id: "s3", part: "Part 3 — Discussion", text: "How do you think technology has changed the way people learn in recent years? What are the advantages and disadvantages?" },
 ];
 
@@ -467,23 +467,48 @@ export default function DiagnosticQuiz() {
         supabase.functions.invoke("ai-analyze", {
           body: {
             type: "speaking",
+            speakingPart: "full_test",
             content: speakingCombined,
-            question: "IELTS Speaking diagnostic — evaluate all 3 parts using IELTS band descriptors (0–9). Do not inflate scores. Give 0 or 1 if the response is absent or unintelligible.",
+            question: "IELTS Speaking Diagnostic — all 3 parts combined. Grade holistically using official IELTS Speaking band descriptors across Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, and Pronunciation.",
           },
         }),
       ]);
 
-      const fb1 = (r1.data?.data || r1.data || {}) as Record<string, unknown>;
-      const fb2 = (r2.data?.data || r2.data || {}) as Record<string, unknown>;
-      const fbs = (rs.data?.data || rs.data || {}) as Record<string, unknown>;
+      if (r1.error) console.warn("Writing T1 invoke error:", r1.error);
+      if (r2.error) console.warn("Writing T2 invoke error:", r2.error);
+      if (rs.error) console.warn("Speaking invoke error:", rs.error);
 
-      wT1Band = typeof fb1.overallBand === "number" ? fb1.overallBand : 0;
-      wT2Band = typeof fb2.overallBand === "number" ? fb2.overallBand : 0;
-      sBand   = typeof fbs.overallBand === "number" ? fbs.overallBand : 0;
+      // Unwrap {success, data} envelope; handle string bands from AI
+      const extractBand = (raw: unknown): number => {
+        const obj = (raw as Record<string, unknown> | null);
+        if (!obj) return 0;
+        const v = obj.overallBand;
+        if (typeof v === "number") return v;
+        if (typeof v === "string") { const n = parseFloat(v); if (!isNaN(n)) return n; }
+        return 0;
+      };
+      const unwrap = (inv: { data: unknown }): Record<string, unknown> => {
+        const d = inv.data as Record<string, unknown> | null;
+        if (!d) return {};
+        return (d.success ? d.data : d) as Record<string, unknown> ?? {};
+      };
 
-      wT1Fb = (fb1.taskResponse as Record<string, string[]>)?.justification?.[0] ?? "";
-      wT2Fb = (fb2.taskResponse as Record<string, string[]>)?.justification?.[0] ?? "";
-      sFb   = (fbs.fluencyCoherence as Record<string, string[]>)?.justification?.[0] ?? "";
+      const fb1 = unwrap(r1);
+      const fb2 = unwrap(r2);
+      const fbs = unwrap(rs);
+
+      wT1Band = extractBand(fb1);
+      wT2Band = extractBand(fb2);
+      sBand   = extractBand(fbs);
+
+      wT1Fb = (fb1.scoringGrid as Record<string, Record<string, string[]>>)?.taskResponse?.justification?.[0]
+           ?? (fb1.taskResponse as Record<string, string[]>)?.feedback?.[0]
+           ?? "";
+      wT2Fb = (fb2.scoringGrid as Record<string, Record<string, string[]>>)?.taskResponse?.justification?.[0]
+           ?? (fb2.taskResponse as Record<string, string[]>)?.feedback?.[0]
+           ?? "";
+      sFb   = (fbs.fluencyCoherence as Record<string, string[]>)?.feedback?.[0]
+           ?? "";
     } catch (e) {
       console.error("AI grading error:", e);
     }

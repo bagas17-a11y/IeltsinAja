@@ -45,12 +45,12 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
-        <ServicesSection />
+        {/* <ServicesSection /> */}
         <HowItWorksSection />
         <CredibilitySection />
         <SocialProofBar />
-        <PricingMatrix />
-        <TestimonialsSection />
+        {/* <PricingMatrix /> */}
+        {/* <TestimonialsSection /> */}
         <FAQSection />
       </main>
       <Footer />
