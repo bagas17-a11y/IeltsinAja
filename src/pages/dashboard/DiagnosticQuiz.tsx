@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import {
   BookOpen, PenTool, Headphones, Mic, ChevronRight,
   ChevronLeft, Check, Volume2, Loader2,
-  Square, Star, CheckCircle, ArrowRight, Target, Trophy, Crown, Clock,
+  Square, Star, CheckCircle, ArrowRight, Target, Trophy, Crown, Clock, Printer,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip,
@@ -507,7 +507,28 @@ export default function DiagnosticQuiz() {
 
     if (user) {
       try {
-        await supabase.from("profiles").update({ current_band_score: overall, study_plan_tier: tier }).eq("id", user.id);
+        await Promise.all([
+          supabase.from("profiles").update({ current_band_score: overall, study_plan_tier: tier }).eq("id", user.id),
+          supabase.from("diagnostic_results").insert({
+            user_id: user.id,
+            overall_band: overall,
+            reading_band: rBand,
+            reading_score: rScore,
+            listening_band: lBand,
+            listening_score: lScore,
+            writing_band: wBand,
+            writing_t1_band: wT1Band,
+            writing_t2_band: wT2Band,
+            writing_t1_feedback: wT1Fb,
+            writing_t2_feedback: wT2Fb,
+            speaking_band: sBand,
+            speaking_feedback: sFb,
+            reading_answers: readingAnswers,
+            task1_text: task1Text,
+            task2_text: task2Text,
+            speaking_transcripts: speakingTranscriptsRef.current,
+          }),
+        ]);
         await refreshProfile();
       } catch { /* non-fatal */ }
     }
@@ -548,6 +569,105 @@ export default function DiagnosticQuiz() {
         if ((e as Error)?.name !== "AbortError") toast.error(`Audio error: ${(e as Error)?.message ?? String(e)}`);
       })
       .finally(() => setAudioLoading(false));
+  };
+
+  // ── Print / PDF ─────────────────────────────────────────────────────────────
+  const printResults = () => {
+    if (!results) return;
+    const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    const readingGrid = Object.entries(READING_CORRECT).map(([q, correct]) => {
+      const given = (readingAnswers[q] ?? "").trim().toLowerCase();
+      const exp   = correct.toLowerCase();
+      const ok = q === "q7" || q === "q8"
+        ? given.includes(exp) || exp.includes(given)
+        : given === exp;
+      return `<div style="border:1px solid ${ok ? "#16a34a" : "#dc2626"};background:${ok ? "#f0fdf4" : "#fef2f2"};border-radius:6px;padding:6px 4px;text-align:center;">
+        <div style="font-size:9px;color:#6b7280;margin-bottom:2px;">${q.toUpperCase()}</div>
+        <div style="font-size:10px;font-weight:700;color:${ok ? "#16a34a" : "#dc2626"};">${ok ? "✓" : correct}</div>
+      </div>`;
+    }).join("");
+
+    const tier = results.overallBand >= 7 ? "Band 7+ Polishing Plan"
+      : results.overallBand >= 5.5 ? "Band 6–7 Developing Plan" : "Band 4–5 Foundation Plan";
+
+    const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>IELTS Diagnostic Results — Engvolve</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;color:#1e293b;background:#fff;padding:32px;max-width:760px;margin:0 auto}
+  h1{font-size:20px;font-weight:800;color:#1e293b}
+  .subtitle{font-size:12px;color:#64748b;margin-top:2px}
+  .band-hero{text-align:center;border:2px solid #e2e8f0;border-radius:12px;padding:24px;margin:20px 0}
+  .band-hero .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:600}
+  .band-hero .score{font-size:56px;font-weight:900;color:#0f172a;line-height:1}
+  .band-hero .rec{font-size:11px;color:#64748b;margin-top:4px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+  .module-card{border:1px solid #e2e8f0;border-radius:10px;padding:12px}
+  .module-card .mod-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:4px}
+  .module-card .mod-band{font-size:22px;font-weight:900}
+  .module-card .mod-sub{font-size:10px;color:#64748b;margin-top:2px}
+  .reading-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0}
+  .section{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin:12px 0}
+  .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+  .fb-row{display:flex;gap:10px;align-items:flex-start;margin:6px 0}
+  .fb-label{font-size:10px;font-weight:700;width:44px;color:#64748b;flex-shrink:0}
+  .fb-band{font-size:12px;font-weight:700;color:#0f172a}
+  .fb-text{font-size:11px;color:#475569;margin-top:2px;line-height:1.45}
+  .plan-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin:12px 0;text-align:center}
+  .plan-box .plan-label{font-size:11px;color:#64748b;margin-bottom:4px}
+  .plan-box .plan-name{font-size:14px;font-weight:700;color:#0f172a}
+  .header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:1px solid #e2e8f0;padding-bottom:12px}
+  .blue{color:#2563eb}.violet{color:#7c3aed}.amber{color:#d97706}.emerald{color:#059669}
+  @media print{body{padding:20px}@page{margin:1.5cm}}
+</style></head><body>
+<div class="header-row">
+  <div>
+    <h1>IELTS Diagnostic Results</h1>
+    <div class="subtitle">Engvolve · ${date}</div>
+  </div>
+  <div style="text-align:right;font-size:11px;color:#64748b">Confidential — for student use only</div>
+</div>
+
+<div class="band-hero">
+  <div class="label">Overall IELTS Band Score</div>
+  <div class="score">${results.overallBand}</div>
+  <div class="rec">${results.overallBand >= 7 ? "Good user — Band 7+ Polishing Plan recommended" : results.overallBand >= 5.5 ? "Competent user — Band 6–7 Developing Plan recommended" : "Limited user — Band 4–5 Foundation Plan recommended"}</div>
+</div>
+
+<div class="grid-4">
+  <div class="module-card"><div class="mod-label">Reading</div><div class="mod-band blue">Band ${results.readingBand}</div><div class="mod-sub">${results.readingScore}/10 correct</div></div>
+  <div class="module-card"><div class="mod-label">Listening</div><div class="mod-band amber">Band ${results.listeningBand}</div><div class="mod-sub">${results.listeningScore}/6 correct</div></div>
+  <div class="module-card"><div class="mod-label">Writing</div><div class="mod-band violet">Band ${results.writingBand}</div><div class="mod-sub">T1: ${results.writingT1Band} · T2: ${results.writingT2Band}</div></div>
+  <div class="module-card"><div class="mod-label">Speaking</div><div class="mod-band emerald">Band ${results.speakingBand}</div><div class="mod-sub">3 questions</div></div>
+</div>
+
+<div class="section">
+  <div class="section-title" style="color:#2563eb">Reading — Answer Review</div>
+  <div class="reading-grid">${readingGrid}</div>
+</div>
+
+<div class="section">
+  <div class="section-title" style="color:#7c3aed">Writing — AI Feedback</div>
+  <div class="fb-row"><div class="fb-label">Task 1</div><div><div class="fb-band">Band ${results.writingT1Band}</div>${results.writingT1Feedback ? `<div class="fb-text">${results.writingT1Feedback}</div>` : ""}</div></div>
+  <div class="fb-row"><div class="fb-label">Task 2</div><div><div class="fb-band">Band ${results.writingT2Band}</div>${results.writingT2Feedback ? `<div class="fb-text">${results.writingT2Feedback}</div>` : ""}</div></div>
+</div>
+
+<div class="section">
+  <div class="section-title" style="color:#059669">Speaking — AI Feedback</div>
+  <div class="fb-band">Band ${results.speakingBand}</div>
+  ${results.speakingFeedback ? `<div class="fb-text" style="margin-top:4px">${results.speakingFeedback}</div>` : ""}
+</div>
+
+<div class="plan-box">
+  <div class="plan-label">Recommended Study Plan</div>
+  <div class="plan-name">${tier}</div>
+</div>
+
+<script>window.onload=function(){window.print();}</script>
+</body></html>`;
+
+    const w = window.open("", "_blank");
+    if (w) { w.document.write(html); w.document.close(); }
   };
 
   const showTimer = phase !== "intro" && phase !== "results";
@@ -1043,9 +1163,14 @@ export default function DiagnosticQuiz() {
                 {results.overallBand >= 7 ? "Band 7+ Polishing Plan" : results.overallBand >= 5.5 ? "Band 6–7 Developing Plan" : "Band 4–5 Foundation Plan"}
               </span>. This plan targets your weakest areas and is structured for your current level.
             </p>
-            <Button className="w-full" onClick={() => navigate("/dashboard/study-plan")}>
-              <CheckCircle className="w-4 h-4 mr-2" /> Go to My Study Plan
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={printResults}>
+                <Printer className="w-4 h-4 mr-2" /> Print / Save PDF
+              </Button>
+              <Button className="flex-1" onClick={() => navigate("/dashboard/study-plan")}>
+                <CheckCircle className="w-4 h-4 mr-2" /> Go to My Study Plan
+              </Button>
+            </div>
           </div>
         </div>
       )}

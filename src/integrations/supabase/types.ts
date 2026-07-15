@@ -47,6 +47,80 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnostic_results: {
+        Row: {
+          id: string
+          user_id: string
+          taken_at: string
+          overall_band: number
+          reading_band: number | null
+          reading_score: number | null
+          listening_band: number | null
+          listening_score: number | null
+          writing_band: number | null
+          writing_t1_band: number | null
+          writing_t2_band: number | null
+          writing_t1_feedback: string | null
+          writing_t2_feedback: string | null
+          speaking_band: number | null
+          speaking_feedback: string | null
+          reading_answers: Json | null
+          task1_text: string | null
+          task2_text: string | null
+          speaking_transcripts: Json | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          taken_at?: string
+          overall_band: number
+          reading_band?: number | null
+          reading_score?: number | null
+          listening_band?: number | null
+          listening_score?: number | null
+          writing_band?: number | null
+          writing_t1_band?: number | null
+          writing_t2_band?: number | null
+          writing_t1_feedback?: string | null
+          writing_t2_feedback?: string | null
+          speaking_band?: number | null
+          speaking_feedback?: string | null
+          reading_answers?: Json | null
+          task1_text?: string | null
+          task2_text?: string | null
+          speaking_transcripts?: Json | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          taken_at?: string
+          overall_band?: number
+          reading_band?: number | null
+          reading_score?: number | null
+          listening_band?: number | null
+          listening_score?: number | null
+          writing_band?: number | null
+          writing_t1_band?: number | null
+          writing_t2_band?: number | null
+          writing_t1_feedback?: string | null
+          writing_t2_feedback?: string | null
+          speaking_band?: number | null
+          speaking_feedback?: string | null
+          reading_answers?: Json | null
+          task1_text?: string | null
+          task2_text?: string | null
+          speaking_transcripts?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostic_results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       consultation_bookings: {
         Row: {
           consultant_name: string

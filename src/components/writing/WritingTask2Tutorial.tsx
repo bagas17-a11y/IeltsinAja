@@ -246,7 +246,7 @@ function Slide3Blueprint({ onComplete }: { onComplete: () => void }) {
       bg: "bg-purple-50 border-purple-200 hover:bg-purple-100",
       numBg: "bg-purple-200", numText: "text-purple-800",
       titleText: "text-purple-900", descText: "text-purple-800", badgeStyle: "text-purple-500 border-purple-200",
-      text: "Present the argument FOR longer prison sentences. Even if you disagree, explain it fairly. Use the TEE pattern: Topic → Explain → Example. This shows Task Response breadth.",
+      text: "Present the argument FOR longer prison sentences. Even if you disagree, explain it fairly. Use the PEEL pattern: Point → Evidence → Explanation → Link. This shows Task Response breadth.",
     },
     {
       num: 3, title: "Body Paragraph 2", badge: "View B + Opinion",
@@ -394,14 +394,18 @@ function Slide4Introduction({ onComplete }: { onComplete: () => void }) {
 type SentenceData = {
   text: string;
   highlights: { phrase: string; tag: string; color: string }[];
-  role?: 'T' | 'E-explain' | 'E-example';
+  role?: 'T' | 'E-explain' | 'E-example' | 'P' | 'E-evidence' | 'E-explanation' | 'L';
   roleLabel?: string;
 };
 
 const ROLE_STYLES: Record<string, { badge: string; border: string; label: string }> = {
-  'T':         { badge: "bg-purple-100 text-purple-700 border-purple-300", border: "border-l-purple-400", label: "T" },
-  'E-explain': { badge: "bg-blue-100 text-blue-700 border-blue-300",       border: "border-l-blue-400",   label: "E" },
-  'E-example': { badge: "bg-rose-100 text-rose-700 border-rose-300",       border: "border-l-rose-400",   label: "E" },
+  'T':             { badge: "bg-purple-100 text-purple-700 border-purple-300", border: "border-l-purple-400", label: "T" },
+  'E-explain':     { badge: "bg-blue-100 text-blue-700 border-blue-300",       border: "border-l-blue-400",   label: "E" },
+  'E-example':     { badge: "bg-rose-100 text-rose-700 border-rose-300",       border: "border-l-rose-400",   label: "E" },
+  'P':             { badge: "bg-purple-100 text-purple-700 border-purple-300", border: "border-l-purple-400", label: "P" },
+  'E-evidence':    { badge: "bg-blue-100 text-blue-700 border-blue-300",       border: "border-l-blue-400",   label: "E" },
+  'E-explanation': { badge: "bg-green-100 text-green-700 border-green-300",    border: "border-l-green-400",  label: "E" },
+  'L':             { badge: "bg-amber-100 text-amber-700 border-amber-300",    border: "border-l-amber-400",  label: "L" },
 };
 
 function SentenceWithHighlights({ sentence }: { sentence: SentenceData }) {
@@ -442,35 +446,35 @@ function SentenceWithHighlights({ sentence }: { sentence: SentenceData }) {
 // ─────────────────────────────────────────────
 const BODY1_SENTENCES: SentenceData[] = [
   {
-    role: 'T',
-    roleLabel: 'Topic',
+    role: 'P',
+    roleLabel: 'Point',
     text: "Proponents of longer prison sentences argue that stricter punishments act as a powerful deterrent to potential offenders.",
     highlights: [
-      { phrase: "act as a powerful deterrent to potential offenders", tag: "The main claim of the whole paragraph — introduces View A's core argument", color: "text-purple-700 bg-purple-100" },
+      { phrase: "act as a powerful deterrent to potential offenders", tag: "Point: the main claim of the whole paragraph — your PEEL anchor", color: "text-purple-700 bg-purple-100" },
     ],
   },
   {
-    role: 'E-explain',
-    roleLabel: 'Explain',
+    role: 'E-evidence',
+    roleLabel: 'Evidence',
     text: "When individuals know they face extended imprisonment for breaking the law, they may be far less likely to engage in criminal behaviour.",
     highlights: [
-      { phrase: "far less likely to engage in criminal behaviour", tag: "Explains HOW the deterrent works — the fear of prison changes behaviour", color: "text-blue-700 bg-blue-100" },
+      { phrase: "far less likely to engage in criminal behaviour", tag: "Evidence: the logical basis that supports the Point — fear of prison reduces willingness to offend", color: "text-blue-700 bg-blue-100" },
     ],
   },
   {
-    role: 'E-explain',
-    roleLabel: 'Explain',
+    role: 'E-explanation',
+    roleLabel: 'Explanation',
     text: "Furthermore, keeping convicted criminals incarcerated for longer periods protects the wider public from repeat offending.",
     highlights: [
-      { phrase: "protects the wider public from repeat offending", tag: "A second benefit — extends the explanation to show breadth of argument", color: "text-blue-700 bg-blue-100" },
+      { phrase: "protects the wider public from repeat offending", tag: "Explanation: develops the evidence further — shows HOW/WHY longer sentences work on another level", color: "text-green-700 bg-green-100" },
     ],
   },
   {
-    role: 'E-example',
-    roleLabel: 'Example',
+    role: 'L',
+    roleLabel: 'Link',
     text: "For example, countries that adopted mandatory minimum sentencing in the 1990s, such as the United States, initially reported short-term reductions in certain violent crimes.",
     highlights: [
-      { phrase: "countries that adopted mandatory minimum sentencing in the 1990s, such as the United States", tag: "Real-world evidence that illustrates the Topic claim — this is your invented-or-general example", color: "text-rose-700 bg-rose-100" },
+      { phrase: "countries that adopted mandatory minimum sentencing in the 1990s, such as the United States", tag: "Link: grounds the argument with a real-world reference, connecting back to the essay question", color: "text-amber-700 bg-amber-100" },
     ],
   },
 ];
@@ -484,17 +488,18 @@ function Slide5Body1({ onComplete }: { onComplete: () => void }) {
       <motion.div variants={fadeUp(0)} initial="hidden" animate="visible">
         <Pill label="Step 4 of 8" color="purple" />
         <h2 className="text-xl font-bold mt-2 text-gray-900">Build Body Paragraph 1 (View A)</h2>
-        <p className="text-sm text-gray-500 mt-1">Present the case FOR longer prison sentences fairly. Use the TEE pattern: Topic → Explain → Example.</p>
+        <p className="text-sm text-gray-500 mt-1">Present the case FOR longer prison sentences fairly. Use the PEEL pattern: Point → Evidence → Explanation → Link.</p>
       </motion.div>
 
       <motion.div variants={fadeUp(0.1)} initial="hidden" animate="visible"
         className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
-        <p className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">TEE Pattern — each coloured label shows which part is which</p>
+        <p className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">PEEL Pattern — each coloured label shows which part is which</p>
         <div className="flex flex-wrap gap-2">
           {[
-            { tag: "T", label: "Topic sentence", desc: "1 sentence — states the paragraph's main claim", color: "bg-purple-100 text-purple-700 border-purple-300" },
-            { tag: "E", label: "Explain", desc: "1–2 sentences — develops the logic of the claim", color: "bg-blue-100 text-blue-700 border-blue-300" },
-            { tag: "E", label: "Example", desc: "1 sentence — real or illustrative evidence", color: "bg-rose-100 text-rose-700 border-rose-300" },
+            { tag: "P", label: "Point", desc: "1 sentence — states the paragraph's main claim", color: "bg-purple-100 text-purple-700 border-purple-300" },
+            { tag: "E", label: "Evidence", desc: "1 sentence — real or illustrative evidence supporting the Point", color: "bg-blue-100 text-blue-700 border-blue-300" },
+            { tag: "E", label: "Explanation", desc: "1–2 sentences — explains how the evidence supports the Point", color: "bg-green-100 text-green-700 border-green-300" },
+            { tag: "L", label: "Link", desc: "1 sentence — links back to the question or your thesis", color: "bg-amber-100 text-amber-700 border-amber-300" },
           ].map((item, i) => (
             <div key={i} className={`flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs ${item.color}`}>
               <span className="font-bold shrink-0">{item.tag}</span>

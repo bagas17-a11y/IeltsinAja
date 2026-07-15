@@ -30,6 +30,7 @@ import {
   Zap,
   Settings,
   BarChart2,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -314,6 +315,13 @@ export default function AdminDashboard() {
       icon: <BookOpen className="w-6 h-6" />,
       path: "/admin/study-plans",
       color: "text-green-500",
+    },
+    {
+      title: "Diagnostic Results",
+      description: "View every student's IELTS diagnostic band scores and AI feedback",
+      icon: <Target className="w-6 h-6" />,
+      path: "/admin/diagnostic-results",
+      color: "text-accent",
     },
   ];
 
