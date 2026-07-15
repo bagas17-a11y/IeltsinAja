@@ -41,6 +41,8 @@ export const CONTACT_MESSAGES = {
     "Hi Engvolve team, I have a question about your pricing or payment.",
   bookConsultation:
     "Hi Engvolve team, I'd like to book a 1-on-1 IELTS coaching session.",
+  essayCoaching:
+    "Hi Engvolve team! I'm interested in your University Application Essay coaching service. I'd love a free consultation to discuss my applications. Could you tell me more about the process and pricing?",
   paymentTransferred:
     "Hi Engvolve team, I have just made a transfer and uploaded my receipt. Please confirm.",
   statusCheck:

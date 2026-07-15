@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { motion } from "framer-motion";
 import { HeroBackground } from "./HeroBackground";
+import { ArrowRight, GraduationCap, Target } from "lucide-react";
+import { buildWhatsAppLink, CONTACT_MESSAGES } from "@/lib/contact";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
@@ -14,7 +16,7 @@ export const HeroSection = () => {
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 pt-36 pb-0">
 
-        {/* Badge — appears after mac */}
+        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -27,7 +29,7 @@ export const HeroSection = () => {
           }}
         >
           <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FFE4A0" }} />
-          AI-powered · Built by 8.5+ scorers · For Indonesian students
+          AI-powered · Built by 8.5+ scorers & Berkeley alumni · For Indonesian students
         </motion.div>
 
         {/* Headline */}
@@ -42,17 +44,15 @@ export const HeroSection = () => {
             color: "#FFFFFF",
           }}
         >
-          Indonesia's First Ever<br />
+          Indonesia's Gateway to<br />
           <motion.span
             initial={{ opacity: 0, scale: 0.88, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.92, ease: [0.22, 1, 0.36, 1] }}
             style={{ fontWeight: 600, color: "#FFE4A0", display: "inline-block" }}
           >
-            All-in-one IELTS
+            Global Education.
           </motion.span>
-          <br />
-          <span style={{ fontWeight: 300 }}>Prep Platform.</span>
         </motion.h1>
 
         {/* Subheadline */}
@@ -63,11 +63,71 @@ export const HeroSection = () => {
           className="text-sm md:text-base max-w-lg mb-10 leading-relaxed"
           style={{ color: "rgba(255,255,255,0.70)", fontWeight: 300 }}
         >
-          Engvolve gives you personalised feedback, real Band 6.5+ strategies, and a coach in
-          your pocket — built by scorers who've been where you are.
+          Score 7.0+ on IELTS. Write essays that get you into Oxford, Harvard, or IUP.
+          Two services — one coach in your pocket.
         </motion.p>
 
-        {/* Mac desktop video demo — appears first */}
+        {/* Dual service CTA cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1.18, ease: "easeOut" }}
+          className="flex flex-col sm:flex-row gap-3 mb-14 w-full max-w-xl"
+        >
+          {/* IELTS card */}
+          <button
+            onClick={() => navigate("/auth?mode=signup")}
+            className="group flex-1 flex flex-col items-start gap-2 px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
+            style={{
+              background: "rgba(255,255,255,0.16)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                   style={{ background: "rgba(72,168,204,0.35)", border: "1px solid rgba(72,168,204,0.5)" }}>
+                <Target className="w-3.5 h-3.5" style={{ color: "#7EDCF5" }} />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.55)" }}>IELTS Prep</span>
+            </div>
+            <p className="text-sm font-semibold leading-snug" style={{ color: "#FFFFFF" }}>
+              Score 7.0+ with AI-powered practice
+            </p>
+            <div className="flex items-center gap-1 text-xs font-medium" style={{ color: "#7EDCF5" }}>
+              Start free trial <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </button>
+
+          {/* Uni Essays card */}
+          <button
+            onClick={() => window.open(buildWhatsAppLink(CONTACT_MESSAGES.essayCoaching), "_blank")}
+            className="group flex-1 flex flex-col items-start gap-2 px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
+            style={{
+              background: "rgba(255,228,160,0.12)",
+              border: "1px solid rgba(255,228,160,0.30)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                   style={{ background: "rgba(255,228,160,0.22)", border: "1px solid rgba(255,228,160,0.40)" }}>
+                <GraduationCap className="w-3.5 h-3.5" style={{ color: "#FFE4A0" }} />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,228,160,0.65)" }}>Uni Essays</span>
+            </div>
+            <p className="text-sm font-semibold leading-snug" style={{ color: "#FFFFFF" }}>
+              Oxford. Harvard. IUP. — essay coaching by alumni
+            </p>
+            <div className="flex items-center gap-1 text-xs font-medium" style={{ color: "#FFE4A0" }}>
+              Book free consultation <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </button>
+        </motion.div>
+
+        {/* Mac desktop video demo */}
         <motion.div
           initial={{ opacity: 0, y: 36, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -126,7 +186,7 @@ export const HeroSection = () => {
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ background: "#FFBD2E", boxShadow: "0 0 0 0.5px rgba(0,0,0,0.16)" }} />
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ background: "#28C840", boxShadow: "0 0 0 0.5px rgba(0,0,0,0.12)" }} />
                   <span style={{ flex: 1, textAlign: "center", fontSize: "0.60rem", color: "rgba(255,255,255,0.28)" }}>
-                    Engvolve — AI IELTS Preparation
+                    Engvolve — IELTS Preparation
                   </span>
                 </div>
 

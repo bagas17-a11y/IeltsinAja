@@ -2,6 +2,7 @@ import { useLayoutEffect, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
+import { ServicesSection } from "@/components/ServicesSection";
 import { SocialProofBar } from "@/components/SocialProofBar";
 import { PricingMatrix } from "@/components/PricingMatrix";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
@@ -44,6 +45,7 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
+        <ServicesSection />
         <HowItWorksSection />
         <CredibilitySection />
         <SocialProofBar />
