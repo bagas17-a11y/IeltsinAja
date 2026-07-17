@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, ArrowRight, Lightbulb, FileText, BarChart3, CheckCircle, XCircle, RefreshCw, BookOpen, Play, ArrowLeft, Zap, Download } from "lucide-react";
+import { PenTool, Loader2, ChevronRight, Star, AlertTriangle, Target, ArrowRight, Lightbulb, FileText, BarChart3, CheckCircle, XCircle, RefreshCw, BookOpen, Play, ArrowLeft, Zap, Download, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,7 +58,14 @@ interface CachedWritingState {
   feedback: any;
   revisionFeedback: any;
   previousScore: number | null;
+  timerEndAt: number | null;
 }
+
+// IELTS timing: Task 1 (report) = 20 min, Task 2 (essay) = 40 min
+const TASK1_WRITING_SECONDS = 20 * 60;
+const TASK2_WRITING_SECONDS = 40 * 60;
+const getTaskDurationSeconds = (taskType: string) =>
+  taskType.startsWith("Task 1") ? TASK1_WRITING_SECONDS : TASK2_WRITING_SECONDS;
 
 // Grading Rubric for Task 1
 const task1Rubric = [
@@ -153,6 +160,9 @@ export default function WritingModule() {
   const isAnalyzingRevision = analysisEntry.isGenerating && analysisEntry.config?.isRevision === true;
   const [revisionFeedback, setRevisionFeedback] = useState<any>(null);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
+  const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(TASK1_WRITING_SECONDS);
+  const hasWarnedTimeUpRef = useRef(false);
   const { completedIds, markCompleted } = useCompletedQuestions("writing");
   const [showRubric, setShowRubric] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -187,11 +197,19 @@ export default function WritingModule() {
           setFeedback(state.feedback || null);
           setRevisionFeedback(state.revisionFeedback || null);
           setPreviousScore(state.previousScore || null);
+          hasWarnedTimeUpRef.current = false;
+          if (state.timerEndAt && state.timerEndAt > Date.now()) {
+            setTimerEndAt(state.timerEndAt);
+            setTimeRemaining(Math.max(0, Math.ceil((state.timerEndAt - Date.now()) / 1000)));
+          } else {
+            setTimerEndAt(null);
+            setTimeRemaining(0);
+          }
           return;
         }
       }
     } catch (err) { console.error("Cache load error:", err); }
-    
+
     // Reset if no deep cache found
     setView("library");
     setSelectedQuestion(null);
@@ -200,15 +218,40 @@ export default function WritingModule() {
     setFeedback(null);
     setRevisionFeedback(null);
     setPreviousScore(null);
+    setTimerEndAt(null);
+    setTimeRemaining(getTaskDurationSeconds(activeTask));
   }, [user?.id, activeTask]);
 
   useEffect(() => {
     if (!user?.id || !selectedQuestion) return;
     const state: CachedWritingState = {
-      view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore
+      view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore, timerEndAt
     };
     sessionStorage.setItem(`ielts-writing-cache-${user.id}-${activeTask}`, JSON.stringify(state));
-  }, [user?.id, activeTask, view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore]);
+  }, [user?.id, activeTask, view, selectedQuestion, essay, revisedEssay, feedback, revisionFeedback, previousScore, timerEndAt]);
+
+  // Countdown — ticks while a practice session is active and the timer hasn't run out
+  useEffect(() => {
+    if (view !== "practice" || !timerEndAt) return;
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((timerEndAt - Date.now()) / 1000));
+      setTimeRemaining(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+        if (!hasWarnedTimeUpRef.current) {
+          hasWarnedTimeUpRef.current = true;
+          toast({ title: "Time's up!", description: "In the real exam you'd need to stop now — finish up and submit for feedback." });
+        }
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [view, timerEndAt, toast]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   // Fetch version history for the current question when feedback is shown
   useEffect(() => {
@@ -449,6 +492,9 @@ export default function WritingModule() {
     setFeedback(null);
     setRevisionFeedback(null);
     setPreviousScore(null);
+    hasWarnedTimeUpRef.current = false;
+    setTimerEndAt(Date.now() + getTaskDurationSeconds(question.task_type) * 1000);
+    setTimeRemaining(getTaskDurationSeconds(question.task_type));
     setView("practice");
   };
 
@@ -460,6 +506,7 @@ export default function WritingModule() {
     setFeedback(null);
     setRevisionFeedback(null);
     setPreviousScore(null);
+    setTimerEndAt(null);
   };
 
   const handleRestartPractice = () => {
@@ -468,6 +515,11 @@ export default function WritingModule() {
     setFeedback(null);
     setRevisionFeedback(null);
     setPreviousScore(null);
+    hasWarnedTimeUpRef.current = false;
+    if (selectedQuestion) {
+      setTimerEndAt(Date.now() + getTaskDurationSeconds(selectedQuestion.task_type) * 1000);
+      setTimeRemaining(getTaskDurationSeconds(selectedQuestion.task_type));
+    }
   };
 
   const handleAnalyze = async (isRevision = false) => {
@@ -1102,6 +1154,21 @@ ${modelHtml}</body></html>`;
               </p>
             </div>
           </div>
+
+          {view === "practice" && selectedQuestion && (
+            <div className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg border shrink-0",
+              timeRemaining <= 0 || timeRemaining < 300 ? "border-destructive/50 bg-destructive/10" : "border-border bg-card"
+            )}>
+              <Clock className={cn("w-4 h-4", timeRemaining < 300 ? "text-destructive" : "text-muted-foreground")} />
+              <span className={cn("font-mono text-sm tabular-nums", timeRemaining < 300 ? "text-destructive" : "text-foreground")}>
+                {timeRemaining <= 0 ? "Time's up" : formatTime(timeRemaining)}
+              </span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                {selectedQuestion.task_type.startsWith("Task 1") ? "· 20 min" : "· 40 min"}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Library View */}
