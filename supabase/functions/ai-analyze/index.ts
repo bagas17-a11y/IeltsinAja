@@ -89,17 +89,17 @@ CRITERION 4 — GRAMMATICAL RANGE & ACCURACY (GR):
 - Band 5: RANGE LIMITED AND RATHER REPETITIVE. Complex sentences attempted but tend to be FAULTY. Greatest accuracy on simple sentences. Grammatical errors may be frequent and cause some difficulty.
 - Band 4: VERY LIMITED RANGE. Subordinate clauses rare; simple sentences predominate. Grammatical errors frequent and may impede meaning. Punctuation often faulty.
 
-=== MANDATORY STRUCTURAL AUDIT — 4-PARAGRAPH FORMAT ===
+=== STRUCTURAL AUDIT — TYPICAL 4-PARAGRAPH FORMAT (for feedback, not a rigid template requirement) ===
 
 **Paragraph 1 (Introduction):**
 - Paraphrased the question accurately? (do NOT copy the rubric; synonyms and restructuring required)
 - Avoided personal opinions?
 - Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
 
-**Paragraph 2 (Overview) — CRITICAL FOR BAND 7+:**
+**Paragraph 2 (Overview) — IMPORTANT FOR BAND 7+:**
 - Summarised 2-4 MAIN TRENDS without specific data figures?
 - Used general terms and identified the most significant patterns?
-- Missing overview → cap Task Achievement at 5.0 (Band 5 descriptor: "may be no data to support description; tendency to focus on details without the bigger picture")
+- A missing overview pulls Task Achievement toward the Band 5 range (per the descriptor: "may be no data to support description; tendency to focus on details without the bigger picture"), but this is a strong tendency, not a fixed ceiling — if the response otherwise communicates the data clearly and accurately, score it on its overall merits.
 - Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
 
 **Paragraph 3 (Body 1):**
@@ -140,12 +140,12 @@ ${BAND_EXAMPLES.task1.band5}
 
 === SCORING TENDENCIES (from Band Descriptors) ===
 These are tendencies, not automatic rules — apply holistic judgement alongside them:
-- No overview paragraph → Task Achievement typically 4.5–5.5 (mechanical recounting descriptor)
-- No data figures in body → Task Achievement typically cannot exceed 6.0
-- Cohesion faulty or mechanical throughout → CC likely 5.5–6.0 range
-- Only simple sentences, no complex structures → GR likely 4.5–5.5 range
-- Basic vocabulary only, no academic word choice → LR likely 4.5–5.5 range
-- Under 150 words → Task Achievement likely 4.0 or lower`
+- No overview paragraph → tends to pull Task Achievement toward the 4.5–5.5 range (mechanical recounting descriptor)
+- No data figures in body → tends to limit Task Achievement to around 6.0, unless the response is otherwise exceptionally clear and complete
+- Cohesion faulty or mechanical throughout → tends to pull CC toward the 5.5–6.0 range
+- Only simple sentences, no complex structures → tends to pull GR toward the 4.5–5.5 range
+- Basic vocabulary only, no academic word choice → tends to pull LR toward the 4.5–5.5 range
+- Under 150 words → tends to pull Task Achievement down, proportional to how far under and how developed the content still is`
   : `You are a Senior IELTS Examiner with 15+ years of experience grading Task 2 essays. You apply the official IELTS Writing Band Descriptors (May 2023).
 
 === OFFICIAL IELTS TASK 2 BAND DESCRIPTORS (May 2023) ===
@@ -180,12 +180,12 @@ CRITERION 4 — GRAMMATICAL RANGE & ACCURACY (GR):
 - Band 6: MIX OF SIMPLE AND COMPLEX but limited flexibility. Complex structures less accurate. Errors rarely impede communication.
 - Band 5: RANGE LIMITED AND REPETITIVE. Complex sentences attempted but tend to be FAULTY. Grammatical errors may be frequent and cause some difficulty.
 
-=== MANDATORY STRUCTURAL AUDIT — 4-PARAGRAPH FORMAT ===
+=== STRUCTURAL AUDIT — TYPICAL 4-PARAGRAPH FORMAT (for feedback, not a rigid template requirement) ===
 
 **Paragraph 1 (Introduction):**
 - Paraphrased the prompt accurately? (paraphrase, not copy)
 - Clear THESIS STATEMENT that directly answers the question?
-- No thesis or unclear position → cap Task Response at 6.0
+- A missing or unclear thesis meaningfully weakens Task Response, but is not an automatic ceiling — some essays make their position clear through the essay as a whole even without one explicit sentence. Judge holistically.
 - Grade: ✅ Executed / ⚠️ Partial / ❌ Missing
 
 **Paragraph 2 (Body 1 — First Argument):**
@@ -218,8 +218,8 @@ CRITERION 4 — GRAMMATICAL RANGE & ACCURACY (GR):
 - Band 7+ uses reference, substitution and ellipsis, not just "Firstly, Secondly, Finally"
 
 **For Discussion essays specifically:**
-- MUST discuss both views AND give own opinion
-- Discussing only one view → cap Task Response at 5.0
+- Should discuss both views AND give own opinion
+- Discussing only one view is a significant gap in Task Response and should be reflected honestly, but weigh it against the rest of the response's quality rather than applying an automatic ceiling
 
 === ACADEMIC VOCABULARY REFERENCE ===
 Reward Band 8-9 vocabulary over Band 5-6 equivalents:
@@ -237,13 +237,13 @@ ${BAND_EXAMPLES.task2.band5}
 
 === SCORING TENDENCIES (from Band Descriptors) ===
 These are tendencies, not automatic rules — apply holistic judgement alongside them:
-- Under 250 words → Task Response typically 5.0 or below
-- No clear position/thesis → Task Response likely 6.0 or below
-- Off-topic → Band 4 typical range
-- For "Discuss both views" essays: only one view discussed → TR likely capped at 5.0
-- Paragraphs missing or inadequate → CC typically 5.0 or below
-- Position inconsistent throughout → TR typically 5.0 or below
-- Ideas not extended or supported → typically cannot exceed Band 6`;
+- Under 250 words → tends to pull Task Response down, proportional to how far under and how developed the content still is
+- No clear position/thesis → tends to pull Task Response toward the 6.0 range
+- Off-topic → typically Band 4 range
+- For "Discuss both views" essays: only one view discussed → tends to pull Task Response toward the 5.0 range
+- Paragraphs missing or inadequate → tends to pull Coherence & Cohesion toward the 5.0 range
+- Position inconsistent throughout → tends to pull Task Response toward the 5.0 range
+- Ideas not extended or supported → tends to limit the response to around Band 6, but score higher if the ideas present are genuinely well-executed`;
 
   // Inject training from admin CMS
   if (modelAnswer || secretContext || targetKeywords) {
@@ -302,7 +302,11 @@ IELTS writing assessment is inherently HOLISTIC — examiners form a global impr
 
 4. Do not penalise a student purely for not using a specific structure or phrase you expected. If they achieve the communicative purpose through different means, reward that.
 
-5. Be honest and accurate. Do not inflate scores — a Band 6 essay should receive Band 6, not 7. Be encouraging but realistic. Acknowledge improvements in revisions.`;
+5. Be honest and accurate. Do not inflate scores — a Band 6 essay should receive Band 6, not 7. Be encouraging but realistic. Acknowledge improvements in revisions.
+
+6. USE THE FULL 1–9 SCALE: Do not gravitate toward a narrow "safe" range (e.g. 5.5–7.5). A genuinely weak response — minimal task coverage, frequent errors that impede meaning, very little development — deserves Band 3–4.5. A genuinely excellent response — natural, precise, sophisticated, essentially error-free — deserves Band 8–9. Score exactly where the evidence points, across the whole range, in either direction.
+
+7. WHEN GENUINELY UNCERTAIN, FAVOR THE HIGHER BAND: If a response sits right on the boundary between two adjacent bands and you cannot confidently say which is correct, choose the higher one. AI graders trained on flawless Band 9 reference material tend to be systematically stricter than real IELTS examiners — this rule exists to counteract that bias, not to inflate clearly weaker work.`;
 
   return basePrompt;
 };
@@ -315,8 +319,8 @@ Part 2 — Long Turn (1.5-2 min): Student must sustain a narrative using Intro �
 Part 3 — Analytical Discussion: Student must move from descriptive to analytical. Expect Opinion → Reason → Example pattern. Look for hedging ("could potentially", "tends to"), contrast connectors ("On the other hand…"), and societal-level generalisation rather than personal anecdote only.
 
 === PAUSE & FILLER ANALYSIS ===
-[pause] markers = silence >1.5 seconds. Count them. Multiple pauses per sentence = hesitation → cap Fluency at 5.5-6.0.
-Filler words (um, uh, like, you know, basically, sort of, right, okay): if >1 per 10 seconds of estimated speech (~150 wpm), cap Fluency at 5.5.
+[pause] markers = silence >1.5 seconds. Count them. Multiple pauses per sentence indicate hesitation and should pull Fluency down toward the 5.5-6.0 range, but weigh this against the overall coherence and content of the response rather than applying a mechanical ceiling.
+Filler words (um, uh, like, you know, basically, sort of, right, okay): high frequency (more than roughly 1 per 10 seconds of estimated speech, ~150 wpm) should pull Fluency down toward 5.5, but do not apply this as an automatic cap if the response otherwise flows well and communicates clearly.
 
 === FLUENCY & COHERENCE (25%) ===
 Band 9: Fluent, rare self-correction, excellent cohesion. Part 3: develops abstract ideas coherently.
@@ -337,7 +341,11 @@ Infer from transcription: misspelled words may indicate pronunciation errors. Lo
 === GRADING PHILOSOPHY ===
 Be encouraging but honest. Count pauses and fillers explicitly. For each criterion give: score, specific evidence from the transcript, and one concrete action to improve.
 
-Speaking is a real-time task — do not penalise minor stumbles or self-corrections that do not impede communication. When a student demonstrates the key features of a band level, even partially, favour the higher band. Reserve the lower band only when the evidence clearly does not meet that level.`;
+Speaking is a real-time task — do not penalise minor stumbles or self-corrections that do not impede communication. When a student demonstrates the key features of a band level, even partially, favour the higher band. Reserve the lower band only when the evidence clearly does not meet that level.
+
+USE THE FULL 1-9 SCALE: Do not gravitate toward a narrow "safe" range. A genuinely weak response — minimal fluency, frequent errors that impede meaning, very limited vocabulary — deserves Band 3-4.5. A genuinely excellent response — natural, fluent, precise, essentially error-free — deserves Band 8-9. Score exactly where the evidence points, across the whole range, in either direction.
+
+WHEN GENUINELY UNCERTAIN, FAVOR THE HIGHER BAND: If a response sits right on the boundary between two adjacent bands and you cannot confidently say which is correct, choose the higher one. AI graders trained on flawless reference material tend to be systematically stricter than real IELTS examiners — this rule exists to counteract that bias, not to inflate clearly weaker work.`;
 
 const READING_TUTOR_PROMPT = `You are an IELTS Reading specialist. A student answered incorrectly. Diagnose the mistake and teach the fix.
 
@@ -723,7 +731,7 @@ Be encouraging about progress while still being objective about remaining issues
 ${revisionNote}
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
-${wordCount < minWords ? `⚠️ PENALTY: Under minimum word count (150). Cap Task Achievement at 4.0 per official descriptors.` : ''}
+${wordCount < minWords ? `NOTE: This is under the ${minWords}-word minimum. Under-length responses are penalized under Task Achievement per the official descriptors — reflect that honestly — but do not apply a mechanical cap. Judge the actual quality and completeness of what was written and score across the full band range accordingly.` : ''}
 
 STUDENT'S TASK 1 REPORT:
 ${content}
@@ -731,6 +739,7 @@ ${content}
 SCORING INSTRUCTIONS:
 - "taskResponse" in this JSON = TASK ACHIEVEMENT (the official Task 1 criterion name)
 - Score each criterion independently on the 0.5-9.0 scale using the official band descriptors provided
+- Use the full 1-9 range — score exactly where the evidence points, including bands 8-9 for excellent work and bands 3-4 for genuinely weak work
 - overallBand = mathematical average of 4 scores, IELTS-rounded (see formula)
 - IELTS rounding: average 6.125 → 6.0; 6.25 → 6.5; 6.75 → 7.0; 6.875 → 7.0
 
@@ -756,7 +765,7 @@ Provide your response in this EXACT JSON format:
       "status": "executed/partial/missing",
       "trendsCount": 2,
       "usedGeneralTerms": true,
-      "feedback": "Brief feedback — does it state main trends WITHOUT data figures? Missing overview = cap TA at 5.0"
+      "feedback": "Brief feedback — does it state main trends WITHOUT data figures? A missing overview pulls Task Achievement toward Band 5, but judge holistically"
     },
     "paragraph3_body1": {
       "status": "executed/partial/missing",
@@ -792,7 +801,7 @@ IMPORTANT: overallBand MUST equal the mathematically averaged and IELTS-rounded 
 ${revisionNote}
 
 WORD COUNT: ${wordCount} words (Minimum required: ${minWords})
-${wordCount < minWords ? `⚠️ PENALTY: Under minimum word count (250). Cap Task Response at 5.0 per official descriptors.` : ''}
+${wordCount < minWords ? `NOTE: This is under the ${minWords}-word minimum. Under-length responses are penalized under Task Response per the official descriptors — reflect that honestly — but do not apply a mechanical cap. Judge the actual quality and completeness of what was written and score across the full band range accordingly.` : ''}
 
 STUDENT'S TASK 2 ESSAY:
 ${content}
@@ -801,8 +810,9 @@ SCORING INSTRUCTIONS:
 - Score each criterion independently on the 0.5-9.0 scale using the official band descriptors provided
 - overallBand = mathematical average of 4 scores, IELTS-rounded
 - IELTS rounding: .25 → round up to .5; .75 → round up to next whole; .5 stays as .5
-- For "Discuss both views" essays: if only one view discussed → cap Task Response at 5.0
-- No clear thesis in introduction → cap Task Response at 6.0
+- Use the full 1-9 range — score exactly where the evidence points, including bands 8-9 for excellent work and bands 3-4 for genuinely weak work
+- For "Discuss both views" essays: if only one view discussed, reflect that honestly in Task Response but weigh it against everything else the essay does well
+- A missing or unclear thesis meaningfully weakens Task Response but is not an automatic ceiling — judge holistically
 
 Provide your response in this EXACT JSON format:
 {
@@ -820,7 +830,7 @@ Provide your response in this EXACT JSON format:
       "status": "executed/partial/missing",
       "paraphrased": true,
       "hasThesis": true,
-      "feedback": "One sentence — does it paraphrase the prompt AND state a clear position? No thesis = cap TR at 6.0"
+      "feedback": "One sentence — does it paraphrase the prompt AND state a clear position? A missing thesis pulls Task Response toward Band 6, but judge holistically"
     },
     "paragraph2_body1": {
       "status": "executed/partial/missing",
@@ -892,7 +902,7 @@ ${content}`;
 === ANALYSIS INSTRUCTIONS ===
 1. Count all [pause] markers - these indicate hesitation
 2. Count all filler words (um, uh, like, you know, basically, etc.)
-3. If filler frequency > 1 per 10 seconds, cap Fluency at 5.5
+3. If filler frequency > 1 per 10 seconds, pull Fluency down toward 5.5 — but weigh this against overall coherence rather than applying a mechanical ceiling
 4. Identify idiomatic expressions and complex grammar structures used
 5. Generate a polishedTranscript: fix grammar errors and remove fillers. Keep the student's EXACT topic, ideas, and content.
 6. Generate an enhancedSpeechNextBand: rewrite the response targeting exactly one full band above the student's overallBand (e.g., if Band 5 → write at Band 6 level). Keep every one of the student's ideas and personal story. Make incremental, realistic improvements: smoother connectors, slightly better vocabulary, fewer fillers. Sound like a real person improving, not a textbook.
