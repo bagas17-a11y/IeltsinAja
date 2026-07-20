@@ -21,8 +21,25 @@ import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 const TARGET_SCORE_OPTIONS = [5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9];
+
+function bandColor(band: number | null | undefined) {
+  if (band === null || band === undefined) return "text-muted-foreground";
+  if (band >= 7) return "text-emerald-400";
+  if (band >= 5.5) return "text-amber-400";
+  return "text-red-400";
+}
+
+interface LatestDiagnostic {
+  overall_band: number;
+  reading_band: number | null;
+  writing_band: number | null;
+  listening_band: number | null;
+  speaking_band: number | null;
+  taken_at: string;
+}
 
 const moduleCards = [
   {
@@ -61,8 +78,25 @@ export default function Dashboard() {
   const { progress } = useUserProgress();
   const navigate = useNavigate();
   const [isEditingTarget, setIsEditingTarget] = useState(false);
+  const [latestDiagnostic, setLatestDiagnostic] = useState<LatestDiagnostic | null>(null);
 
-  const diagnosticTaken = progress.some((p) => (p.exam_type as string) === "diagnostic");
+  // Source of truth for "has this user taken the diagnostic" — reads
+  // diagnostic_results directly rather than the user_progress flag, since
+  // older diagnostic attempts (before that flag was wired up) wouldn't have
+  // a matching user_progress row.
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("diagnostic_results")
+      .select("overall_band, reading_band, writing_band, listening_band, speaking_band, taken_at")
+      .eq("user_id", user.id)
+      .order("taken_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => setLatestDiagnostic(data));
+  }, [user?.id]);
+
+  const diagnosticTaken = !!latestDiagnostic || progress.some((p) => (p.exam_type as string) === "diagnostic");
   const firstName = profile?.full_name?.split(" ")[0];
 
   const handleTargetChange = async (value: string) => {
@@ -111,7 +145,7 @@ export default function Dashboard() {
       <ExamCountdown />
 
       {/* First-action highlight for new users */}
-      {!diagnosticTaken && (
+      {!latestDiagnostic && (
         <div className="glass-card p-5 mb-8 border border-accent/30 bg-accent/5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center flex-shrink-0">
@@ -129,6 +163,39 @@ export default function Dashboard() {
             Take diagnostic
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
+        </div>
+      )}
+
+      {/* Diagnostic score summary */}
+      {latestDiagnostic && (
+        <div className="glass-card p-5 mb-8 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Your Diagnostic Score</p>
+              <p className={`text-4xl font-light ${bandColor(latestDiagnostic.overall_band)}`}>
+                {latestDiagnostic.overall_band}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Taken {formatDistanceToNow(new Date(latestDiagnostic.taken_at), { addSuffix: true })}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/diagnostic")}>
+              View Full Results
+            </Button>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: "Reading", band: latestDiagnostic.reading_band },
+              { label: "Writing", band: latestDiagnostic.writing_band },
+              { label: "Listening", band: latestDiagnostic.listening_band },
+              { label: "Speaking", band: latestDiagnostic.speaking_band },
+            ].map((m) => (
+              <div key={m.label} className="text-center p-2 rounded-lg bg-secondary/30">
+                <p className={`text-lg font-semibold ${bandColor(m.band)}`}>{m.band ?? "—"}</p>
+                <p className="text-[10px] text-muted-foreground">{m.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

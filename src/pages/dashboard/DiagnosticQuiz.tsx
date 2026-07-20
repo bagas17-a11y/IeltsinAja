@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserProgress } from "@/hooks/useUserProgress";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -274,31 +275,43 @@ function fmtTime(s: number): string {
 
 // ─── Timer hook ──────────────────────────────────────────────────────────────
 
-function useModuleTimer(phase: Phase, onExpire: () => void) {
+// `restoredEndAt` is an absolute timestamp recovered from sessionStorage —
+// using wall-clock time (not a decrementing counter) means the correct
+// remaining time survives a closed tab / refresh instead of resetting.
+// It's only consumed once, on the first effect run after restore; every
+// later phase change starts a fresh full-duration timer as normal.
+function useModuleTimer(phase: Phase, onExpire: () => void, restoredEndAt: number | null) {
   const total = MODULE_TIMES[phase] ?? 0;
   const [remaining, setRemaining] = useState(total);
+  const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
   const expiredRef = useRef(false);
   const cbRef = useRef(onExpire);
   cbRef.current = onExpire;
+  const restoreConsumedRef = useRef(false);
 
   useEffect(() => {
-    setRemaining(total);
     expiredRef.current = false;
-    if (!total) return;
+    if (!total) { setTimerEndAt(null); setRemaining(0); return; }
+
+    const useRestored = !restoreConsumedRef.current && !!restoredEndAt && restoredEndAt > Date.now();
+    const endAt = useRestored ? restoredEndAt! : Date.now() + total * 1000;
+    restoreConsumedRef.current = true;
+
+    setTimerEndAt(endAt);
+    setRemaining(Math.max(0, Math.ceil((endAt - Date.now()) / 1000)));
+
     const id = setInterval(() => {
-      setRemaining(prev => {
-        if (prev <= 1) {
-          clearInterval(id);
-          if (!expiredRef.current) { expiredRef.current = true; cbRef.current(); }
-          return 0;
-        }
-        return prev - 1;
-      });
+      const rem = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+      setRemaining(rem);
+      if (rem <= 0) {
+        clearInterval(id);
+        if (!expiredRef.current) { expiredRef.current = true; cbRef.current(); }
+      }
     }, 1000);
     return () => clearInterval(id);
-  }, [phase, total]);
+  }, [phase, total, restoredEndAt]);
 
-  return { remaining, total };
+  return { remaining, total, timerEndAt };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -306,8 +319,13 @@ function useModuleTimer(phase: Phase, onExpire: () => void) {
 export default function DiagnosticQuiz() {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
+  const { saveProgress } = useUserProgress();
 
   const [phase, setPhase] = useState<Phase>("intro");
+  const [restoredTimerEndAt, setRestoredTimerEndAt] = useState<number | null>(null);
+  const [viewingSavedResult, setViewingSavedResult] = useState(false);
+  const [pastResultTakenAt, setPastResultTakenAt] = useState<string | null>(null);
+  const hasCheckedSessionRef = useRef(false);
 
   // Reading
   const [readingAnswers, setReadingAnswers] = useState<Record<string, string>>({});
@@ -403,6 +421,116 @@ export default function DiagnosticQuiz() {
   // Ref for speaking transcripts (used in timer callback)
   const speakingTranscriptsRef = useRef(speakingTranscripts);
   useEffect(() => { speakingTranscriptsRef.current = speakingTranscripts; }, [speakingTranscripts]);
+
+  const IN_PROGRESS_PHASES: Phase[] = ["reading", "writing", "listening", "speaking"];
+  const diagnosticCacheKey = (uid: string) => `ielts-diagnostic-${uid}`;
+
+  // Loads the user's most recent completed diagnostic from the DB and shows
+  // it as the results screen (with a Retake option), instead of forcing a
+  // retake every time they open this page.
+  const fetchLatestDiagnosticResult = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const { data } = await supabase
+        .from("diagnostic_results")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("taken_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) {
+        setResults({
+          readingScore: data.reading_score ?? 0,
+          readingBand: data.reading_band ?? 0,
+          listeningScore: data.listening_score ?? 0,
+          listeningBand: data.listening_band ?? 0,
+          writingT1Band: data.writing_t1_band ?? 0,
+          writingT2Band: data.writing_t2_band ?? 0,
+          writingBand: data.writing_band ?? 0,
+          writingT1Feedback: data.writing_t1_feedback ?? "",
+          writingT2Feedback: data.writing_t2_feedback ?? "",
+          speakingBand: data.speaking_band ?? 0,
+          speakingFeedback: data.speaking_feedback ?? "",
+          overallBand: data.overall_band,
+        });
+        setReadingAnswers((data.reading_answers as Record<string, string>) ?? {});
+        setPastResultTakenAt(data.taken_at);
+        setViewingSavedResult(true);
+        setPhase("results");
+      }
+    } catch (err) {
+      console.error("Failed to load past diagnostic result:", err);
+    }
+  }, [user?.id]);
+
+  // ── Resume an in-progress session, or fall back to showing the last
+  // completed result — runs once per user, on mount. ──────────────────────
+  useEffect(() => {
+    if (!user?.id || hasCheckedSessionRef.current) return;
+    hasCheckedSessionRef.current = true;
+    try {
+      const raw = sessionStorage.getItem(diagnosticCacheKey(user.id));
+      if (raw) {
+        const cached = JSON.parse(raw) as {
+          phase: Phase;
+          readingAnswers: Record<string, string>;
+          task1Text: string;
+          task2Text: string;
+          listeningAnswers: Record<string, string>;
+          speakingIndex: number;
+          speakingTranscripts: string[];
+          timerEndAt: number | null;
+        };
+        if (IN_PROGRESS_PHASES.includes(cached.phase)) {
+          setPhase(cached.phase);
+          setReadingAnswers(cached.readingAnswers ?? {});
+          setTask1Text(cached.task1Text ?? "");
+          setTask2Text(cached.task2Text ?? "");
+          setListeningAnswers(cached.listeningAnswers ?? {});
+          setSpeakingIndex(cached.speakingIndex ?? 0);
+          setSpeakingTranscripts(cached.speakingTranscripts ?? ["", "", ""]);
+          setRestoredTimerEndAt(cached.timerEndAt ?? null);
+          toast.info("Resumed your in-progress diagnostic test.");
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to restore diagnostic session:", err);
+    }
+    // No in-progress session cached — check for a past completed result instead.
+    void fetchLatestDiagnosticResult();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Persist in-progress state to sessionStorage so a refresh/closed tab
+  // doesn't lose the attempt. Only saves while an in-progress module phase
+  // is active — nothing to resume at "intro" or "results".
+  useEffect(() => {
+    if (!user?.id || !IN_PROGRESS_PHASES.includes(phase)) return;
+    try {
+      sessionStorage.setItem(diagnosticCacheKey(user.id), JSON.stringify({
+        phase, readingAnswers, task1Text, task2Text, listeningAnswers,
+        speakingIndex, speakingTranscripts, timerEndAt,
+      }));
+    } catch { /* sessionStorage unavailable — non-fatal */ }
+  }, [user?.id, phase, readingAnswers, task1Text, task2Text, listeningAnswers, speakingIndex, speakingTranscripts, timerEndAt]);
+
+  const handleRetake = () => {
+    if (user?.id) {
+      try { sessionStorage.removeItem(diagnosticCacheKey(user.id)); } catch { /* non-fatal */ }
+    }
+    setResults(null);
+    setReadingAnswers({});
+    setTask1Text("");
+    setTask2Text("");
+    setListeningAnswers({});
+    setSpeakingIndex(0);
+    setSpeakingTranscripts(["", "", ""]);
+    setViewingSavedResult(false);
+    setPastResultTakenAt(null);
+    setRestoredTimerEndAt(null);
+    setPhase("intro");
+  };
 
   // Auto-generate listening audio on mount so it's ready by the time user reaches listening
   useEffect(() => {
@@ -533,7 +661,11 @@ export default function DiagnosticQuiz() {
     if (user) {
       try {
         await Promise.all([
-          supabase.from("profiles").update({ current_band_score: overall, study_plan_tier: tier }).eq("id", user.id),
+          // NOTE: previously also updated profiles.current_band_score / study_plan_tier
+          // here, but neither column exists on the profiles table — that update was
+          // silently failing every time (swallowed by this try/catch). Removed rather
+          // than fixed, since nothing reads those column names; StudyPlanPage.tsx
+          // derives the tier from user_progress + diagnosticBand instead (see below).
           supabase.from("diagnostic_results").insert({
             user_id: user.id,
             overall_band: overall,
@@ -553,7 +685,26 @@ export default function DiagnosticQuiz() {
             task2_text: task2Text,
             speaking_transcripts: speakingTranscriptsRef.current,
           }),
+          // StudyPlanPage.tsx gates the entire study plan behind a user_progress row
+          // with exam_type "diagnostic" — this was never written, so the study plan
+          // was stuck behind a "Take the Diagnostic First" wall for every user even
+          // after completing it. This is what actually unblocks that page.
+          saveProgress({
+            exam_type: "diagnostic",
+            score: null,
+            band_score: overall,
+            total_questions: null,
+            correct_answers: null,
+            feedback: null,
+            completed_at: new Date().toISOString(),
+            time_taken: null,
+            errors_log: [],
+            metadata: { tier, readingBand: rBand, listeningBand: lBand, writingBand: wBand, speakingBand: sBand },
+          }),
         ]);
+        setViewingSavedResult(false);
+        setPastResultTakenAt(new Date().toISOString());
+        if (user.id) { try { sessionStorage.removeItem(diagnosticCacheKey(user.id)); } catch { /* non-fatal */ } }
         await refreshProfile();
       } catch { /* non-fatal */ }
     }
@@ -571,7 +722,7 @@ export default function DiagnosticQuiz() {
     });
   }, [doFinalSubmit]);
 
-  const { remaining, total } = useModuleTimer(phase, handleTimerExpire);
+  const { remaining, total, timerEndAt } = useModuleTimer(phase, handleTimerExpire, restoredTimerEndAt);
   const pctLeft = total ? (remaining / total) * 100 : 100;
   const timerWarn = remaining > 0 && remaining <= 60;
 
@@ -1082,6 +1233,22 @@ export default function DiagnosticQuiz() {
       {/* ── RESULTS ───────────────────────────────────────────────────────────── */}
       {phase === "results" && results && !submitting && (
         <div className="max-w-2xl mx-auto space-y-5 py-4">
+          {viewingSavedResult && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/40 bg-card/60 px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                Viewing your result from{" "}
+                <span className="text-foreground font-medium">
+                  {pastResultTakenAt
+                    ? new Date(pastResultTakenAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+                    : "a previous attempt"}
+                </span>
+              </p>
+              <Button variant="outline" size="sm" onClick={handleRetake}>
+                Retake Diagnostic
+              </Button>
+            </div>
+          )}
+
           {/* Overall band */}
           <div className="rounded-2xl border border-accent/20 bg-accent/5 p-6 text-center space-y-1">
             <p className="text-xs font-semibold uppercase tracking-widest text-accent/70">Overall Band Score</p>
@@ -1197,6 +1364,14 @@ export default function DiagnosticQuiz() {
               </Button>
             </div>
           </div>
+
+          {!viewingSavedResult && (
+            <div className="text-center pt-1">
+              <button onClick={handleRetake} className="text-xs text-muted-foreground hover:text-foreground underline">
+                Retake the diagnostic
+              </button>
+            </div>
+          )}
         </div>
       )}
     </DashboardLayout>

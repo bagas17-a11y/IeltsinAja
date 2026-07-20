@@ -17,7 +17,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 
 // ─── Answer key (must match DiagnosticQuiz) ─────────────────────────────────
@@ -58,6 +58,15 @@ function bandColor(band: number | null) {
   if (band >= 7) return "text-emerald-400";
   if (band >= 5.5) return "text-amber-400";
   return "text-red-400";
+}
+
+// How stale is this score? Diagnostic results don't update themselves, so a
+// score taken months ago may no longer reflect the student's current level.
+function stalenessInfo(takenAt: string): { label: string; className: string } {
+  const days = differenceInDays(new Date(), new Date(takenAt));
+  if (days < 30) return { label: "Fresh", className: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10" };
+  if (days < 90) return { label: `${days}d ago`, className: "text-amber-400 border-amber-400/30 bg-amber-400/10" };
+  return { label: `${days}d ago — stale`, className: "text-red-400 border-red-400/30 bg-red-400/10" };
 }
 
 function BandBadge({ band }: { band: number | null }) {
@@ -324,7 +333,10 @@ export default function AdminDiagnosticResults() {
                         <div className="text-xs text-muted-foreground">{row.email}</div>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                        {format(new Date(row.taken_at), "d MMM yyyy")}
+                        <div>{format(new Date(row.taken_at), "d MMM yyyy")}</div>
+                        <Badge variant="outline" className={cn("text-[9px] mt-1", stalenessInfo(row.taken_at).className)}>
+                          {stalenessInfo(row.taken_at).label}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <span className={cn("text-lg font-black", bandColor(row.overall_band))}>
@@ -370,8 +382,11 @@ export default function AdminDiagnosticResults() {
                   {selected.full_name && <span className="font-medium text-foreground">{selected.full_name} — </span>}
                   {selected.email}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Taken: {format(new Date(selected.taken_at), "d MMMM yyyy 'at' HH:mm")}
+                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <span>Taken: {format(new Date(selected.taken_at), "d MMMM yyyy 'at' HH:mm")}</span>
+                  <Badge variant="outline" className={cn("text-[9px]", stalenessInfo(selected.taken_at).className)}>
+                    {stalenessInfo(selected.taken_at).label}
+                  </Badge>
                 </div>
               </SheetHeader>
 
