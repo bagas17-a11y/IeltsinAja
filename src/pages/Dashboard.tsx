@@ -14,8 +14,6 @@ import {
   PenTool,
   Mic,
   Edit2,
-  Sparkles,
-  ArrowRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -143,28 +141,6 @@ export default function Dashboard() {
 
       {/* Exam countdown / date setter */}
       <ExamCountdown />
-
-      {/* First-action highlight for new users */}
-      {!latestDiagnostic && (
-        <div className="glass-card p-5 mb-8 border border-accent/30 bg-accent/5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5 text-accent" />
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Start with the diagnostic</p>
-              <p className="text-sm text-muted-foreground">
-                4 quick questions + 15 graded ones. Takes about 5 minutes. We'll personalise
-                everything below afterwards.
-              </p>
-            </div>
-          </div>
-          <Button onClick={() => navigate("/dashboard/diagnostic")}>
-            Take diagnostic
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
-      )}
 
       {/* Diagnostic score summary */}
       {latestDiagnostic && (
