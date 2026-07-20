@@ -43,6 +43,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { PLANS } from "@/pages/dashboard/StudyPlanPage";
 
 interface StudentRow {
   user_id: string;
@@ -86,6 +87,22 @@ const MODULE_LABELS: Record<string, string> = {
   reading: "Reading",
   listening: "Listening",
 };
+
+// Study plan tasks are stored as a flat question_id (e.g. "f-w1-t1") with no
+// tier/week column — resolve it back to a human label by scanning all three
+// tiers' plans once. Task ids are prefixed per tier (f-/d-/p-) so there's no
+// ambiguity searching across all of them.
+const STUDY_TASK_LOOKUP: Record<string, { label: string; tier: string; week: number }> = (() => {
+  const map: Record<string, { label: string; tier: string; week: number }> = {};
+  Object.values(PLANS).forEach((plan) => {
+    plan.weeks.forEach((week) => {
+      week.tasks.forEach((task) => {
+        map[task.id] = { label: task.label, tier: plan.tier, week: week.week };
+      });
+    });
+  });
+  return map;
+})();
 
 const MODULE_ICONS: Record<string, React.ReactNode> = {
   writing: <PenLine className="w-3.5 h-3.5" />,
@@ -682,15 +699,23 @@ export default function StudentProgress() {
                       Study Plan Checklist ({selectedStudent.studyPlanCompleted} completed)
                     </h3>
                     <div className="space-y-1.5 max-h-72 overflow-y-auto">
-                      {selectedStudent.completedTaskEntries.map((entry) => (
-                        <div key={entry.question_id} className="flex items-center justify-between text-xs p-2 rounded-lg bg-green-500/5 border border-green-500/10">
-                          <div className="flex items-center gap-2">
-                            <CheckSquare className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                            <span className="text-muted-foreground font-mono">{entry.question_id}</span>
+                      {selectedStudent.completedTaskEntries.map((entry) => {
+                        const info = STUDY_TASK_LOOKUP[entry.question_id];
+                        return (
+                          <div key={entry.question_id} className="flex items-center justify-between text-xs p-2 rounded-lg bg-green-500/5 border border-green-500/10">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <CheckSquare className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-foreground/85 truncate">{info?.label ?? entry.question_id}</p>
+                                {info && (
+                                  <p className="text-muted-foreground/60 text-[10px]">{info.tier} · Week {info.week}</p>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-muted-foreground/60 shrink-0 ml-2">{timeAgo(entry.completed_at)}</span>
                           </div>
-                          <span className="text-muted-foreground/60 shrink-0 ml-2">{timeAgo(entry.completed_at)}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

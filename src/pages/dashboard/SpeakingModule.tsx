@@ -120,16 +120,19 @@ const addDone = (uid: string, id: string) => {
   } catch { /* ignore */ }
 };
 
+// Real IELTS Part 1 asks ~10-12 short questions across a few topics, not just 3.
+const PART1_QUESTIONS_PER_TEST = 12;
+
 function buildTestSets(bank: typeof FALLBACK): TestSet[] {
   const numTests = Math.min(
-    Math.max(Math.floor(bank.part1.length / 3), bank.part2.length, bank.part3.length),
+    Math.max(Math.floor(bank.part1.length / PART1_QUESTIONS_PER_TEST), bank.part2.length, bank.part3.length),
     9
   );
   return Array.from({ length: numTests }, (_, i) => ({
     id: `test-${i}`,
     label: `Test ${i + 1}`,
     theme: bank.part2[i % bank.part2.length].topic,
-    part1: [0, 1, 2].map(j => bank.part1[(i * 3 + j) % bank.part1.length]),
+    part1: Array.from({ length: PART1_QUESTIONS_PER_TEST }, (_, j) => bank.part1[(i * PART1_QUESTIONS_PER_TEST + j) % bank.part1.length]),
     part2: bank.part2[i % bank.part2.length],
     part3: bank.part3[i % bank.part3.length],
   }));
@@ -158,6 +161,7 @@ export default function SpeakingModule() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [recordingElapsed, setRecordingElapsed] = useState(0);
   const recordingStartRef = useRef<number | null>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
 
@@ -214,6 +218,7 @@ export default function SpeakingModule() {
     }
     resetTranscript();
     recordingStartRef.current = Date.now();
+    setRecordingElapsed(0);
     await startListening();
   }, [isSupported, resetTranscript, startListening, toast]);
 
@@ -221,6 +226,18 @@ export default function SpeakingModule() {
     recordingStartRef.current = null;
     stopListening();
   }, [stopListening]);
+
+  // Live stopwatch tick while recording — Part 2 shows this (real IELTS long
+  // turn is 1-2 min, so knowing elapsed time matters more there than Part 1/3).
+  useEffect(() => {
+    if (!isListening) return;
+    const interval = setInterval(() => {
+      if (recordingStartRef.current) {
+        setRecordingElapsed(Math.floor((Date.now() - recordingStartRef.current) / 1000));
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isListening]);
 
   // ── Test flow ──────────────────────────────────────────────────────────
   const startTest = (test: TestSet) => {
@@ -241,7 +258,7 @@ export default function SpeakingModule() {
     const updated = [...p1Answers, { topic: q.topic, question: q.question, transcript: transcript.trim() }];
     setP1Answers(updated);
     resetTranscript();
-    if (p1Index < 2) { setP1Index(p1Index + 1); }
+    if (p1Index < activeTest.part1.length - 1) { setP1Index(p1Index + 1); }
     else { setPhase('part2'); }
   };
 
@@ -328,6 +345,12 @@ export default function SpeakingModule() {
   // ── Shared UI helpers ──────────────────────────────────────────────────
   const getScoreColor = (s?: number) => !s ? 'text-muted-foreground' : s >= 7 ? 'text-green-500' : s >= 5.5 ? 'text-elite-gold' : 'text-destructive';
 
+  const formatStopwatch = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
   const AccuracyCircle = ({ score }: { score: number }) => {
     const r = 42, circ = 2 * Math.PI * r;
     const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
@@ -406,11 +429,11 @@ export default function SpeakingModule() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>3 parts</span>
                     <span className="opacity-40">·</span>
-                    <span>~15 min</span>
+                    <span>~18 min</span>
                   </div>
 
                   <div className="space-y-1.5 text-xs text-muted-foreground">
-                    <p><span className={cn("font-semibold", PART_THEME[1].text)}>Part 1</span> · {test.part1.map(q => q.topic).join(', ')}</p>
+                    <p className="truncate"><span className={cn("font-semibold", PART_THEME[1].text)}>Part 1</span> · {test.part1.slice(0, 3).map(q => q.topic).join(', ')}{test.part1.length > 3 ? ` +${test.part1.length - 3} more` : ''}</p>
                     <p><span className={cn("font-semibold", PART_THEME[2].text)}>Part 2</span> · {test.part2.topic}</p>
                     <p><span className={cn("font-semibold", PART_THEME[3].text)}>Part 3</span> · {test.part3.topic}</p>
                   </div>
@@ -453,11 +476,11 @@ export default function SpeakingModule() {
 
           {/* Progress */}
           <div className="flex items-center gap-2">
-            {[0, 1, 2].map(i => (
+            {Array.from({ length: activeTest.part1.length }, (_, i) => (
               <div key={i} className={cn("flex-1 h-1.5 rounded-full transition-colors",
                 i < p1Answers.length ? "bg-green-500" : i === p1Index ? "bg-accent" : "bg-border/40")} />
             ))}
-            <span className="text-xs text-muted-foreground shrink-0">Q{p1Index + 1}/3</span>
+            <span className="text-xs text-muted-foreground shrink-0">Q{p1Index + 1}/{activeTest.part1.length}</span>
           </div>
 
           {/* Saved answers */}
@@ -510,7 +533,7 @@ export default function SpeakingModule() {
                       <Button variant="glass" onClick={handleStart}><Mic className="w-5 h-5 mr-2" /> Re-record</Button>
                       <Button variant="neumorphicPrimary" onClick={saveP1}>
                         <ArrowRight className="w-5 h-5 mr-2" />
-                        {p1Index < 2 ? 'Save & Next' : 'Save & Part 2'}
+                        {p1Index < activeTest.part1.length - 1 ? 'Save & Next' : 'Save & Part 2'}
                       </Button>
                     </>
                   )}
@@ -540,7 +563,7 @@ export default function SpeakingModule() {
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-5">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => { setPhase('part1'); setP1Index(3); resetTranscript(); }}
+            <Button variant="ghost" size="sm" onClick={() => { setPhase('part1'); setP1Index(Math.max(0, activeTest.part1.length - 1)); resetTranscript(); }}
               className="text-muted-foreground hover:text-foreground shrink-0">← Part 1</Button>
             <div className="flex items-center gap-2.5">
               <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", PART_THEME[2].iconBg)}>
@@ -627,7 +650,18 @@ export default function SpeakingModule() {
                   </>
                 )}
               </div>
-              {isListening && <p className="text-sm text-destructive mt-3 animate-pulse">Recording… press Stop when done</p>}
+              {isListening && (
+                <div className="flex flex-col items-center gap-1.5 mt-3">
+                  <span className={cn(
+                    "font-mono text-2xl tabular-nums",
+                    recordingElapsed < 60 ? "text-muted-foreground" : recordingElapsed <= 120 ? "text-green-400" : "text-amber-400"
+                  )}>
+                    {formatStopwatch(recordingElapsed)}
+                  </span>
+                  <p className="text-sm text-destructive animate-pulse">Recording… press Stop when done</p>
+                  <p className="text-xs text-muted-foreground">Aim for 1–2 minutes</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -992,15 +1026,15 @@ ${modelHtml}</body></html>`;
                 const body = block.replace(/^\bPART\s+[123]\b\s*[—–:\s]*/i, '').trim();
 
                 if (num === '1') {
-                  // Split by Q1 / Q2 / Q3 / Q4
+                  // Split by Q1 / Q2 / Q3 / ... — Part 1 can have up to ~12 questions
                   const qs = body
-                    .split(/(?=\bQ[1-4]\b\s*[—–:.]?\s*)/i)
+                    .split(/(?=\bQ\d+\b\s*[—–:.]?\s*)/i)
                     .map(s => s.trim()).filter(Boolean);
                   const questions = qs.map(q => {
-                    const qm = q.match(/^\bQ([1-4])\b\s*[—–:.]?\s*/i);
+                    const qm = q.match(/^\bQ(\d+)\b\s*[—–:.]?\s*/i);
                     return {
                       label: qm ? `Q${qm[1]}` : 'Q',
-                      text: q.replace(/^\bQ[1-4]\b\s*[—–:.]?\s*/i, '').trim(),
+                      text: q.replace(/^\bQ\d+\b\s*[—–:.]?\s*/i, '').trim(),
                     };
                   });
                   return { num, label: 'Part 1 — Introduction', questions };
