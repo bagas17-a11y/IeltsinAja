@@ -47,6 +47,51 @@ export type Database = {
         }
         Relationships: []
       }
+      speaking_library: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          difficulty: string | null
+          follow_up_questions: Json | null
+          id: string
+          is_active: boolean | null
+          part: number
+          prep_time: string | null
+          question: string
+          speak_time: string | null
+          theme_group: string | null
+          topic: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          difficulty?: string | null
+          follow_up_questions?: Json | null
+          id?: string
+          is_active?: boolean | null
+          part: number
+          prep_time?: string | null
+          question: string
+          speak_time?: string | null
+          theme_group?: string | null
+          topic: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          difficulty?: string | null
+          follow_up_questions?: Json | null
+          id?: string
+          is_active?: boolean | null
+          part?: number
+          prep_time?: string | null
+          question?: string
+          speak_time?: string | null
+          theme_group?: string | null
+          topic?: string
+        }
+        Relationships: []
+      }
       admin_logs: {
         Row: {
           action_type: string

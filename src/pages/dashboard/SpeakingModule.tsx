@@ -48,26 +48,26 @@ const FALLBACK = {
     { topic: "Films",          question: "Do you enjoy watching films? What kind of films do you prefer?" },
   ],
   part2: [
-    { topic: "A memorable trip",          cueCard: "Describe a memorable trip you took.\n\nYou should say:\n• Where you went\n• Who you went with\n• What you did there\n\nAnd explain why it was memorable.",                         prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "A person who influenced you", cueCard: "Describe a person who has influenced you.\n\nYou should say:\n• Who this person is\n• How you know them\n• What qualities they have\n\nAnd explain why they influenced you.",     prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "A skill you want to learn",  cueCard: "Describe a skill you would like to learn.\n\nYou should say:\n• What the skill is\n• Why you want to learn it\n• How you would learn it\n\nAnd explain how it would benefit you.", prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "A time you helped someone",  cueCard: "Describe a time you helped someone.\n\nYou should say:\n• Who you helped\n• What the situation was\n• How you helped them\n\nAnd explain how you felt afterwards.",               prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "An important decision",      cueCard: "Describe an important decision you made.\n\nYou should say:\n• What the decision was\n• When you made it\n• What factors you considered\n\nAnd explain how it affected your life.", prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "A favourite place",          cueCard: "Describe a place you enjoy visiting.\n\nYou should say:\n• Where it is\n• How often you go there\n• What you do there\n\nAnd explain why you enjoy it.",                           prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "A book or film you enjoyed", cueCard: "Describe a book or film that made a strong impression on you.\n\nYou should say:\n• What it was about\n• When you read/watched it\n• Who you would recommend it to\n\nAnd explain why it impressed you.", prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "A place you want to visit",  cueCard: "Describe a place you would really like to visit in the future.\n\nYou should say:\n• Where it is\n• Why you want to go there\n• What you would do there\n\nAnd explain what makes it appealing to you.", prepTime: "1 minute", speakTime: "1–2 minutes" },
-    { topic: "A personal achievement",     cueCard: "Describe an achievement you are proud of.\n\nYou should say:\n• What you achieved\n• How long it took\n• What challenges you faced\n\nAnd explain why you are proud of it.",           prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A memorable trip",          themeGroup: "travel-tourism",        cueCard: "Describe a memorable trip you took.\n\nYou should say:\n• Where you went\n• Who you went with\n• What you did there\n\nAnd explain why it was memorable.",                         prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A person who influenced you", themeGroup: "influence-role-models", cueCard: "Describe a person who has influenced you.\n\nYou should say:\n• Who this person is\n• How you know them\n• What qualities they have\n\nAnd explain why they influenced you.",     prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A skill you want to learn",  themeGroup: "education-learning",    cueCard: "Describe a skill you would like to learn.\n\nYou should say:\n• What the skill is\n• Why you want to learn it\n• How you would learn it\n\nAnd explain how it would benefit you.", prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A time you helped someone",  themeGroup: "society-community",     cueCard: "Describe a time you helped someone.\n\nYou should say:\n• Who you helped\n• What the situation was\n• How you helped them\n\nAnd explain how you felt afterwards.",               prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "An important decision",      themeGroup: "decision-making",       cueCard: "Describe an important decision you made.\n\nYou should say:\n• What the decision was\n• When you made it\n• What factors you considered\n\nAnd explain how it affected your life.", prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A favourite place",          themeGroup: "environment",           cueCard: "Describe a place you enjoy visiting.\n\nYou should say:\n• Where it is\n• How often you go there\n• What you do there\n\nAnd explain why you enjoy it.",                           prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A book or film you enjoyed", themeGroup: "media-communication",   cueCard: "Describe a book or film that made a strong impression on you.\n\nYou should say:\n• What it was about\n• When you read/watched it\n• Who you would recommend it to\n\nAnd explain why it impressed you.", prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A place you want to visit",  themeGroup: "travel-tourism",        cueCard: "Describe a place you would really like to visit in the future.\n\nYou should say:\n• Where it is\n• Why you want to go there\n• What you would do there\n\nAnd explain what makes it appealing to you.", prepTime: "1 minute", speakTime: "1–2 minutes" },
+    { topic: "A personal achievement",     themeGroup: "work-career",           cueCard: "Describe an achievement you are proud of.\n\nYou should say:\n• What you achieved\n• How long it took\n• What challenges you faced\n\nAnd explain why you are proud of it.",           prepTime: "1 minute", speakTime: "1–2 minutes" },
   ],
   part3: [
-    { topic: "Travel & Tourism",       questions: ["How has tourism changed in recent years?", "What are the pros and cons of mass tourism?", "Will people travel more or less in the future?"] },
-    { topic: "Influence & Role Models",questions: ["Why do people need role models?", "How do celebrities influence young people?", "Does the media present good role models?"] },
-    { topic: "Learning & Skills",      questions: ["How has the way people learn changed?", "What skills matter most in the modern world?", "Should schools teach more practical skills?"] },
-    { topic: "Helping Others",         questions: ["Why is it important to help others?", "How can governments encourage volunteering?", "Are people more or less helpful than in the past?"] },
-    { topic: "Decision Making",        questions: ["How do people make important life decisions?", "Should young people seek advice from elders?", "Does technology help or hinder decision-making?"] },
-    { topic: "Technology & Society",   questions: ["How has technology changed communication?", "What are the downsides of depending on technology?", "What might daily life look like in 50 years?"] },
-    { topic: "Environment & Conservation", questions: ["Why is it difficult for governments to address environmental problems?", "How can individuals contribute to protecting the environment?", "Do you think the situation will improve or worsen in future?"] },
-    { topic: "Work & Lifestyle",       questions: ["Why do some people find it hard to maintain a work-life balance?", "Should companies offer employees more flexible working hours?", "How has the concept of work changed over the past few decades?"] },
-    { topic: "Media & Information",    questions: ["How has the way people consume news changed?", "Should social media platforms be responsible for the accuracy of content?", "Do you think people today are better or worse informed than in the past?"] },
+    { topic: "Travel & Tourism",       themeGroup: "travel-tourism",        questions: ["How has tourism changed in recent years?", "What are the pros and cons of mass tourism?", "Will people travel more or less in the future?"] },
+    { topic: "Influence & Role Models",themeGroup: "influence-role-models", questions: ["Why do people need role models?", "How do celebrities influence young people?", "Does the media present good role models?"] },
+    { topic: "Learning & Skills",      themeGroup: "education-learning",    questions: ["How has the way people learn changed?", "What skills matter most in the modern world?", "Should schools teach more practical skills?"] },
+    { topic: "Helping Others",         themeGroup: "society-community",     questions: ["Why is it important to help others?", "How can governments encourage volunteering?", "Are people more or less helpful than in the past?"] },
+    { topic: "Decision Making",        themeGroup: "decision-making",       questions: ["How do people make important life decisions?", "Should young people seek advice from elders?", "Does technology help or hinder decision-making?"] },
+    { topic: "Technology & Society",   themeGroup: "technology-society",    questions: ["How has technology changed communication?", "What are the downsides of depending on technology?", "What might daily life look like in 50 years?"] },
+    { topic: "Environment & Conservation", themeGroup: "environment",       questions: ["Why is it difficult for governments to address environmental problems?", "How can individuals contribute to protecting the environment?", "Do you think the situation will improve or worsen in future?"] },
+    { topic: "Work & Lifestyle",       themeGroup: "work-career",           questions: ["Why do some people find it hard to maintain a work-life balance?", "Should companies offer employees more flexible working hours?", "How has the concept of work changed over the past few decades?"] },
+    { topic: "Media & Information",    themeGroup: "media-communication",   questions: ["How has the way people consume news changed?", "Should social media platforms be responsible for the accuracy of content?", "Do you think people today are better or worse informed than in the past?"] },
   ],
 };
 
@@ -80,8 +80,8 @@ interface TestSet {
   label: string;
   theme: string;
   part1: Array<{ topic: string; question: string }>;
-  part2: { topic: string; cueCard: string; prepTime: string; speakTime: string };
-  part3: { topic: string; questions: string[] };
+  part2: { topic: string; cueCard: string; prepTime: string; speakTime: string; themeGroup?: string };
+  part3: { topic: string; questions: string[]; themeGroup?: string };
 }
 
 // ── Part visual theme — kept in sync with the model-answer colors on the
@@ -123,19 +123,32 @@ const addDone = (uid: string, id: string) => {
 // Real IELTS Part 1 asks ~10-12 short questions across a few topics, not just 3.
 const PART1_QUESTIONS_PER_TEST = 12;
 
+// Real IELTS Part 3 extends Part 2's broad topic area — it isn't a direct
+// follow-up, but it should sit under the same theme (e.g. a Part 2 cue card
+// about a book/film pairs with a Part 3 discussion on media & communication,
+// not an unrelated topic like the environment). One test per Part 2 cue
+// card, matched to a Part 3 topic sharing its themeGroup; untagged data
+// (e.g. legacy rows without a themeGroup) falls back to positional pairing
+// rather than crashing.
 function buildTestSets(bank: typeof FALLBACK): TestSet[] {
-  const numTests = Math.min(
-    Math.max(Math.floor(bank.part1.length / PART1_QUESTIONS_PER_TEST), bank.part2.length, bank.part3.length),
-    9
-  );
-  return Array.from({ length: numTests }, (_, i) => ({
-    id: `test-${i}`,
-    label: `Test ${i + 1}`,
-    theme: bank.part2[i % bank.part2.length].topic,
-    part1: Array.from({ length: PART1_QUESTIONS_PER_TEST }, (_, j) => bank.part1[(i * PART1_QUESTIONS_PER_TEST + j) % bank.part1.length]),
-    part2: bank.part2[i % bank.part2.length],
-    part3: bank.part3[i % bank.part3.length],
-  }));
+  const numTests = Math.min(bank.part2.length, 20);
+  return Array.from({ length: numTests }, (_, i) => {
+    const p2 = bank.part2[i];
+    const matchingPart3 = p2.themeGroup
+      ? bank.part3.filter(p3 => p3.themeGroup === p2.themeGroup)
+      : [];
+    const p3 = matchingPart3.length > 0
+      ? matchingPart3[i % matchingPart3.length]
+      : bank.part3[i % bank.part3.length];
+    return {
+      id: `test-${i}`,
+      label: `Test ${i + 1}`,
+      theme: p2.topic,
+      part1: Array.from({ length: PART1_QUESTIONS_PER_TEST }, (_, j) => bank.part1[(i * PART1_QUESTIONS_PER_TEST + j) % bank.part1.length]),
+      part2: p2,
+      part3: p3,
+    };
+  });
 }
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -176,17 +189,19 @@ export default function SpeakingModule() {
       try {
         const { data, error } = await supabase
           .from("speaking_library")
-          .select("part, topic, question, follow_up_questions, prep_time, speak_time")
+          .select("part, topic, question, follow_up_questions, prep_time, speak_time, theme_group")
           .eq("is_active", true).order("topic");
         if (error || !data?.length) return;
         const p1 = data.filter(r => r.part === 1).map(r => ({ topic: r.topic, question: r.question }));
         const p2 = data.filter(r => r.part === 2).map(r => ({
           topic: r.topic, cueCard: r.question,
           prepTime: r.prep_time ?? "1 minute", speakTime: r.speak_time ?? "1–2 minutes",
+          themeGroup: r.theme_group ?? undefined,
         }));
         const p3 = data.filter(r => r.part === 3).map(r => ({
           topic: r.topic,
           questions: Array.isArray(r.follow_up_questions) ? r.follow_up_questions as string[] : [],
+          themeGroup: r.theme_group ?? undefined,
         }));
         const newBank = {
           part1: p1.length ? p1 : FALLBACK.part1,
