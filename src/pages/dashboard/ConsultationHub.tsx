@@ -57,14 +57,14 @@ export default function ConsultationHub() {
             Unlock the <span className="text-elite-gold">Consultation Hub</span>
           </h1>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            1-on-1 coaching is part of the Elite plan. Get 5 hours of live coaching with
+            1-on-1 coaching is part of the Elite plan. Get live coaching with
             an 8.5+ scorer who'll give you the kind of feedback the AI can't.
           </p>
           <div className="glass-card p-6 mb-8">
             <h3 className="text-lg font-light mb-4">What's included</h3>
             <ul className="space-y-3 text-left max-w-md mx-auto">
               {[
-                "5 hours of 1-on-1 video coaching",
+                "1-on-1 video coaching",
                 "Manual essay reviews by an 8.5+ scorer",
                 "Personalised 4-week study roadmap",
                 "Priority WhatsApp support",
@@ -168,7 +168,6 @@ export default function ConsultationHub() {
           <ul className="space-y-2 text-sm text-foreground/80 mb-6">
             {[
               "60-minute video call + written follow-up notes",
-              "Counts toward your 5 included Elite coaching hours",
               "We work on Jakarta hours (WIB), evening + weekend slots available",
               "Cancel or reschedule up to 12 hours before",
             ].map((line) => (

@@ -121,7 +121,7 @@ export default function EliteHubPage() {
           <div className="glass-card p-6 mb-8">
             <h3 className="text-lg font-light mb-4">What's Included:</h3>
             <ul className="space-y-3 text-left max-w-md mx-auto">
-              {["Revision notes and flashcards", "Full mock exams with AI scoring", "5 hours of 1-on-1 consultation", "VIP priority support"].map((f) => (
+              {["Revision notes and flashcards", "Full mock exams with AI scoring", "1-on-1 consultation", "VIP priority support"].map((f) => (
                 <li key={f} className="flex items-center gap-3 text-foreground/80">
                   <Crown className="w-4 h-4 text-elite-gold flex-shrink-0" />{f}
                 </li>

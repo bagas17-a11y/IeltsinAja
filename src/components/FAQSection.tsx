@@ -26,7 +26,7 @@ const faqs = [
   {
     question: "Can I switch plans or cancel later?",
     answer:
-      "Yes. You can upgrade at any time. Pro is billed monthly so simply stop renewing to cancel. Elite is a one-time purchase — once your 5 coaching hours are used or 90 days pass, that's it. For partial refunds during the first 7 days, contact us on WhatsApp and we'll review case-by-case.",
+      "Yes. You can upgrade at any time. Pro is billed monthly so simply stop renewing to cancel. Elite is a one-time purchase — once 90 days pass, that's it. For partial refunds during the first 7 days, contact us on WhatsApp and we'll review case-by-case.",
   },
   {
     question: "Who is behind Engvolve?",
