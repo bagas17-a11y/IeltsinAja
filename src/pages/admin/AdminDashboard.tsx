@@ -31,6 +31,7 @@ import {
   Settings,
   BarChart2,
   Target,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -329,6 +330,13 @@ export default function AdminDashboard() {
       icon: <Zap className="w-6 h-6" />,
       path: "/admin/api-usage",
       color: "text-elite-gold",
+    },
+    {
+      title: "Mentor Management",
+      description: "Manage mentor profiles and assign students to a mentor",
+      icon: <GraduationCap className="w-6 h-6" />,
+      path: "/admin/mentors",
+      color: "text-purple-500",
     },
   ];
 

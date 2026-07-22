@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      mentors: {
+        Row: {
+          bio: string | null
+          created_at: string
+          focus_areas: string[]
+          ielts_score_display: string | null
+          is_active: boolean
+          name: string
+          title: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          focus_areas?: string[]
+          ielts_score_display?: string | null
+          is_active?: boolean
+          name: string
+          title?: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          focus_areas?: string[]
+          ielts_score_display?: string | null
+          is_active?: boolean
+          name?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
+      mentor_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          mentor_user_id: string
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          mentor_user_id: string
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          mentor_user_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_assignments_mentor_user_id_fkey"
+            columns: ["mentor_user_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       ai_usage_log: {
         Row: {
           created_at: string

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,21 +11,21 @@ import {
   MessageCircle,
   CheckCircle2,
   CalendarClock,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { buildWhatsAppLink } from "@/lib/contact";
+import { supabase } from "@/integrations/supabase/client";
 
-const COACHES = [
-  {
-    id: "bagas",
-    name: "Bagas H. Wicaksono",
-    title: "Founder & lead coach",
-    score: "IELTS 8.5",
-    bio: "Built Engvolve to give Indonesian learners the kind of feedback he wished he'd had. Focus: Writing & Speaking strategy.",
-    focus: ["Writing", "Speaking"],
-  },
-];
+interface AssignedMentor {
+  name: string;
+  title: string;
+  bio: string | null;
+  ielts_score_display: string | null;
+  focus_areas: string[];
+  whatsapp_number: string;
+}
 
 const roadmap = [
   { week: "Week 1-2", focus: "Diagnose", tasks: "Take the diagnostic, identify your two weakest skills." },
@@ -35,18 +35,47 @@ const roadmap = [
 ];
 
 export default function ConsultationHub() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [selectedCoach, setSelectedCoach] = useState(COACHES[0]);
+  const [assignedMentor, setAssignedMentor] = useState<AssignedMentor | null>(null);
+  const [isLoadingMentor, setIsLoadingMentor] = useState(true);
 
   const isElite = profile?.subscription_tier === "elite";
+  // Unlocked either by Elite subscription, or by having a mentor explicitly
+  // assigned (e.g. a Developing-tier student whose study plan includes
+  // mentor-led sessions) — access isn't purely tier-gated anymore.
+  const canAccess = isElite || !!assignedMentor;
+
+  useEffect(() => {
+    if (!user?.id) { setIsLoadingMentor(false); return; }
+    supabase
+      .from("mentor_assignments")
+      .select("mentors(name, title, bio, ielts_score_display, focus_areas, whatsapp_number)")
+      .eq("student_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setAssignedMentor((data?.mentors as AssignedMentor | null) ?? null);
+        setIsLoadingMentor(false);
+      });
+  }, [user?.id]);
 
   const waMessage = useMemo(() => {
-    const name = profile?.full_name?.trim() || "an Engvolve Elite member";
-    return `Hi Engvolve team, this is ${name}. I'd like to book a 1-on-1 coaching session with ${selectedCoach.name}.`;
-  }, [profile?.full_name, selectedCoach.name]);
+    const name = profile?.full_name?.trim() || "an Engvolve member";
+    const mentorName = assignedMentor?.name ? ` with ${assignedMentor.name}` : "";
+    return `Hi Engvolve team, this is ${name}. I'd like to book a 1-on-1 coaching session${mentorName}.`;
+  }, [profile?.full_name, assignedMentor?.name]);
 
-  if (!isElite) {
+  if (isLoadingMentor) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center py-24">
+          <Loader2 className="w-8 h-8 animate-spin text-elite-gold" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!canAccess) {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto text-center py-16">
@@ -121,33 +150,27 @@ export default function ConsultationHub() {
         {/* Coach card */}
         <h2 className="text-lg font-light mb-4">Your coach</h2>
         <div className="grid md:grid-cols-1 gap-6 mb-8">
-          {COACHES.map((coach) => (
-            <div
-              key={coach.id}
-              onClick={() => setSelectedCoach(coach)}
-              className={`glass-card p-6 text-left cursor-pointer transition-all ${
-                selectedCoach.id === coach.id
-                  ? "border-elite-gold/50 bg-elite-gold/5"
-                  : "hover:border-border/50"
-              }`}
-            >
+          {assignedMentor ? (
+            <div className="glass-card p-6 text-left border-elite-gold/50 bg-elite-gold/5">
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 rounded-full bg-elite-gold/20 flex items-center justify-center flex-shrink-0">
                   <span className="text-xl font-medium text-elite-gold">
-                    {coach.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                    {assignedMentor.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                   </span>
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <h3 className="text-lg font-light">{coach.name}</h3>
-                    <Badge variant="outline" className="bg-elite-gold/10 text-elite-gold border-elite-gold/30">
-                      {coach.score}
-                    </Badge>
+                    <h3 className="text-lg font-light">{assignedMentor.name}</h3>
+                    {assignedMentor.ielts_score_display && (
+                      <Badge variant="outline" className="bg-elite-gold/10 text-elite-gold border-elite-gold/30">
+                        {assignedMentor.ielts_score_display}
+                      </Badge>
+                    )}
                   </div>
-                  <p className="text-sm text-elite-gold mt-0.5">{coach.title}</p>
-                  <p className="text-sm text-foreground/70 mt-2">{coach.bio}</p>
+                  <p className="text-sm text-elite-gold mt-0.5">{assignedMentor.title}</p>
+                  {assignedMentor.bio && <p className="text-sm text-foreground/70 mt-2">{assignedMentor.bio}</p>}
                   <div className="flex flex-wrap gap-1.5 mt-3">
-                    {coach.focus.map((f) => (
+                    {assignedMentor.focus_areas.map((f) => (
                       <Badge key={f} variant="outline" className="text-xs">
                         {f}
                       </Badge>
@@ -156,7 +179,14 @@ export default function ConsultationHub() {
                 </div>
               </div>
             </div>
-          ))}
+          ) : (
+            <div className="glass-card p-6 text-center border-dashed">
+              <p className="text-sm text-foreground/80 font-medium">Your mentor hasn't been assigned yet</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                We're setting you up with a coach — check back soon, or message us on WhatsApp below if you'd like to follow up.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Booking */}
@@ -178,7 +208,7 @@ export default function ConsultationHub() {
             ))}
           </ul>
           <a
-            href={buildWhatsAppLink(waMessage)}
+            href={buildWhatsAppLink(waMessage, assignedMentor?.whatsapp_number)}
             target="_blank"
             rel="noopener noreferrer"
             className="block"
