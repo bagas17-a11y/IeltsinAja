@@ -7,7 +7,6 @@ import {
   Calendar,
   Crown,
   Lock,
-  Clock,
   MessageCircle,
   CheckCircle2,
   CalendarClock,
@@ -26,13 +25,6 @@ interface AssignedMentor {
   focus_areas: string[];
   whatsapp_number: string;
 }
-
-const roadmap = [
-  { week: "Week 1-2", focus: "Diagnose", tasks: "Take the diagnostic, identify your two weakest skills." },
-  { week: "Week 3-4", focus: "Build", tasks: "AI-graded daily writing, targeted listening drills." },
-  { week: "Week 5-6", focus: "Refine", tasks: "1-on-1 review sessions on your essays + speaking recordings." },
-  { week: "Week 7-8", focus: "Mock", tasks: "Full-section mock under timed conditions, dry run with your coach." },
-];
 
 export default function ConsultationHub() {
   const { user, profile } = useAuth();
@@ -225,34 +217,6 @@ export default function ConsultationHub() {
           <p className="text-xs text-muted-foreground text-center mt-3">
             We aim to confirm your slot within a few hours during Jakarta business hours.
           </p>
-        </div>
-
-        {/* Roadmap */}
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-light mb-2 flex items-center gap-2">
-            <Crown className="w-5 h-5 text-elite-gold" />
-            Sample 8-week roadmap
-          </h2>
-          <p className="text-muted-foreground mb-6 text-sm">
-            Your coach will tailor this to your diagnostic results during your first call.
-          </p>
-          <div className="space-y-3">
-            {roadmap.map((phase, i) => (
-              <div key={i} className="flex items-start gap-4 p-4 bg-secondary/20 rounded-xl">
-                <div className="w-10 h-10 rounded-xl bg-elite-gold/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-medium text-elite-gold">{i + 1}</span>
-                </div>
-                <div>
-                  <p className="text-sm text-elite-gold flex items-center gap-2">
-                    {phase.week}
-                    <Clock className="w-3 h-3" />
-                  </p>
-                  <p className="font-light text-foreground">{phase.focus}</p>
-                  <p className="text-xs text-muted-foreground">{phase.tasks}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </DashboardLayout>

@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
   Layers,
@@ -45,11 +43,6 @@ const sectionPractice = [
   { id: "writing",   title: "Writing",   description: "Task 1 + Task 2 with band-score feedback and Band 8 rewrites.",     time: "60 min",     route: "/dashboard/writing",   icon: PenTool    },
   { id: "speaking",  title: "Speaking",  description: "Parts 1–3 with AI fluency analysis on your recorded answer.",       time: "11–14 min",  route: "/dashboard/speaking",  icon: Mic        },
 ];
-
-const coaches = [
-  { name: "Bagas H. Wicaksono", title: "Founder & lead coach", specialization: "Writing & Speaking strategy", score: "IELTS 8.5" },
-];
-
 
 export default function EliteHubPage() {
   const { user, profile } = useAuth();
@@ -470,26 +463,7 @@ export default function EliteHubPage() {
 
           {/* Consultation */}
           <TabsContent value="consultation" className="mt-7 focus-visible:outline-none">
-            <div className="grid md:grid-cols-2 gap-5">
-              {coaches.map((c) => (
-                <div key={c.name} className="rounded-xl border border-border bg-card p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <Avatar className="h-14 w-14 border-2 border-elite-gold/20">
-                      <AvatarFallback className="bg-elite-gold/10 text-elite-gold text-sm font-medium">
-                        {c.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">{c.title}</p>
-                      <p className="text-xs text-muted-foreground">{c.specialization}</p>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="bg-elite-gold/10 text-elite-gold border-elite-gold/20 text-xs">
-                    {c.score}
-                  </Badge>
-                </div>
-              ))}
+            <div className="max-w-md mx-auto">
               <div className="rounded-xl border border-border bg-card p-6 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
