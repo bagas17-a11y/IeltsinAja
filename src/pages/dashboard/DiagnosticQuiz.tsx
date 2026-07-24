@@ -647,12 +647,16 @@ export default function DiagnosticQuiz() {
 
     if (user) {
       try {
-        await Promise.all([
-          // NOTE: previously also updated profiles.current_band_score / study_plan_tier
-          // here, but neither column exists on the profiles table — that update was
-          // silently failing every time (swallowed by this try/catch). Removed rather
-          // than fixed, since nothing reads those column names; StudyPlanPage.tsx
-          // derives the tier from user_progress + diagnosticBand instead (see below).
+        // NOTE: previously also updated profiles.current_band_score / study_plan_tier
+        // here, but neither column exists on the profiles table — that update was
+        // silently failing every time (swallowed by this try/catch). Removed rather
+        // than fixed, since nothing reads those column names; StudyPlanPage.tsx
+        // derives the tier from user_progress + diagnosticBand instead (see below).
+        //
+        // supabase-js resolves insert() to { data, error } instead of throwing on a
+        // Postgres error, so a try/catch alone never sees a constraint violation —
+        // the .error field has to be checked explicitly or failures are invisible.
+        const [diagResult] = await Promise.all([
           supabase.from("diagnostic_results").insert({
             user_id: user.id,
             overall_band: overall,
@@ -689,11 +693,16 @@ export default function DiagnosticQuiz() {
             metadata: { tier, readingBand: rBand, listeningBand: lBand, writingBand: wBand, speakingBand: sBand },
           }),
         ]);
+        if (diagResult.error) {
+          console.error("diagnostic_results insert failed:", diagResult.error);
+        }
         setViewingSavedResult(false);
         setPastResultTakenAt(new Date().toISOString());
         if (user.id) { try { sessionStorage.removeItem(diagnosticCacheKey(user.id)); } catch { /* non-fatal */ } }
         await refreshProfile();
-      } catch { /* non-fatal */ }
+      } catch (e) {
+        console.error("Diagnostic result save error:", e);
+      }
     }
     setSubmitting(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
